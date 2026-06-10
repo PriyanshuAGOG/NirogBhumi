@@ -39,7 +39,7 @@
   <!-- 5 CAUSE BOXES: width=120, gap=8, start x=24, centres: 84,212,340,468,596 -->
 
   <g class="node c-coral" data-flow-node tabindex="0" role="button">
-    <rect x="24" y="46" width="120" height="52" rx="8" stroke-width="0.5"/>
+    <rect x="24" y="46" width="120" height="64" rx="8" stroke-width="0.5"/>
     <text class="th" x="84" y="66" text-anchor="middle" dominant-baseline="central">Stress</text>
     <text class="ts" x="84" y="84" text-anchor="middle" dominant-baseline="central">Cortisol raises glucose</text>
   </g>
@@ -56,12 +56,12 @@
     <text class="ts" x="340" y="95" text-anchor="middle" dominant-baseline="central">output</text>
   </g>
   <g class="node c-purple" data-flow-node tabindex="0" role="button">
-    <rect x="408" y="46" width="120" height="52" rx="8" stroke-width="0.5"/>
+    <rect x="408" y="46" width="120" height="64" rx="8" stroke-width="0.5"/>
     <text class="th" x="468" y="66" text-anchor="middle" dominant-baseline="central">Sleep imbalance</text>
     <text class="ts" x="468" y="84" text-anchor="middle" dominant-baseline="central">Disrupts hormones</text>
   </g>
   <g class="node c-pink" data-flow-node tabindex="0" role="button">
-    <rect x="536" y="46" width="120" height="52" rx="8" stroke-width="0.5"/>
+    <rect x="536" y="46" width="120" height="64" rx="8" stroke-width="0.5"/>
     <text class="th" x="596" y="66" text-anchor="middle" dominant-baseline="central">UPFs / animal</text>
     <text class="ts" x="596" y="84" text-anchor="middle" dominant-baseline="central">Gut damage, spikes</text>
   </g>
@@ -69,9 +69,9 @@
   <!-- Arrows to chronic inflammation: x=160,width=360,y=182,height=52,mid-y=208 -->
   <line x1="212" y1="110" x2="212" y2="182" stroke="#BA7517" stroke-width="1.5" marker-end="url(#arr)"/>
   <line x1="340" y1="110" x2="340" y2="182" stroke="#A32D2D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="468" y1="98"  x2="468" y2="182" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
-  <path d="M84 98  L84 208  L160 208" fill="none" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr)"/>
-  <path d="M596 98 L596 208 L520 208" fill="none" stroke="#D4537E" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="468" y1="110"  x2="468" y2="182" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M84 110 L84 208  L160 208" fill="none" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M596 110 L596 208 L520 208" fill="none" stroke="#D4537E" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <g class="node c-red" data-flow-node tabindex="0" role="button">
     <rect x="160" y="182" width="360" height="52" rx="8" stroke-width="0.5"/>
@@ -90,17 +90,17 @@
   <text class="ts" x="340" y="364" text-anchor="middle">Click any box for a brief 3–4 line summary</text>
 
   <!-- CHAIN 1: Stress coral — col x=20..175 c=97 -->
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="400" text-anchor="middle" dominant-baseline="central">Stress</text></g>
-  <line x1="97" y1="422" x2="97" y2="442" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="442" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="462" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="97" y="480" text-anchor="middle" dominant-baseline="central">Calms nervous system</text></g>
-  <line x1="97" y1="494" x2="97" y2="514" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="514" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="534" text-anchor="middle" dominant-baseline="central">Yoga Nidra</text><text class="ts" x="97" y="552" text-anchor="middle" dominant-baseline="central">Deep nervous reset</text></g>
-  <line x1="97" y1="566" x2="97" y2="586" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="586" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="606" text-anchor="middle" dominant-baseline="central">Food regulation</text><text class="ts" x="97" y="624" text-anchor="middle" dominant-baseline="central">Anti-inflammatory diet</text></g>
-  <line x1="97" y1="638" x2="97" y2="658" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="658" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="97" y="675" text-anchor="middle" dominant-baseline="central">Sleep regulation</text><text class="ts" x="97" y="692" text-anchor="middle" dominant-baseline="central">Lowers cortisol;</text><text class="ts" x="97" y="708" text-anchor="middle" dominant-baseline="central">balances ghrelin + leptin</text></g>
-  <line x1="97" y1="722" x2="97" y2="742" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="742" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="762" text-anchor="middle" dominant-baseline="central">Gut cleansing</text><text class="ts" x="97" y="780" text-anchor="middle" dominant-baseline="central">Naturopathy protocols</text></g>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="404" text-anchor="middle" dominant-baseline="central">Stress</text></g>
+  <line x1="97" y1="430" x2="97" y2="450" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="450" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="470" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="97" y="488" text-anchor="middle" dominant-baseline="central">Calms nervous system</text></g>
+  <line x1="97" y1="502" x2="97" y2="522" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="522" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="542" text-anchor="middle" dominant-baseline="central">Yoga Nidra</text><text class="ts" x="97" y="560" text-anchor="middle" dominant-baseline="central">Deep nervous reset</text></g>
+  <line x1="97" y1="574" x2="97" y2="594" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="594" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="614" text-anchor="middle" dominant-baseline="central">Food regulation</text><text class="ts" x="97" y="632" text-anchor="middle" dominant-baseline="central">Anti-inflammatory diet</text></g>
+  <line x1="97" y1="646" x2="97" y2="666" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="666" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="684" text-anchor="middle" dominant-baseline="central">Sleep regulation</text><text class="ts" x="97" y="701" text-anchor="middle" dominant-baseline="central">Lowers cortisol;</text><text class="ts" x="97" y="714" text-anchor="middle" dominant-baseline="central">balances ghrelin + leptin</text></g>
+  <line x1="97" y1="718" x2="97" y2="738" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="738" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="97" y="758" text-anchor="middle" dominant-baseline="central">Gut cleansing</text><text class="ts" x="97" y="776" text-anchor="middle" dominant-baseline="central">Naturopathy protocols</text></g>
 
   <!-- CHAIN 2: Ectopic fat amber — col x=186..341 c=263 -->
   <g class="node c-amber" data-flow-node tabindex="0" role="button"><rect x="186" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="263" y="396" text-anchor="middle" dominant-baseline="central">Ectopic fat</text><text class="ts" x="263" y="414" text-anchor="middle" dominant-baseline="central">+ Beta cell dysfunction</text></g>
@@ -114,22 +114,22 @@
   <g class="node c-amber" data-flow-node tabindex="0" role="button"><rect x="186" y="666" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="263" y="686" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="263" y="704" text-anchor="middle" dominant-baseline="central">Reduces food cravings</text></g>
 
   <!-- CHAIN 3: Sleep purple — col x=352..507 c=429 -->
-  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="400" text-anchor="middle" dominant-baseline="central">Sleep imbalance</text></g>
-  <line x1="429" y1="422" x2="429" y2="442" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="442" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="462" text-anchor="middle" dominant-baseline="central">Habit tracking</text><text class="ts" x="429" y="480" text-anchor="middle" dominant-baseline="central">Corrects sleep cycle</text></g>
-  <line x1="429" y1="494" x2="429" y2="514" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="514" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="534" text-anchor="middle" dominant-baseline="central">Early light dinner</text><text class="ts" x="429" y="552" text-anchor="middle" dominant-baseline="central">Aids circadian rhythm</text></g>
-  <line x1="429" y1="566" x2="429" y2="586" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="586" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="429" y="606" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="429" y="622" text-anchor="middle" dominant-baseline="central">Activates parasympathetic</text><text class="ts" x="429" y="638" text-anchor="middle" dominant-baseline="central">nervous system</text></g>
+  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="404" text-anchor="middle" dominant-baseline="central">Sleep imbalance</text></g>
+  <line x1="429" y1="430" x2="429" y2="450" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="450" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="470" text-anchor="middle" dominant-baseline="central">Habit tracking</text><text class="ts" x="429" y="488" text-anchor="middle" dominant-baseline="central">Corrects sleep cycle</text></g>
+  <line x1="429" y1="502" x2="429" y2="522" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="522" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="542" text-anchor="middle" dominant-baseline="central">Early light dinner</text><text class="ts" x="429" y="560" text-anchor="middle" dominant-baseline="central">Aids circadian rhythm</text></g>
+  <line x1="429" y1="574" x2="429" y2="594" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="594" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="429" y="612" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="429" y="628" text-anchor="middle" dominant-baseline="central">Activates parasympathetic</text><text class="ts" x="429" y="641" text-anchor="middle" dominant-baseline="central">nervous system</text></g>
 
   <!-- CHAIN 4: UPFs pink — col x=518..673 c=595 -->
-  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="378" width="145" height="52" rx="8" stroke-width="0.5"/><text class="th" x="590" y="396" text-anchor="middle" dominant-baseline="central">UPFs / animal</text><text class="ts" x="590" y="414" text-anchor="middle" dominant-baseline="central">foods</text></g>
-  <line x1="590" y1="430" x2="590" y2="450" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="450" width="145" height="52" rx="8" stroke-width="0.5"/><text class="th" x="590" y="470" text-anchor="middle" dominant-baseline="central">Habit transformation</text><text class="ts" x="590" y="488" text-anchor="middle" dominant-baseline="central">Reduces UPF intake</text></g>
-  <line x1="590" y1="502" x2="590" y2="522" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="522" width="145" height="52" rx="8" stroke-width="0.5"/><text class="th" x="590" y="542" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="590" y="560" text-anchor="middle" dominant-baseline="central">Breaks craving patterns</text></g>
-  <line x1="590" y1="574" x2="590" y2="594" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
-  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="594" width="145" height="52" rx="8" stroke-width="0.5"/><text class="th" x="590" y="614" text-anchor="middle" dominant-baseline="central">Plant-based shift</text><text class="ts" x="590" y="632" text-anchor="middle" dominant-baseline="central">Whole foods, high fibre</text></g>
+  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="378" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="595" y="396" text-anchor="middle" dominant-baseline="central">UPFs / animal</text><text class="ts" x="595" y="414" text-anchor="middle" dominant-baseline="central">foods</text></g>
+  <line x1="595" y1="430" x2="595" y2="450" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="450" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="595" y="470" text-anchor="middle" dominant-baseline="central">Habit transformation</text><text class="ts" x="595" y="488" text-anchor="middle" dominant-baseline="central">Reduces UPF intake</text></g>
+  <line x1="595" y1="502" x2="595" y2="522" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="522" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="595" y="542" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="595" y="560" text-anchor="middle" dominant-baseline="central">Breaks craving patterns</text></g>
+  <line x1="595" y1="574" x2="595" y2="594" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
+  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="594" width="155" height="52" rx="8" stroke-width="0.5"/><text class="th" x="595" y="614" text-anchor="middle" dominant-baseline="central">Plant-based shift</text><text class="ts" x="595" y="632" text-anchor="middle" dominant-baseline="central">Whole foods, high fibre</text></g>
 
   <!-- CONVERGENCE to reduced inflammation
        Chain1 bottom y=794, Chain2 bottom y=718, Chain3 bottom y=650, Chain4 bottom y=646
@@ -137,7 +137,7 @@
   <path d="M97 794  L97 826  L160 826" fill="none" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arr)"/>
   <line x1="263" y1="718" x2="263" y2="800" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)"/>
   <line x1="429" y1="650" x2="429" y2="800" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
-  <path d="M590 646 L590 826 L520 826" fill="none" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M595 646 L590 826 L520 826" fill="none" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <g class="node c-teal" data-flow-node tabindex="0" role="button">
     <rect x="160" y="800" width="360" height="52" rx="8" stroke-width="0.5"/>
