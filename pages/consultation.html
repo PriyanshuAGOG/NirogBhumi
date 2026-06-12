@@ -15,21 +15,20 @@
   <nav data-menu><a href="../programmes/index.html">Our Programs</a><a href="../store/index.html">Store</a><a href="../education/index.html">Education</a></nav>
   <a class="book" href="../pages/consultation.html">Book Consultation</a>
 </header>
-    <main><section class="consult-hero refined">
-  <div><figure class="image-mask"><img src="../assets/img/yoga-backbend.png" alt="Guided yoga therapy practice at Nirog Bhumi" width="733" height="1100"></figure></div>
-  <div><p class="eyebrow">Book consultation</p><h1>A calm first step before any program.</h1><p>The consultation is designed to understand your diabetes history, reports, medicines, food rhythm, stress, sleep, digestion, body capacity and goals before recommending a responsible path.</p><div class="hero-buttons"><a class="pill primary" href="consultation-intake.html">Start Intake Form</a><a class="pill ghost" href="../programmes/index.html">Explore Programs</a></div></div>
+    <main><section class="hero consultation-simple-hero">
+  <div><figure class="hero-visual consultation-hero-visual"><img src="../assets/img/yoga-backbend.png" alt="Nirog Bhumi consultation" width="733" height="1100"></figure></div>
+  <div class="hero-copy"><h1>Book Consultation</h1><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
 </section>
-<section class="booking-flow">
-  <article><span>01</span><h2>Health intake</h2><p>You submit your diabetes details, reports context, medicines, lifestyle rhythm and main concerns.</p></article>
-  <article><span>02</span><h2>Booking payment</h2><p>After intake, the booking amount is paid through a WooCommerce-ready payment page.</p></article>
-  <article><span>03</span><h2>Calendar slot</h2><p>After payment, you select a preferred consultation slot from the calendar booking page.</p></article>
-</section>
-<section class="consult-cards premium-consult">
-  <article><h2>What we study</h2><p>HbA1c, fasting and post-meal sugar, medicines, insulin, weight, waist, cravings, sleep, stress, digestion, food timing and daily constraints.</p></article>
-  <article><h2>What you receive</h2><p>A practical direction for food rhythm, yoga therapy, walking, breathwork, program readiness and safety conversations with your doctor.</p></article>
-  <article><h2>What we do not do</h2><p>We do not ask you to stop medication on your own. Lifestyle change must stay responsible, especially with insulin or hypoglycaemia risk.</p></article>
-</section>
-<section class="booking-panel refined"><h2>Begin with the intake form.</h2><p>This keeps the consultation focused and makes the booking flow ready for WordPress, WooCommerce payments and calendar integration.</p><div class="hero-buttons center"><a class="pill light" href="consultation-intake.html">Start Intake Form</a><a class="pill outline" href="medical-disclaimer.html">Read Medical Disclaimer</a></div></section></main>
+<section id="consultation-form" class="consultation-form-wrap">
+  <form class="consultation-booking-form" data-demo-form data-redirect="consultation-payment.html">
+    <fieldset><legend>Personal details</legend><div><label>Full name<input required name="name" autocomplete="name"></label><label>Email<input required type="email" name="email" autocomplete="email"></label><label>Phone / WhatsApp<input required name="phone" autocomplete="tel"></label></div></fieldset>
+    <fieldset><legend>Diabetes details</legend><div><label>Primary concern<select required name="concern"><option>Type 2 diabetes</option><option>Pre-diabetes</option><option>Insulin resistance</option><option>Weight and sugar control</option><option>General consultation</option></select></label><label>Latest HbA1c / fasting sugar<input name="reports" placeholder="Example: HbA1c 8.2, fasting 145"></label><label>Current medicines or insulin<textarea rows="4" name="medicines" placeholder="Medicine names, insulin, dose if comfortable sharing"></textarea></label></div></fieldset>
+    <fieldset><legend>Daily rhythm</legend><div><label>Food timing<textarea rows="4" name="food" placeholder="Wake time, meals, snacks, tea, late-night eating"></textarea></label><label>Sleep, stress and activity<textarea rows="4" name="lifestyle" placeholder="Sleep time, stress level, walking, yoga, work hours"></textarea></label><label>Main goal<textarea rows="4" name="goal" placeholder="What do you want help with first?"></textarea></label></div></fieldset>
+    <fieldset><legend>Consent</legend><label class="check"><input required type="checkbox" name="consent"> I understand this is not emergency care and medication changes must be discussed with my doctor.</label></fieldset>
+    <button class="pill primary" type="submit">Continue to Pay Rs. 500</button>
+    <p data-form-status></p>
+  </form>
+</section></main>
     <footer class="nb-footer">
   <div class="footer-mark">
     <img src="../assets/img/nirog-bhumi-logo.png" alt="">

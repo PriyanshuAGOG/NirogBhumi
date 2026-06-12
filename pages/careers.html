@@ -15,21 +15,13 @@
   <nav data-menu><a href="../programmes/index.html">Our Programs</a><a href="../store/index.html">Store</a><a href="../education/index.html">Education</a></nav>
   <a class="book" href="../pages/consultation.html">Book Consultation</a>
 </header>
-    <main><section class="career-page simple-career">
-  <div class="career-note">
-    <p class="eyebrow">Careers</p>
-    <h1>Thank you for showing interest in working with Nirog Bhumi.</h1>
-    <p>We do not have any active openings right now. You can drop your resume for future openings, and we will contact you if a suitable role comes up.</p>
-    <a class="pill primary" href="#resume">Drop Resume</a>
-  </div>
-  <form id="resume" class="career-form" data-demo-form>
-    <label>Full name<input required name="name" autocomplete="name"></label>
-    <label>Email<input required type="email" name="email" autocomplete="email"></label>
-    <label>Phone / WhatsApp<input name="phone" autocomplete="tel"></label>
-    <label>Area of interest<select name="interest"><option>Yoga and wellness</option><option>Nutrition and food programs</option><option>Operations</option><option>Content and education</option><option>Technology and WordPress</option><option>General application</option></select></label>
-    <label>Resume<input type="file" name="resume" accept=".pdf,.doc,.docx"></label>
-    <label>Short note<textarea rows="4" name="message" placeholder="Tell us how you would like to contribute."></textarea></label>
-    <button class="pill primary" type="submit">Drop Resume</button>
+    <main><section class="career-thankyou">
+  <p class="eyebrow">Careers</p>
+  <h1>Thank you</h1>
+  <p>Thank you for showing interest in working with Nirog Bhumi. We do not have any active openings right now, but you can drop your resume for future opportunities.</p>
+  <form class="resume-upload" data-demo-form data-success="Thank you. Your resume has been received for future openings.">
+    <label><span>Upload resume</span><input required type="file" name="resume" accept=".pdf,.doc,.docx"></label>
+    <button class="pill primary" type="submit">Submit Resume</button>
     <p data-form-status></p>
   </form>
 </section></main>
