@@ -8,9 +8,20 @@
   <meta name="theme-color" content="#f8f6ef">
   <link rel="canonical" href="https://nirogbhumi.com/pages/consultation.html">
   <title>Book Consultation | Nirog Bhumi</title>
-  <link rel="preload" href="../assets/css/styles.css" as="style">
-  <link rel="preload" href="../assets/img/nirog-bhumi-logo.png" as="image">
-  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="preload" href="../assets/img/yoga-backbend-lcp.jpg" as="image" fetchpriority="high" imagesrcset="../assets/img/yoga-backbend-thumb.jpg 360w, ../assets/img/yoga-backbend-lcp.jpg 520w" imagesizes="(max-width: 900px) 360px, 480px">
+
+  <style>
+  :root{--paper:#f8f6ef;--dark:#314936;--ink:#182219;--line:#ddd7c8;--soft:#efeadf}
+  *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Arial,sans-serif}.page-frame{min-height:100vh}
+  .nb-header{min-height:64px;padding:10px clamp(16px,4vw,46px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;background:rgba(248,246,239,.96);border-bottom:1px solid var(--line)}
+  .brand img{width:150px;height:auto;display:block}.nb-header nav{justify-self:center;display:flex;gap:clamp(16px,3vw,38px)}.nb-header a{color:var(--dark);text-decoration:none}.book,.pill{min-height:44px;padding:0 20px;border:1px solid var(--dark);border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-weight:800}.primary,.book{background:var(--dark);color:#fff!important}
+  .menu{display:none}.hero{display:grid;grid-template-columns:minmax(300px,1.05fr) minmax(0,.95fr);align-items:center;gap:clamp(18px,4vw,56px);padding:clamp(12px,2vw,28px) clamp(18px,6vw,72px) clamp(34px,5vw,58px)}
+  .hero-visual{margin:0 auto;width:min(480px,100%);height:clamp(300px,46vw,500px);display:grid;place-items:center;overflow:hidden}.hero-visual img{width:96%;height:96%;object-fit:contain;object-position:center;display:block}
+  .hero-copy h1{font-family:Georgia,serif;font-size:clamp(58px,8vw,104px);line-height:.95;margin:0;color:var(--ink);font-weight:400}.consult-founder-line{max-width:520px;margin:18px 0 0;color:var(--dark);font-size:clamp(15px,1.55vw,18px);line-height:1.7}.hero-actions{margin-top:26px}
+  @media(max-width:900px){.nb-header{grid-template-columns:auto 1fr auto}.nb-header nav,.nb-header>.book{display:none}.menu{display:block;grid-column:3}.brand img{width:138px}.hero{grid-template-columns:1fr;padding-inline:14px}.hero-visual{max-width:360px;aspect-ratio:4/3.8;height:auto;order:1}.hero-copy{order:2}.hero-copy h1{font-size:clamp(44px,12vw,62px)}}
+  </style>
+  <link rel="preload" href="../assets/css/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="../assets/css/styles.css"></noscript>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Nirog Bhumi">
   <meta property="og:title" content="Book Consultation | Nirog Bhumi">
@@ -25,13 +36,13 @@
 <body>
   <div class="page-frame">
     <header class="nb-header">
-  <a class="brand" href="../index.html" aria-label="Nirog Bhumi home"><img loading="lazy" decoding="async" src="../assets/img/nirog-bhumi-logo.png" alt="Nirog Bhumi"></a>
+  <a class="brand" href="../index.html" aria-label="Nirog Bhumi home"><img src="../assets/img/nirog-bhumi-logo.png" alt="Nirog Bhumi" width="300" height="69" loading="eager" decoding="async"></a>
   <button class="menu" type="button" aria-label="Open menu" data-menu-toggle><span></span><span></span></button>
   <nav data-menu><a href="../programmes/index.html">Our Programs</a><a href="../store/index.html">Store</a><a href="../education/index.html">Education</a><a class="mobile-book" href="../pages/consultation.html">Book Consultation</a></nav>
   <a class="book" href="../pages/consultation.html">Book Consultation</a>
 </header>
     <main><section class="hero consultation-simple-hero">
-  <div><figure class="hero-visual consultation-hero-visual"><img loading="lazy" decoding="async" src="../assets/img/yoga-backbend-opt.jpg" alt="Nirog Bhumi consultation" width="733" height="1100"></figure></div>
+  <div><figure class="hero-visual consultation-hero-visual"><img src="../assets/img/yoga-backbend-lcp.jpg" srcset="../assets/img/yoga-backbend-thumb.jpg 360w, ../assets/img/yoga-backbend-lcp.jpg 520w" sizes="(max-width: 900px) 360px, 480px" alt="Nirog Bhumi consultation" width="520" height="780" loading="eager" decoding="async" fetchpriority="high"></figure></div>
   <div class="hero-copy"><h1>Book Consultation</h1><p class="consult-founder-line">30-minute consultation with founder Gautam Khandelwal, bringing 25 years of experience in naturopathy and natural healing.</p><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
 </section>
 <section id="consultation-form" class="consultation-form-wrap">
@@ -48,7 +59,7 @@
 </section></main>
     <footer class="nb-footer">
   <div class="footer-mark">
-    <img loading="lazy" decoding="async" src="../assets/img/nirog-bhumi-logo.png" alt="">
+    <img src="../assets/img/nirog-bhumi-logo.png" alt="" width="300" height="69" loading="lazy" decoding="async">
   </div>
   <div class="footer-links"><div><h3>Care</h3><a href="../programmes/6-month-healing.html">6-Month Program</a><a href="../programmes/yoga-programme.html">Yoga Program</a><a href="../pages/consultation.html">Consultation</a><a href="../programmes/interest-form.html">Interest Form</a></div><div><h3>Store</h3><a href="../store/index.html">Shop</a><a href="../store/cart.html">Cart</a><a href="../store/checkout.html">Checkout</a><a href="../store/my-account.html">My Account</a></div><div><h3>Nirog Bhumi</h3><a href="../pages/about.html">About</a><a href="../pages/approach.html">Approach</a><a href="../education/index.html">Education</a><a href="../pages/mission.html">Mission</a><a href="../pages/careers.html">Careers</a></div><div><h3>Support</h3><a href="../pages/faqs.html">FAQs</a><a href="../pages/terms-and-conditions.html">Terms</a><a href="../pages/privacy-policy.html">Privacy</a><a href="../pages/medical-disclaimer.html">Medical Disclaimer</a></div></div>
   <p class="fine">Wellness education only. Nirog Bhumi does not replace medical advice, diagnosis or treatment. Speak with your doctor before changing medication, diet or activity.</p>
