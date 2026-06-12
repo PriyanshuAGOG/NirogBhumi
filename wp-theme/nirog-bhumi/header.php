@@ -9,7 +9,7 @@
 <?php wp_body_open(); ?>
 <div class="page-frame">
 <header class="nb-header">
-  <a class="brand" href="<?php echo esc_url(home_url('/')); ?>"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img-logo.png'); ?>" alt="<?php bloginfo('name'); ?>"></a>
+  <a class="brand" href="<?php echo esc_url(home_url('/')); ?>"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img-logo.png'); ?>" alt="<?php bloginfo('name'); ?>" width="300" height="69" loading="eager" decoding="async"></a>
   <button class="menu" type="button" aria-label="Open menu" data-menu-toggle><span></span><span></span></button>
   <nav data-menu><?php wp_nav_menu(['theme_location'=>'primary','container'=>false,'fallback_cb'=>false,'items_wrap'=>'%3$s']); ?><a class="mobile-book" href="<?php echo esc_url(home_url('/consultation/')); ?>">Book Consultation</a></nav>
   <a class="book" href="<?php echo esc_url(home_url('/consultation/')); ?>">Book Consultation</a>
