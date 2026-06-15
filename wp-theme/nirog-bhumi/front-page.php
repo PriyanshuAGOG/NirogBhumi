@@ -52,7 +52,7 @@ get_header(); ?>
   </g>
   <g class="node c-pink" data-flow-node tabindex="0" role="button">
     <rect x="536" y="46" width="120" height="64" rx="8" stroke-width="0.5"/>
-    <text class="th" x="596" y="66" text-anchor="middle" dominant-baseline="central">Ultra-processed</text>
+    <text class="th" x="596" y="66" text-anchor="middle" dominant-baseline="central">Ultra-processed Foods</text>
     <text class="ts" x="596" y="84" text-anchor="middle" dominant-baseline="central">Gut damage, glucose spikes</text>
   </g>
 
@@ -93,7 +93,7 @@ get_header(); ?>
   <g class="node c-coral" data-flow-node tabindex="0" role="button"><rect x="20" y="738" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="97" y="758" text-anchor="middle" dominant-baseline="central">Gut cleansing</text><text class="ts" x="97" y="776" text-anchor="middle" dominant-baseline="central">Naturopathy protocols</text></g>
 
   <!-- CHAIN 2: Ectopic fat amber — col x=186..341 c=263 -->
-  <g class="node c-amber" data-flow-node tabindex="0" role="button"><rect x="186" y="378" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="263" y="396" text-anchor="middle" dominant-baseline="central">Ectopic fat</text><text class="ts" x="263" y="414" text-anchor="middle" dominant-baseline="central">+ Beta cell dysfunction</text></g>
+  <g class="node c-amber" data-flow-node tabindex="0" role="button"><rect x="186" y="378" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="263" y="396" text-anchor="middle" dominant-baseline="central">Ectopic fat</text><text class="th beta-dysfunction" x="263" y="414" text-anchor="middle" dominant-baseline="central">+ Beta cell dysfunction</text></g>
   <line x1="263" y1="430" x2="263" y2="450" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)"/>
   <g class="node c-amber" data-flow-node tabindex="0" role="button"><rect x="186" y="450" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="263" y="470" text-anchor="middle" dominant-baseline="central">Yoga + movement</text><text class="ts" x="263" y="488" text-anchor="middle" dominant-baseline="central">Burns ectopic fat deposits</text></g>
   <line x1="263" y1="502" x2="263" y2="522" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -113,7 +113,7 @@ get_header(); ?>
   <g class="node c-purple" data-flow-node tabindex="0" role="button"><rect x="352" y="594" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="429" y="612" text-anchor="middle" dominant-baseline="central">Meditation</text><text class="ts" x="429" y="628" text-anchor="middle" dominant-baseline="central">Activates parasympathetic</text><text class="ts" x="429" y="641" text-anchor="middle" dominant-baseline="central">nervous system</text></g>
 
   <!-- CHAIN 4: UPFs pink — col x=518..673 c=595 -->
-  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="378" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="595" y="396" text-anchor="middle" dominant-baseline="central">Ultra-processed</text><text class="ts" x="595" y="414" text-anchor="middle" dominant-baseline="central">foods</text></g>
+  <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="378" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="595" y="396" text-anchor="middle" dominant-baseline="central">Ultra-processed Foods</text><text class="ts" x="595" y="414" text-anchor="middle" dominant-baseline="central">foods</text></g>
   <line x1="595" y1="430" x2="595" y2="450" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
   <g class="node c-pink" data-flow-node tabindex="0" role="button"><rect x="518" y="450" width="155" height="64" rx="8" stroke-width="0.5"/><text class="th" x="595" y="470" text-anchor="middle" dominant-baseline="central">Habit Tracking</text><text class="ts" x="595" y="488" text-anchor="middle" dominant-baseline="central">Reduces UPF intake</text></g>
   <line x1="595" y1="502" x2="595" y2="522" stroke="#993556" stroke-width="1.5" marker-end="url(#arr)"/>
