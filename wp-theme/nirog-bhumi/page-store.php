@@ -4,7 +4,13 @@
  */
 get_header(); ?>
 <main>
-<section class="store-page-minimal">
+<section class="store-coming-soon">
+  <div>
+    <p class="eyebrow">Store</p>
+    <h1>Coming soon.</h1>
+  </div>
+</section>
+<section class="store-page-minimal store-hidden-content" aria-hidden="true">
   <section class="cure-kit-section">
     <div class="kit-viewport-card">
       <div class="cure-kit-copy"><p class="eyebrow">Nirog Bhumi Cure Kit</p><h1><span>Diabetes</span><span>Reversal Kit</span></h1><a class="pill primary" href="<?php echo esc_url(home_url('/cart/')); ?>">Buy Now</a></div>
