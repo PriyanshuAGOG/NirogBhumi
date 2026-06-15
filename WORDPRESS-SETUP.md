@@ -3,7 +3,9 @@
 This package contains a complete WordPress theme for the finished Nirog Bhumi frontend.
 
 Theme folder: `wp-theme/nirog-bhumi`  
-Uploadable zip: `nirog-bhumi-wordpress-theme.zip`
+Uploadable zip: `nirog-bhumi-theme-upload.zip`
+
+Important: upload only `nirog-bhumi-theme-upload.zip` in WordPress. Do not upload the full GitHub repository ZIP or the full static website folder ZIP, because WordPress will not find the theme stylesheet in those packages.
 
 ## 1. Install WordPress
 
@@ -21,7 +23,7 @@ Pretty permalinks are important because the theme templates are mapped to clean 
 1. In WordPress admin, go to `Appearance > Themes`.
 2. Click `Add New`.
 3. Click `Upload Theme`.
-4. Upload `nirog-bhumi-wordpress-theme.zip`.
+4. Upload `nirog-bhumi-theme-upload.zip`.
 5. Click `Install Now`.
 6. Click `Activate`.
 
@@ -279,4 +281,3 @@ Before any update:
 - Static demo forms must be replaced with a real WordPress form plugin before launch.
 - Do not edit WordPress core files.
 - Keep a child theme only if another developer will make frequent live edits.
-
