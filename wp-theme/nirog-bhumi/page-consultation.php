@@ -5,7 +5,7 @@
 get_header(); ?>
 <main>
 <section class="hero consultation-simple-hero">
-  <div><figure class="hero-visual consultation-hero-visual consultation-photo-visual consultation-cutout-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-founder-cutout.png'); ?>" alt="Founder-led Nirog Bhumi consultation" width="586" height="600"></figure></div>
+  <div><figure class="hero-visual consultation-hero-visual consultation-photo-visual consultation-cutout-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-founder-cutout.png'); ?>" alt="Founder-led Nirog Bhumi consultation" width="918" height="620"></figure></div>
   <div class="hero-copy"><h1>Book Consultation</h1><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
 </section>
 <section class="consultation-founder-strip">
