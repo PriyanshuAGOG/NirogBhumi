@@ -127,7 +127,7 @@ Concern: %s
 View in WordPress dashboard: %s", $name, $email, $phone, $fields['concern'], admin_url('post.php?post=' . $post_id . '&action=edit')));
   }
 
-  wp_safe_redirect(add_query_arg('consultation_saved', '1', home_url('/consultation-calendar/')));
+  wp_safe_redirect(add_query_arg('consultation_saved', '1', home_url('/consultation-payment/')));
   exit;
 }
 add_action('admin_post_nopriv_nirog_consultation_submit', 'nirog_bhumi_handle_consultation_form');
