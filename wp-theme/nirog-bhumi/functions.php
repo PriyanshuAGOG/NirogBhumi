@@ -195,3 +195,152 @@ function nirog_bhumi_consultation_column_content($column, $post_id) {
   }
 }
 add_action('manage_nb_consultation_posts_custom_column', 'nirog_bhumi_consultation_column_content', 10, 2);
+
+function nirog_bhumi_register_form_entries() {
+  register_post_type('nb_form_entry', [
+    'labels' => [
+      'name' => __('Form Entries', 'nirog-bhumi'),
+      'singular_name' => __('Form Entry', 'nirog-bhumi'),
+      'menu_name' => __('Form Entries', 'nirog-bhumi'),
+    ],
+    'public' => false,
+    'show_ui' => true,
+    'show_in_menu' => true,
+    'menu_icon' => 'dashicons-feedback',
+    'supports' => ['title'],
+  ]);
+}
+add_action('init', 'nirog_bhumi_register_form_entries');
+
+function nirog_bhumi_handle_form_entry() {
+  if (!isset($_POST['nirog_form_entry_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nirog_form_entry_nonce'])), 'nirog_form_entry_submit')) {
+    wp_die(esc_html__('Security check failed. Please go back and submit the form again.', 'nirog-bhumi'));
+  }
+
+  $form_type = nirog_bhumi_clean_field('form_type') ?: 'Website form';
+  $name = nirog_bhumi_clean_field('name');
+  $email = sanitize_email(nirog_bhumi_clean_field('email'));
+  $phone = nirog_bhumi_clean_field('phone');
+  $title_name = $name ?: ($email ?: __('Website entry', 'nirog-bhumi'));
+
+  $post_id = wp_insert_post([
+    'post_type' => 'nb_form_entry',
+    'post_status' => 'private',
+    'post_title' => sprintf('%s - %s - %s', $form_type, $title_name, current_time('d M Y H:i')),
+  ]);
+
+  if (is_wp_error($post_id) || !$post_id) {
+    wp_die(esc_html__('Could not save the form entry. Please try again.', 'nirog-bhumi'));
+  }
+
+  update_post_meta($post_id, 'form_type', $form_type);
+  foreach ($_POST as $key => $value) {
+    if (in_array($key, ['action', 'nirog_form_entry_nonce', '_wp_http_referer'], true)) {
+      continue;
+    }
+    $clean_key = sanitize_key($key);
+    if (is_array($value)) {
+      update_post_meta($post_id, $clean_key, array_map('sanitize_text_field', wp_unslash($value)));
+    } else {
+      update_post_meta($post_id, $clean_key, sanitize_textarea_field(wp_unslash($value)));
+    }
+  }
+
+  foreach ($_FILES as $field => $file_group) {
+    if (empty($file_group['name'])) {
+      continue;
+    }
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+    $attachment_ids = [];
+    if (is_array($file_group['name'])) {
+      foreach ($file_group['name'] as $index => $filename) {
+        if (!$filename) {
+          continue;
+        }
+        $_FILES['nb_generic_upload'] = [
+          'name' => $file_group['name'][$index],
+          'type' => $file_group['type'][$index],
+          'tmp_name' => $file_group['tmp_name'][$index],
+          'error' => $file_group['error'][$index],
+          'size' => $file_group['size'][$index],
+        ];
+        $attachment_id = media_handle_upload('nb_generic_upload', $post_id);
+        if (!is_wp_error($attachment_id)) {
+          $attachment_ids[] = $attachment_id;
+        }
+      }
+    } else {
+      $attachment_id = media_handle_upload($field, $post_id);
+      if (!is_wp_error($attachment_id)) {
+        $attachment_ids[] = $attachment_id;
+      }
+    }
+    if ($attachment_ids) {
+      update_post_meta($post_id, sanitize_key($field) . '_attachment_ids', $attachment_ids);
+    }
+  }
+
+  $admin_email = get_option('admin_email');
+  if ($admin_email) {
+    wp_mail($admin_email, sprintf(__('New %s entry - %s', 'nirog-bhumi'), $form_type, $title_name), sprintf("Form: %s
+Name: %s
+Email: %s
+Phone: %s
+
+View in WordPress dashboard: %s", $form_type, $name, $email, $phone, admin_url('post.php?post=' . $post_id . '&action=edit')));
+  }
+
+  wp_safe_redirect(add_query_arg('form_saved', '1', wp_get_referer() ?: home_url('/')));
+  exit;
+}
+add_action('admin_post_nopriv_nirog_form_entry_submit', 'nirog_bhumi_handle_form_entry');
+add_action('admin_post_nirog_form_entry_submit', 'nirog_bhumi_handle_form_entry');
+
+function nirog_bhumi_form_entry_metaboxes() {
+  add_meta_box('nb_form_entry_details', __('Entry Details', 'nirog-bhumi'), 'nirog_bhumi_render_form_entry_metabox', 'nb_form_entry', 'normal', 'high');
+}
+add_action('add_meta_boxes', 'nirog_bhumi_form_entry_metaboxes');
+
+function nirog_bhumi_render_form_entry_metabox($post) {
+  $meta = get_post_meta($post->ID);
+  echo '<div class="nb-admin-details">';
+  foreach ($meta as $key => $values) {
+    if (str_starts_with($key, '_')) {
+      continue;
+    }
+    $value = maybe_unserialize($values[0]);
+    echo '<p><strong>' . esc_html(ucwords(str_replace('_', ' ', $key))) . ':</strong><br>';
+    if (str_ends_with($key, '_attachment_ids')) {
+      foreach ((array) $value as $attachment_id) {
+        echo '<a href="' . esc_url(wp_get_attachment_url($attachment_id)) . '" target="_blank" rel="noopener">' . esc_html(get_the_title($attachment_id)) . '</a><br>';
+      }
+    } else {
+      echo nl2br(esc_html(is_array($value) ? implode(', ', $value) : $value));
+    }
+    echo '</p>';
+  }
+  echo '</div>';
+}
+
+function nirog_bhumi_form_entry_columns($columns) {
+  return [
+    'cb' => $columns['cb'],
+    'title' => __('Entry', 'nirog-bhumi'),
+    'nb_form_type' => __('Form', 'nirog-bhumi'),
+    'nb_phone' => __('Phone', 'nirog-bhumi'),
+    'date' => $columns['date'],
+  ];
+}
+add_filter('manage_nb_form_entry_posts_columns', 'nirog_bhumi_form_entry_columns');
+
+function nirog_bhumi_form_entry_column_content($column, $post_id) {
+  if ($column === 'nb_form_type') {
+    echo esc_html(get_post_meta($post_id, 'form_type', true));
+  }
+  if ($column === 'nb_phone') {
+    echo esc_html(get_post_meta($post_id, 'phone', true));
+  }
+}
+add_action('manage_nb_form_entry_posts_custom_column', 'nirog_bhumi_form_entry_column_content', 10, 2);
