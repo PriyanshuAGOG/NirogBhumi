@@ -5,12 +5,12 @@
 get_header(); ?>
 <main>
 <section class="hero consultation-simple-hero">
-  <div><figure class="hero-visual consultation-hero-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/yoga-backbend-hero.jpg'); ?>" srcset="../assets/img/yoga-backbend-hero-thumb.jpg 360w, ../assets/img/yoga-backbend-hero.jpg 520w" sizes="(max-width: 900px) 340px, 430px" alt="Nirog Bhumi consultation" width="520" height="624"></figure></div>
+  <div><figure class="hero-visual consultation-hero-visual consultation-photo-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-founder-hero.jpg'); ?>" alt="Founder-led Nirog Bhumi consultation" width="1100" height="733"></figure></div>
   <div class="hero-copy"><h1>Book Consultation</h1><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
 </section>
 <section class="consultation-founder-strip">
   <div class="consultation-founder-copy"><p class="eyebrow">Founder-led session</p><h2>Book a 30-minute session with Gautam Khandelwal.</h2><p>Gautam brings over 26 years of personal practice, study, and lived experience in naturopathy and natural healing. This session is designed to understand your diabetes history, lifestyle rhythm, current medication context, and the most responsible next step before any program or product recommendation.</p></div>
-  <figure><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-opt.jpg'); ?>" alt="Nirog Bhumi consultation room" width="900" height="600"></figure>
+  <figure><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/yoga-meditation-opt.jpg'); ?>" alt="Nirog Bhumi yoga and meditation practice" width="1100" height="733"></figure>
 </section>
 <section id="consultation-form" class="consultation-form-wrap">
   <div class="consultation-form-intro"><p class="eyebrow">Consultation form</p><h2>Share the details that matter.</h2><p>Step 1 is required so we can schedule and identify you correctly. The health details that follow are optional, but they help Gautam prepare for your 30-minute consultation.</p></div>
