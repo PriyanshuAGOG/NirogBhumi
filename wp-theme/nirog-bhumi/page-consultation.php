@@ -5,8 +5,8 @@
 get_header(); ?>
 <main>
 <section class="hero consultation-simple-hero">
-  <div><figure class="hero-visual consultation-hero-visual consultation-photo-visual consultation-cutout-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-founder-cutout.png'); ?>" alt="Founder-led Nirog Bhumi consultation" width="918" height="620"></figure></div>
-  <div class="hero-copy"><h1>Book Consultation</h1><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
+  <div class="hero-copy consultation-hero-copy"><p class="eyebrow">Founder-led consultation</p><h1>Book Consultation</h1><p class="consultation-hero-text">A calm, focused first step to understand your current health picture and decide the most responsible next move with clarity.</p><div class="consultation-hero-meta"><span>30 minutes</span><span>Founder-led</span><span>Rs. 500 booking</span></div><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
+  <div class="consultation-hero-media"><figure class="hero-visual consultation-hero-visual consultation-cutout-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-founder-cutout.png'); ?>" alt="Founder-led Nirog Bhumi consultation" width="918" height="620"></figure></div>
 </section>
 <section class="consultation-founder-strip">
   <div class="consultation-founder-copy"><p class="eyebrow">Founder-led session</p><h2>Book a 30-minute session with Gautam Khandelwal.</h2><p>Gautam brings over 26 years of personal practice, study, and lived experience in naturopathy and natural healing. This session is designed to understand your diabetes history, lifestyle rhythm, current medication context, and the most responsible next step before any program or product recommendation.</p></div>
