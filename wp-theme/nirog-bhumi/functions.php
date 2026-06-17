@@ -15,6 +15,96 @@ function nirog_bhumi_assets() {
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
 
+function nirog_bhumi_settings_defaults() {
+  return [
+    'consultation_product_id' => 0,
+    'consultation_calendar_url' => home_url('/consultation-calendar/'),
+    'consultation_clear_cart' => 'yes',
+  ];
+}
+
+function nirog_bhumi_get_settings() {
+  $saved = get_option('nirog_bhumi_settings', []);
+  return wp_parse_args(is_array($saved) ? $saved : [], nirog_bhumi_settings_defaults());
+}
+
+function nirog_bhumi_sanitize_settings($input) {
+  return [
+    'consultation_product_id' => isset($input['consultation_product_id']) ? absint($input['consultation_product_id']) : 0,
+    'consultation_calendar_url' => !empty($input['consultation_calendar_url']) ? esc_url_raw($input['consultation_calendar_url']) : home_url('/consultation-calendar/'),
+    'consultation_clear_cart' => !empty($input['consultation_clear_cart']) ? 'yes' : 'no',
+  ];
+}
+
+function nirog_bhumi_register_settings() {
+  register_setting('nirog_bhumi_settings_group', 'nirog_bhumi_settings', 'nirog_bhumi_sanitize_settings');
+}
+add_action('admin_init', 'nirog_bhumi_register_settings');
+
+function nirog_bhumi_admin_settings_page() {
+  add_options_page(
+    __('Nirog Bhumi Setup', 'nirog-bhumi'),
+    __('Nirog Bhumi Setup', 'nirog-bhumi'),
+    'manage_options',
+    'nirog-bhumi-setup',
+    'nirog_bhumi_render_settings_page'
+  );
+}
+add_action('admin_menu', 'nirog_bhumi_admin_settings_page');
+
+function nirog_bhumi_render_settings_page() {
+  $settings = nirog_bhumi_get_settings();
+  ?>
+  <div class="wrap">
+    <h1><?php esc_html_e('Nirog Bhumi Setup', 'nirog-bhumi'); ?></h1>
+    <p><?php esc_html_e('Use these settings to connect the consultation form to WooCommerce payment and your booking calendar.', 'nirog-bhumi'); ?></p>
+    <form method="post" action="options.php">
+      <?php settings_fields('nirog_bhumi_settings_group'); ?>
+      <table class="form-table" role="presentation">
+        <tr>
+          <th scope="row"><label for="nirog-consultation-product-id"><?php esc_html_e('Consultation product ID', 'nirog-bhumi'); ?></label></th>
+          <td>
+            <input id="nirog-consultation-product-id" name="nirog_bhumi_settings[consultation_product_id]" type="number" min="0" class="regular-text" value="<?php echo esc_attr($settings['consultation_product_id']); ?>">
+            <p class="description"><?php esc_html_e('Enter the WooCommerce product ID for the Rs. 500 consultation product.', 'nirog-bhumi'); ?></p>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row"><label for="nirog-calendar-url"><?php esc_html_e('Calendar page or embed URL', 'nirog-bhumi'); ?></label></th>
+          <td>
+            <input id="nirog-calendar-url" name="nirog_bhumi_settings[consultation_calendar_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['consultation_calendar_url']); ?>">
+            <p class="description"><?php esc_html_e('Usually keep this as your /consultation-calendar/ page. You can also use a direct Cal.com page if needed.', 'nirog-bhumi'); ?></p>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row"><?php esc_html_e('Empty cart before consultation checkout', 'nirog-bhumi'); ?></th>
+          <td>
+            <label><input name="nirog_bhumi_settings[consultation_clear_cart]" type="checkbox" value="yes" <?php checked($settings['consultation_clear_cart'], 'yes'); ?>> <?php esc_html_e('Recommended for the consultation-only checkout flow.', 'nirog-bhumi'); ?></label>
+          </td>
+        </tr>
+      </table>
+      <?php submit_button(); ?>
+    </form>
+  </div>
+  <?php
+}
+
+function nirog_bhumi_consultation_product_id() {
+  $settings = nirog_bhumi_get_settings();
+  return (int) $settings['consultation_product_id'];
+}
+
+function nirog_bhumi_consultation_calendar_url() {
+  $settings = nirog_bhumi_get_settings();
+  return !empty($settings['consultation_calendar_url']) ? $settings['consultation_calendar_url'] : home_url('/consultation-calendar/');
+}
+
+function nirog_bhumi_consultation_checkout_url() {
+  if (!function_exists('wc_get_checkout_url') || !nirog_bhumi_consultation_product_id()) {
+    return '';
+  }
+  return add_query_arg('nb_start_consultation_checkout', '1', home_url('/consultation-payment/'));
+}
+
 function nirog_bhumi_register_consultations() {
   register_post_type('nb_consultation', [
     'labels' => [
@@ -127,11 +217,158 @@ Concern: %s
 View in WordPress dashboard: %s", $name, $email, $phone, $fields['concern'], admin_url('post.php?post=' . $post_id . '&action=edit')));
   }
 
-  wp_safe_redirect(add_query_arg('consultation_saved', '1', home_url('/consultation-payment/')));
+  $prefill = [
+    'name' => $name,
+    'email' => $email,
+    'phone' => $phone,
+  ];
+  $cookie_value = rawurlencode(base64_encode(wp_json_encode($prefill)));
+  setcookie('nb_consultation_entry', (string) $post_id, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
+  setcookie('nb_consultation_prefill', $cookie_value, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
+
+  wp_safe_redirect(add_query_arg([
+    'consultation_saved' => '1',
+    'entry' => $post_id,
+  ], home_url('/consultation-payment/')));
   exit;
 }
 add_action('admin_post_nopriv_nirog_consultation_submit', 'nirog_bhumi_handle_consultation_form');
 add_action('admin_post_nirog_consultation_submit', 'nirog_bhumi_handle_consultation_form');
+
+function nirog_bhumi_get_consultation_prefill() {
+  if (empty($_COOKIE['nb_consultation_prefill'])) {
+    return [];
+  }
+  $decoded = json_decode(base64_decode(rawurldecode(wp_unslash($_COOKIE['nb_consultation_prefill']))), true);
+  return is_array($decoded) ? $decoded : [];
+}
+
+function nirog_bhumi_prefill_checkout_value($value, $input) {
+  if ($value || !function_exists('is_checkout') || !is_checkout()) {
+    return $value;
+  }
+  $prefill = nirog_bhumi_get_consultation_prefill();
+  if (!$prefill) {
+    return $value;
+  }
+  if ($input === 'billing_email' && !empty($prefill['email'])) {
+    return $prefill['email'];
+  }
+  if ($input === 'billing_phone' && !empty($prefill['phone'])) {
+    return $prefill['phone'];
+  }
+  if ($input === 'billing_first_name' && !empty($prefill['name'])) {
+    $parts = preg_split('/s+/', trim($prefill['name']));
+    return $parts ? $parts[0] : $value;
+  }
+  if ($input === 'billing_last_name' && !empty($prefill['name'])) {
+    $parts = preg_split('/s+/', trim($prefill['name']));
+    if (count($parts) > 1) {
+      array_shift($parts);
+      return implode(' ', $parts);
+    }
+  }
+  return $value;
+}
+add_filter('woocommerce_checkout_get_value', 'nirog_bhumi_prefill_checkout_value', 10, 2);
+
+function nirog_bhumi_order_has_consultation_product($order) {
+  if (!$order || !is_a($order, 'WC_Order')) {
+    return false;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if (!$product_id) {
+    return false;
+  }
+  foreach ($order->get_items() as $item) {
+    if ((int) $item->get_product_id() === $product_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function nirog_bhumi_attach_consultation_entry_to_order($order, $data) {
+  if (!is_a($order, 'WC_Order') || !function_exists('WC') || !WC()->cart) {
+    return;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if (!$product_id) {
+    return;
+  }
+  $has_consultation = false;
+  foreach (WC()->cart->get_cart() as $cart_item) {
+    if (!empty($cart_item['product_id']) && (int) $cart_item['product_id'] === $product_id) {
+      $has_consultation = true;
+      break;
+    }
+  }
+  if (!$has_consultation) {
+    return;
+  }
+  $entry_id = !empty($_COOKIE['nb_consultation_entry']) ? absint(wp_unslash($_COOKIE['nb_consultation_entry'])) : 0;
+  if ($entry_id) {
+    $order->update_meta_data('_nb_consultation_entry_id', $entry_id);
+  }
+}
+add_action('woocommerce_checkout_create_order', 'nirog_bhumi_attach_consultation_entry_to_order', 10, 2);
+
+function nirog_bhumi_maybe_start_consultation_checkout() {
+  if (empty($_GET['nb_start_consultation_checkout'])) {
+    return;
+  }
+  if (!function_exists('WC') || !function_exists('wc_get_checkout_url')) {
+    wp_safe_redirect(add_query_arg('payment_setup', 'woocommerce-missing', home_url('/consultation-payment/')));
+    exit;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if (!$product_id) {
+    wp_safe_redirect(add_query_arg('payment_setup', 'missing-product', home_url('/consultation-payment/')));
+    exit;
+  }
+  if (null === WC()->cart) {
+    wc_load_cart();
+  }
+  $settings = nirog_bhumi_get_settings();
+  if (!empty($settings['consultation_clear_cart']) && $settings['consultation_clear_cart'] === 'yes') {
+    WC()->cart->empty_cart();
+  }
+  $cart_id = WC()->cart->generate_cart_id($product_id);
+  if (!WC()->cart->find_product_in_cart($cart_id)) {
+    WC()->cart->add_to_cart($product_id, 1);
+  }
+  wp_safe_redirect(wc_get_checkout_url());
+  exit;
+}
+add_action('template_redirect', 'nirog_bhumi_maybe_start_consultation_checkout', 5);
+
+function nirog_bhumi_maybe_redirect_consultation_to_calendar() {
+  if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
+    return;
+  }
+  $order_id = absint(get_query_var('order-received'));
+  if (!$order_id) {
+    return;
+  }
+  $order = wc_get_order($order_id);
+  if (!$order || !nirog_bhumi_order_has_consultation_product($order)) {
+    return;
+  }
+  if (!$order->is_paid() && !in_array($order->get_status(), ['processing', 'completed'], true)) {
+    return;
+  }
+  $calendar_url = nirog_bhumi_consultation_calendar_url();
+  if (!$calendar_url) {
+    return;
+  }
+  wp_safe_redirect(add_query_arg([
+    'booking' => 'paid',
+    'order' => $order_id,
+    'key' => $order->get_order_key(),
+  ], $calendar_url));
+  exit;
+}
+add_action('template_redirect', 'nirog_bhumi_maybe_redirect_consultation_to_calendar', 20);
 
 function nirog_bhumi_consultation_metaboxes() {
   add_meta_box('nb_consultation_details', __('Consultation Details', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_metabox', 'nb_consultation', 'normal', 'high');
