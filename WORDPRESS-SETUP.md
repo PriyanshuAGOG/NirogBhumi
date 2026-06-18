@@ -41,6 +41,7 @@ Create these pages in `Pages > Add New`. The title can be readable, but the slug
 | About | `about` |
 | Approach | `approach` |
 | Mission | `mission` |
+| Founder's Story | `founder-story` |
 | Brand Kit | `branding` |
 | Careers | `careers` |
 | FAQs | `faqs` |
