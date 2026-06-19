@@ -163,7 +163,7 @@ Use this exact flow:
 6. The theme adds the consultation WooCommerce product to cart and sends the user to checkout
 7. User pays `Rs 500`
 8. After successful payment, WooCommerce automatically redirects the user to `/consultation-calendar/`
-9. The `Consultation Calendar` page shows your Cal.com booking embed
+9. The protected `Consultation Calendar` page shows your Cal.com booking embed
 10. User picks a slot
 11. Cal.com sends confirmation and reminder emails and writes the event into Google Calendar
 
@@ -176,15 +176,17 @@ After activating the theme:
 1. Go to `Settings > Nirog Bhumi Setup`
 2. Fill:
    - `Consultation product ID`
-   - `Calendar page or embed URL`
+   - `Calendar page URL`
    - `Empty cart before consultation checkout`
 3. Save
 
 Recommended values:
 
 - `Consultation product ID`: the WooCommerce product ID of your `Consultation Booking Amount` product
-- `Calendar page or embed URL`: `https://yourdomain.com/consultation-calendar/`
+- `Calendar page URL`: `https://yourdomain.com/consultation-calendar/`
 - `Empty cart before consultation checkout`: enabled
+
+The theme blocks direct access to the payment page, consultation checkout and calendar. The calendar becomes available only through a verified paid consultation order. Keep Cal.com embedded inside the protected WordPress calendar page; do not redirect customers to a public Cal.com URL.
 
 The theme verifies WooCommerce's configured checkout page automatically. If WooCommerce still points to a deleted page ID, the theme reconnects an existing `/checkout/` page or creates a standard WooCommerce checkout page and updates the setting.
 

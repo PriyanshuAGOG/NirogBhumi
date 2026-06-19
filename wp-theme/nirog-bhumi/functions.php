@@ -69,10 +69,10 @@ function nirog_bhumi_render_settings_page() {
           </td>
         </tr>
         <tr>
-          <th scope="row"><label for="nirog-calendar-url"><?php esc_html_e('Calendar page or embed URL', 'nirog-bhumi'); ?></label></th>
+          <th scope="row"><label for="nirog-calendar-url"><?php esc_html_e('Calendar page URL', 'nirog-bhumi'); ?></label></th>
           <td>
             <input id="nirog-calendar-url" name="nirog_bhumi_settings[consultation_calendar_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['consultation_calendar_url']); ?>">
-            <p class="description"><?php esc_html_e('Usually keep this as your /consultation-calendar/ page. You can also use a direct Cal.com page if needed.', 'nirog-bhumi'); ?></p>
+            <p class="description"><?php esc_html_e('Keep the protected scheduling page at /consultation-calendar/. Add the booking calendar inside that page.', 'nirog-bhumi'); ?></p>
           </td>
         </tr>
         <tr>
@@ -147,8 +147,7 @@ function nirog_bhumi_consultation_is_virtual($needs_shipping, $product) {
 add_filter('woocommerce_product_needs_shipping', 'nirog_bhumi_consultation_is_virtual', 10, 2);
 
 function nirog_bhumi_consultation_calendar_url() {
-  $settings = nirog_bhumi_get_settings();
-  return !empty($settings['consultation_calendar_url']) ? $settings['consultation_calendar_url'] : home_url('/consultation-calendar/');
+  return home_url('/consultation-calendar/');
 }
 
 function nirog_bhumi_consultation_checkout_url() {
@@ -218,6 +217,19 @@ function nirog_bhumi_consultation_edit_entry() {
     $entry_id = absint(wp_unslash($_GET['entry']));
   }
   if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation' || empty($_COOKIE['nb_consultation_edit_token'])) {
+    return 0;
+  }
+  $token = sanitize_text_field(wp_unslash($_COOKIE['nb_consultation_edit_token']));
+  $token_hash = (string) get_post_meta($entry_id, '_nb_edit_token_hash', true);
+  return $token_hash && wp_check_password($token, $token_hash) ? $entry_id : 0;
+}
+
+function nirog_bhumi_consultation_cookie_entry() {
+  if (empty($_COOKIE['nb_consultation_entry']) || empty($_COOKIE['nb_consultation_edit_token'])) {
+    return 0;
+  }
+  $entry_id = absint(wp_unslash($_COOKIE['nb_consultation_entry']));
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation') {
     return 0;
   }
   $token = sanitize_text_field(wp_unslash($_COOKIE['nb_consultation_edit_token']));
@@ -376,6 +388,14 @@ add_action('admin_post_nopriv_nirog_consultation_submit', 'nirog_bhumi_handle_co
 add_action('admin_post_nirog_consultation_submit', 'nirog_bhumi_handle_consultation_form');
 
 function nirog_bhumi_get_consultation_prefill() {
+  $entry_id = nirog_bhumi_consultation_cookie_entry();
+  if ($entry_id) {
+    return [
+      'name' => (string) get_post_meta($entry_id, 'name', true),
+      'email' => (string) get_post_meta($entry_id, 'email', true),
+      'phone' => (string) get_post_meta($entry_id, 'phone', true),
+    ];
+  }
   if (empty($_COOKIE['nb_consultation_prefill'])) {
     return [];
   }
@@ -384,7 +404,7 @@ function nirog_bhumi_get_consultation_prefill() {
 }
 
 function nirog_bhumi_prefill_checkout_value($value, $input) {
-  if ($value || !function_exists('is_checkout') || !is_checkout()) {
+  if ($value || !nirog_bhumi_cart_is_consultation_only()) {
     return $value;
   }
   $prefill = nirog_bhumi_get_consultation_prefill();
@@ -446,7 +466,7 @@ function nirog_bhumi_attach_consultation_entry_to_order($order, $data) {
   if (!$has_consultation) {
     return;
   }
-  $entry_id = !empty($_COOKIE['nb_consultation_entry']) ? absint(wp_unslash($_COOKIE['nb_consultation_entry'])) : 0;
+  $entry_id = nirog_bhumi_consultation_cookie_entry();
   if ($entry_id) {
     $order->update_meta_data('_nb_consultation_entry_id', $entry_id);
   }
@@ -456,6 +476,10 @@ add_action('woocommerce_checkout_create_order', 'nirog_bhumi_attach_consultation
 function nirog_bhumi_maybe_start_consultation_checkout() {
   if (empty($_GET['nb_start_consultation_checkout'])) {
     return;
+  }
+  if (!nirog_bhumi_consultation_cookie_entry()) {
+    wp_safe_redirect(add_query_arg('consultation_step', 'form-required', home_url('/consultation/#consultation-form')));
+    exit;
   }
   if (!function_exists('WC') || !function_exists('wc_get_checkout_url')) {
     wp_safe_redirect(add_query_arg('payment_setup', 'woocommerce-missing', home_url('/consultation-payment/')));
@@ -468,6 +492,16 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
   }
   if (null === WC()->cart) {
     wc_load_cart();
+  }
+  $prefill = nirog_bhumi_get_consultation_prefill();
+  if (WC()->customer && $prefill) {
+    $parts = preg_split('/s+/', trim($prefill['name'] ?? ''));
+    $first_name = $parts ? array_shift($parts) : '';
+    WC()->customer->set_billing_first_name($first_name);
+    WC()->customer->set_billing_last_name($parts ? implode(' ', $parts) : '');
+    WC()->customer->set_billing_email($prefill['email'] ?? '');
+    WC()->customer->set_billing_phone($prefill['phone'] ?? '');
+    WC()->customer->save();
   }
   $settings = nirog_bhumi_get_settings();
   if (!empty($settings['consultation_clear_cart']) && $settings['consultation_clear_cart'] === 'yes') {
@@ -483,6 +517,44 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
   exit;
 }
 add_action('template_redirect', 'nirog_bhumi_maybe_start_consultation_checkout', 5);
+
+function nirog_bhumi_paid_consultation_order_from_request() {
+  if (empty($_GET['order']) || empty($_GET['key']) || !function_exists('wc_get_order')) {
+    return false;
+  }
+  $order = wc_get_order(absint(wp_unslash($_GET['order'])));
+  $key = sanitize_text_field(wp_unslash($_GET['key']));
+  if (!$order || !hash_equals((string) $order->get_order_key(), $key)) {
+    return false;
+  }
+  if (!$order->is_paid() && !in_array($order->get_status(), ['processing', 'completed'], true)) {
+    return false;
+  }
+  return nirog_bhumi_order_has_consultation_product($order) ? $order : false;
+}
+
+function nirog_bhumi_protect_consultation_flow() {
+  if (is_admin() || current_user_can('manage_woocommerce')) {
+    return;
+  }
+  if (is_page('consultation-payment') && !nirog_bhumi_consultation_cookie_entry()) {
+    wp_safe_redirect(add_query_arg('consultation_step', 'form-required', home_url('/consultation/#consultation-form')));
+    exit;
+  }
+  if (function_exists('is_checkout') && is_checkout() && !is_wc_endpoint_url('order-received') && nirog_bhumi_cart_is_consultation_only() && !nirog_bhumi_consultation_cookie_entry()) {
+    WC()->cart->empty_cart();
+    wp_safe_redirect(add_query_arg('consultation_step', 'form-required', home_url('/consultation/#consultation-form')));
+    exit;
+  }
+  if (is_page('consultation-calendar') && !nirog_bhumi_paid_consultation_order_from_request()) {
+    wp_safe_redirect(add_query_arg('consultation_step', 'payment-required', home_url('/consultation/')));
+    exit;
+  }
+  if (is_page('consultation-calendar')) {
+    nocache_headers();
+  }
+}
+add_action('template_redirect', 'nirog_bhumi_protect_consultation_flow', 12);
 
 function nirog_bhumi_maybe_redirect_consultation_to_calendar() {
   if (!function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('order-received')) {
