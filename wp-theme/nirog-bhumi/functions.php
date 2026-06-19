@@ -93,6 +93,59 @@ function nirog_bhumi_consultation_product_id() {
   return (int) $settings['consultation_product_id'];
 }
 
+function nirog_bhumi_cart_is_consultation_only() {
+  if (!function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
+    return false;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if (!$product_id) {
+    return false;
+  }
+  foreach (WC()->cart->get_cart() as $cart_item) {
+    if (empty($cart_item['product_id']) || (int) $cart_item['product_id'] !== $product_id) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function nirog_bhumi_consultation_checkout_fields($fields) {
+  if (!nirog_bhumi_cart_is_consultation_only()) {
+    return $fields;
+  }
+  $allowed = ['billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone'];
+  foreach (array_keys($fields['billing'] ?? []) as $key) {
+    if (!in_array($key, $allowed, true)) {
+      unset($fields['billing'][$key]);
+    }
+  }
+  $fields['shipping'] = [];
+  $fields['order'] = [];
+  if (isset($fields['billing']['billing_first_name'])) {
+    $fields['billing']['billing_first_name']['label'] = __('First name', 'nirog-bhumi');
+    $fields['billing']['billing_first_name']['priority'] = 10;
+  }
+  if (isset($fields['billing']['billing_last_name'])) {
+    $fields['billing']['billing_last_name']['label'] = __('Last name', 'nirog-bhumi');
+    $fields['billing']['billing_last_name']['priority'] = 20;
+  }
+  if (isset($fields['billing']['billing_email'])) {
+    $fields['billing']['billing_email']['label'] = __('Email', 'nirog-bhumi');
+    $fields['billing']['billing_email']['priority'] = 30;
+  }
+  if (isset($fields['billing']['billing_phone'])) {
+    $fields['billing']['billing_phone']['label'] = __('Phone / WhatsApp', 'nirog-bhumi');
+    $fields['billing']['billing_phone']['priority'] = 40;
+  }
+  return $fields;
+}
+add_filter('woocommerce_checkout_fields', 'nirog_bhumi_consultation_checkout_fields', 30);
+
+function nirog_bhumi_consultation_is_virtual($needs_shipping, $product) {
+  return $product && (int) $product->get_id() === nirog_bhumi_consultation_product_id() ? false : $needs_shipping;
+}
+add_filter('woocommerce_product_needs_shipping', 'nirog_bhumi_consultation_is_virtual', 10, 2);
+
 function nirog_bhumi_consultation_calendar_url() {
   $settings = nirog_bhumi_get_settings();
   return !empty($settings['consultation_calendar_url']) ? $settings['consultation_calendar_url'] : home_url('/consultation-calendar/');
