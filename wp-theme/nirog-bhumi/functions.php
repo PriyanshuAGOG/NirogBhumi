@@ -105,6 +105,34 @@ function nirog_bhumi_consultation_checkout_url() {
   return add_query_arg('nb_start_consultation_checkout', '1', home_url('/consultation-payment/'));
 }
 
+function nirog_bhumi_ensure_checkout_page() {
+  if (!class_exists('WooCommerce')) {
+    return 0;
+  }
+  $checkout_id = (int) get_option('woocommerce_checkout_page_id');
+  if ($checkout_id > 0 && get_post_status($checkout_id) === 'publish') {
+    return $checkout_id;
+  }
+  $checkout_page = get_page_by_path('checkout');
+  if ($checkout_page && $checkout_page->post_status === 'publish') {
+    update_option('woocommerce_checkout_page_id', $checkout_page->ID);
+    return (int) $checkout_page->ID;
+  }
+  $checkout_id = wp_insert_post([
+    'post_type' => 'page',
+    'post_status' => 'publish',
+    'post_title' => __('Checkout', 'nirog-bhumi'),
+    'post_name' => 'checkout',
+    'post_content' => '<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->',
+  ]);
+  if (!is_wp_error($checkout_id) && $checkout_id) {
+    update_option('woocommerce_checkout_page_id', $checkout_id);
+    return (int) $checkout_id;
+  }
+  return 0;
+}
+add_action('init', 'nirog_bhumi_ensure_checkout_page', 30);
+
 function nirog_bhumi_register_consultations() {
   register_post_type('nb_consultation', [
     'labels' => [
@@ -131,6 +159,51 @@ function nirog_bhumi_clean_textarea($key) {
   return isset($_POST[$key]) ? sanitize_textarea_field(wp_unslash($_POST[$key])) : '';
 }
 
+function nirog_bhumi_consultation_edit_entry() {
+  $entry_id = isset($_REQUEST['consultation_entry_id']) ? absint(wp_unslash($_REQUEST['consultation_entry_id'])) : 0;
+  if (!$entry_id && isset($_GET['entry'])) {
+    $entry_id = absint(wp_unslash($_GET['entry']));
+  }
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation' || empty($_COOKIE['nb_consultation_edit_token'])) {
+    return 0;
+  }
+  $token = sanitize_text_field(wp_unslash($_COOKIE['nb_consultation_edit_token']));
+  $token_hash = (string) get_post_meta($entry_id, '_nb_edit_token_hash', true);
+  return $token_hash && wp_check_password($token, $token_hash) ? $entry_id : 0;
+}
+
+function nirog_bhumi_consultation_edit_url() {
+  $entry_id = !empty($_COOKIE['nb_consultation_entry']) ? absint(wp_unslash($_COOKIE['nb_consultation_entry'])) : 0;
+  if (!$entry_id || empty($_COOKIE['nb_consultation_edit_token'])) {
+    return home_url('/consultation/#consultation-form');
+  }
+  return add_query_arg(['edit_consultation' => '1', 'entry' => $entry_id], home_url('/consultation/')) . '#consultation-form';
+}
+
+function nirog_bhumi_consultation_edit_data() {
+  $entry_id = nirog_bhumi_consultation_edit_entry();
+  if (!$entry_id) {
+    return [];
+  }
+  $keys = ['name', 'email', 'phone', 'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
+  $data = ['consultation_entry_id' => $entry_id];
+  foreach ($keys as $key) {
+    $data[$key] = (string) get_post_meta($entry_id, $key, true);
+  }
+  return $data;
+}
+
+function nirog_bhumi_ajax_consultation_edit_data() {
+  nocache_headers();
+  $data = nirog_bhumi_consultation_edit_data();
+  if (!$data) {
+    wp_send_json_error(['message' => __('This edit link has expired. Please complete the form again.', 'nirog-bhumi')], 403);
+  }
+  wp_send_json_success($data);
+}
+add_action('wp_ajax_nopriv_nirog_consultation_edit_data', 'nirog_bhumi_ajax_consultation_edit_data');
+add_action('wp_ajax_nirog_consultation_edit_data', 'nirog_bhumi_ajax_consultation_edit_data');
+
 function nirog_bhumi_handle_consultation_form() {
   if (!isset($_POST['nirog_consultation_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nirog_consultation_nonce'])), 'nirog_consultation_submit')) {
     wp_die(esc_html__('Security check failed. Please go back and submit the consultation form again.', 'nirog-bhumi'));
@@ -145,11 +218,19 @@ function nirog_bhumi_handle_consultation_form() {
     exit;
   }
 
-  $post_id = wp_insert_post([
+  $post_id = nirog_bhumi_consultation_edit_entry();
+  $is_update = (bool) $post_id;
+  $post_data = [
     'post_type' => 'nb_consultation',
     'post_status' => 'private',
     'post_title' => sprintf('%s - %s', $name, current_time('d M Y H:i')),
-  ]);
+  ];
+  if ($is_update) {
+    $post_data['ID'] = $post_id;
+    $post_id = wp_update_post($post_data, true);
+  } else {
+    $post_id = wp_insert_post($post_data, true);
+  }
 
   if (is_wp_error($post_id) || !$post_id) {
     wp_die(esc_html__('Could not save the consultation request. Please try again.', 'nirog-bhumi'));
@@ -184,7 +265,7 @@ function nirog_bhumi_handle_consultation_form() {
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/media.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
-    $attachment_ids = [];
+    $attachment_ids = (array) get_post_meta($post_id, 'report_attachment_ids', true);
     foreach ($_FILES['reports']['name'] as $index => $filename) {
       if (!$filename) {
         continue;
@@ -209,7 +290,8 @@ function nirog_bhumi_handle_consultation_form() {
 
   $admin_email = get_option('admin_email');
   if ($admin_email) {
-    wp_mail($admin_email, sprintf(__('New consultation request - %s', 'nirog-bhumi'), $name), sprintf("Name: %s
+    $subject = $is_update ? __('Updated consultation response - %s', 'nirog-bhumi') : __('New consultation request - %s', 'nirog-bhumi');
+    wp_mail($admin_email, sprintf($subject, $name), sprintf("Name: %s
 Email: %s
 Phone: %s
 Concern: %s
@@ -223,8 +305,13 @@ View in WordPress dashboard: %s", $name, $email, $phone, $fields['concern'], adm
     'phone' => $phone,
   ];
   $cookie_value = rawurlencode(base64_encode(wp_json_encode($prefill)));
+  $edit_token = !empty($_COOKIE['nb_consultation_edit_token']) && $is_update ? sanitize_text_field(wp_unslash($_COOKIE['nb_consultation_edit_token'])) : wp_generate_password(32, false, false);
+  if (!$is_update) {
+    update_post_meta($post_id, '_nb_edit_token_hash', wp_hash_password($edit_token));
+  }
   setcookie('nb_consultation_entry', (string) $post_id, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
   setcookie('nb_consultation_prefill', $cookie_value, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
+  setcookie('nb_consultation_edit_token', $edit_token, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
 
   wp_safe_redirect(add_query_arg([
     'consultation_saved' => '1',
@@ -337,7 +424,9 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
   if (!WC()->cart->find_product_in_cart($cart_id)) {
     WC()->cart->add_to_cart($product_id, 1);
   }
-  wp_safe_redirect(wc_get_checkout_url());
+  $checkout_id = nirog_bhumi_ensure_checkout_page();
+  $checkout_url = $checkout_id ? get_permalink($checkout_id) : wc_get_checkout_url();
+  wp_safe_redirect($checkout_url);
   exit;
 }
 add_action('template_redirect', 'nirog_bhumi_maybe_start_consultation_checkout', 5);

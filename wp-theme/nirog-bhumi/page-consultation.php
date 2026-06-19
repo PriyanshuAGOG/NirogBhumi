@@ -14,7 +14,7 @@ get_header(); ?>
 </section>
 <section id="consultation-form" class="consultation-form-wrap">
   <div class="consultation-form-intro"><p class="eyebrow">Consultation form</p><h2>Share the details that matter.</h2><p>Step 1 is required so we can schedule and identify you correctly. The health details that follow are optional, but they help Gautam prepare for your 30-minute consultation.</p></div>
-  <form class="consultation-booking-form step-consultation-form" data-step-form data-wp-form="true" method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-redirect="<?php echo esc_url(home_url('/consultation-payment/')); ?>"><input type="hidden" name="action" value="nirog_consultation_submit"><?php wp_nonce_field('nirog_consultation_submit', 'nirog_consultation_nonce'); ?>
+  <form class="consultation-booking-form step-consultation-form" data-step-form data-wp-form="true" method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" data-redirect="<?php echo esc_url(home_url('/consultation-payment/')); ?>"><input type="hidden" name="action" value="nirog_consultation_submit"><input type="hidden" name="consultation_entry_id" value=""><?php wp_nonce_field('nirog_consultation_submit', 'nirog_consultation_nonce'); ?>
     <div class="step-progress"><span data-step-count>Step 1 of 4</span><b></b></div>
     <fieldset data-step-panel><legend>Personal details</legend><div><label>Full name<input required name="name" autocomplete="name"></label><label>Email<input required type="email" name="email" autocomplete="email"></label><label>Phone / WhatsApp<input required name="phone" autocomplete="tel"></label><label>Age<input required name="age" inputmode="numeric" autocomplete="bday"></label></div></fieldset>
     <fieldset data-step-panel hidden><legend>Health details</legend><div><label>Primary concern<select name="concern"><option>Type 2 diabetes</option><option>Pre-diabetes</option><option>Insulin resistance</option><option>Weight and sugar control</option><option>General consultation</option></select></label><label>Fasting blood sugar<input name="fasting" placeholder="Example: 145 mg/dL"></label><label>Post-meal blood sugar<input name="postmeal" placeholder="Example: 210 mg/dL"></label><label>Latest HbA1c<input name="hba1c" placeholder="Example: 8.2"></label><label>Blood pressure<input name="bp" placeholder="Example: 130/85"></label><label>Weight / waist<input name="body" placeholder="Example: 82 kg, 38 inch waist"></label></div></fieldset>
@@ -23,6 +23,20 @@ get_header(); ?>
     <div class="step-actions"><button class="pill ghost" type="button" data-step-prev hidden>Back</button><button class="pill primary" type="button" data-step-next>Next</button><button class="pill primary" type="submit" hidden>Continue to Payment</button></div>
     <p data-form-status></p>
   </form>
-</section>
+</section><?php if (!empty($_GET['edit_consultation']) && !empty($_GET['entry'])) : ?><script>
+document.addEventListener('DOMContentLoaded',function(){
+  var form=document.querySelector('[data-step-form]');
+  if(!form)return;
+  var url=<?php echo wp_json_encode(add_query_arg(['action'=>'nirog_consultation_edit_data','entry'=>absint(wp_unslash($_GET['entry']))],admin_url('admin-ajax.php'))); ?>;
+  fetch(url,{credentials:'same-origin',cache:'no-store'}).then(function(response){return response.json();}).then(function(result){
+    if(!result.success)throw new Error(result.data&&result.data.message?result.data.message:'Unable to load the saved response.');
+    Object.keys(result.data).forEach(function(name){
+      var field=form.elements.namedItem(name);if(!field)return;
+      if(field.type==='checkbox')field.checked=result.data[name]==='yes';else field.value=result.data[name]||'';
+    });
+    var status=form.querySelector('[data-form-status]');if(status)status.textContent='Your saved response is ready to edit. Submit again to update it.';
+  }).catch(function(error){var status=form.querySelector('[data-form-status]');if(status)status.textContent=error.message;});
+});
+</script><?php endif; ?>
 </main>
 <?php get_footer(); ?>

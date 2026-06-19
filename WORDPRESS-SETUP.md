@@ -158,13 +158,14 @@ Use this exact flow:
 1. User fills the custom consultation form on `/consultation/`
 2. The form is stored inside WordPress under `Consultations`
 3. User lands on `/consultation-payment/`
-4. User clicks the payment CTA
-5. The theme adds the consultation WooCommerce product to cart and sends the user to checkout
-6. User pays `Rs 500`
-7. After successful payment, WooCommerce automatically redirects the user to `/consultation-calendar/`
-8. The `Consultation Calendar` page shows your Cal.com booking embed
-9. User picks a slot
-10. Cal.com sends confirmation and reminder emails and writes the event into Google Calendar
+4. User can use `Edit response` to reopen the saved form; submitting it updates the same consultation entry
+5. User clicks the payment CTA
+6. The theme adds the consultation WooCommerce product to cart and sends the user to checkout
+7. User pays `Rs 500`
+8. After successful payment, WooCommerce automatically redirects the user to `/consultation-calendar/`
+9. The `Consultation Calendar` page shows your Cal.com booking embed
+10. User picks a slot
+11. Cal.com sends confirmation and reminder emails and writes the event into Google Calendar
 
 This flow is already supported by the theme.
 
@@ -184,6 +185,8 @@ Recommended values:
 - `Consultation product ID`: the WooCommerce product ID of your `Consultation Booking Amount` product
 - `Calendar page or embed URL`: `https://yourdomain.com/consultation-calendar/`
 - `Empty cart before consultation checkout`: enabled
+
+The theme verifies WooCommerce's configured checkout page automatically. If WooCommerce still points to a deleted page ID, the theme reconnects an existing `/checkout/` page or creates a standard WooCommerce checkout page and updates the setting.
 
 How to find the product ID:
 
