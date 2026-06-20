@@ -170,43 +170,32 @@ Use this exact flow:
 2. The form is stored inside WordPress under `Consultations`
 3. User lands on `/consultation-payment/`
 4. User can use `Edit response` to reopen the saved form; submitting it updates the same consultation entry
-5. User clicks the payment CTA
-6. The theme adds the consultation WooCommerce product to cart and sends the user to checkout
-7. User pays `Rs 500`
-8. After successful payment, WooCommerce automatically redirects the user to `/consultation-calendar/`
-9. The protected `Consultation Calendar` page shows your Cal.com booking embed
-10. User picks a slot
-11. Cal.com sends confirmation and reminder emails and writes the event into Google Calendar
+5. User selects `Continue on WhatsApp`
+6. WhatsApp opens a message to `+91 7357542882` containing the customer's name and consultation reference
+7. The team shares payment details and verifies the `Rs 500` payment manually
+8. The team opens the consultation entry in WordPress and records the payment reference, date, time and meeting details
+9. Changing Payment Status to `Verified` and saving automatically emails the invoice and private status link
+10. The customer can use the private status link to see payment confirmation and appointment details
+11. The team can also share the calendar or meeting link directly on WhatsApp
 
 This flow is already supported by the theme.
 
 ## 10. Consultation Setup In WordPress
 
-After activating the theme:
+After a customer submits the form:
 
-1. Go to `Settings > Nirog Bhumi Setup`
-2. Fill:
-   - `Consultation product ID`
-   - `Calendar page URL`
-   - `Empty cart before consultation checkout`
-3. Save
+1. Open `WordPress Dashboard > Consultations`
+2. Open the matching entry using the consultation reference or customer name
+3. Find the `Payment and Appointment` panel
+4. Enter the payment reference received on WhatsApp
+5. Enter the consultation date and time when confirmed
+6. Add joining instructions and an optional meeting link
+7. Change `Payment status` from `Pending` to `Verified`
+8. Click `Update`
 
-Recommended values:
+The first verification generates an invoice number and sends an HTML invoice email automatically. Enable and configure FluentSMTP so WordPress email delivery is reliable. Use `Resend invoice email` in the same panel if another copy is needed.
 
-- `Consultation product ID`: the WooCommerce product ID of your `Consultation Booking Amount` product
-- `Calendar page URL`: `https://yourdomain.com/consultation-calendar/`
-- `Empty cart before consultation checkout`: enabled
-
-The theme blocks direct access to the payment page, consultation checkout and calendar. The calendar becomes available only through a verified paid consultation order. Keep Cal.com embedded inside the protected WordPress calendar page; do not redirect customers to a public Cal.com URL.
-
-The theme verifies WooCommerce's configured checkout page automatically. If WooCommerce still points to a deleted page ID, the theme reconnects an existing `/checkout/` page or creates a standard WooCommerce checkout page and updates the setting.
-
-How to find the product ID:
-
-1. Go to `Products > All Products`
-2. Hover over the consultation product
-3. Note the `ID: ...`
-4. Put that number into `Settings > Nirog Bhumi Setup`
+The theme automatically creates the private `/consultation-status/` page. Do not add it to menus. Customers should access it only through their secure status link.
 
 ## 11. Payment Gateway Setup
 

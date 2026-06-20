@@ -264,6 +264,71 @@ function nirog_bhumi_consultation_cookie_entry() {
   return $token_hash && wp_check_password($token, $token_hash) ? $entry_id : 0;
 }
 
+function nirog_bhumi_consultation_reference($entry_id) {
+  return 'NB-CONS-' . str_pad((string) absint($entry_id), 6, '0', STR_PAD_LEFT);
+}
+
+function nirog_bhumi_consultation_status_token($entry_id) {
+  $email = (string) get_post_meta($entry_id, 'email', true);
+  return hash_hmac('sha256', absint($entry_id) . '|' . strtolower($email), wp_salt('auth'));
+}
+
+function nirog_bhumi_consultation_status_url($entry_id) {
+  return add_query_arg([
+    'entry' => absint($entry_id),
+    'access' => nirog_bhumi_consultation_status_token($entry_id),
+  ], home_url('/consultation-status/'));
+}
+
+function nirog_bhumi_consultation_status_access($entry_id, $token) {
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation') {
+    return false;
+  }
+  return hash_equals(nirog_bhumi_consultation_status_token($entry_id), sanitize_text_field((string) $token));
+}
+
+function nirog_bhumi_ensure_consultation_status_page() {
+  $page = get_page_by_path('consultation-status');
+  if (!$page) {
+    wp_insert_post([
+      'post_type' => 'page',
+      'post_status' => 'publish',
+      'post_title' => __('Consultation Status', 'nirog-bhumi'),
+      'post_name' => 'consultation-status',
+      'post_content' => '',
+    ]);
+  }
+}
+add_action('init', 'nirog_bhumi_ensure_consultation_status_page', 35);
+
+function nirog_bhumi_private_consultation_robots($robots) {
+  if (is_page(['consultation-payment', 'consultation-status', 'consultation-calendar'])) {
+    $robots['noindex'] = true;
+    $robots['nofollow'] = true;
+  }
+  return $robots;
+}
+add_filter('wp_robots', 'nirog_bhumi_private_consultation_robots');
+
+function nirog_bhumi_consultation_whatsapp_url($entry_id) {
+  $name = (string) get_post_meta($entry_id, 'name', true);
+  $reference = nirog_bhumi_consultation_reference($entry_id);
+  $message = sprintf('Hello, I want to book a 30-minute consultation with Gautam Khandelwal. My name is %s and my consultation reference is %s. Please share the payment details for Rs. 500.', $name, $reference);
+  return 'https://wa.me/917357542882?text=' . rawurlencode($message);
+}
+
+function nirog_bhumi_render_consultation_payment_actions($entry_id) {
+  if (!$entry_id) {
+    return '<p>' . esc_html__('Please complete the consultation form to continue.', 'nirog-bhumi') . '</p>';
+  }
+  $status = (string) get_post_meta($entry_id, 'payment_status', true);
+  $status_url = nirog_bhumi_consultation_status_url($entry_id);
+  if ($status === 'verified') {
+    return '<div class="manual-payment-state verified"><strong>' . esc_html__('Payment verified', 'nirog-bhumi') . '</strong><p>' . esc_html__('Your consultation booking is active.', 'nirog-bhumi') . '</p><a class="pill primary" href="' . esc_url($status_url) . '">' . esc_html__('View consultation status', 'nirog-bhumi') . '</a></div>';
+  }
+  return '<div class="manual-payment-state"><div class="consultation-reference"><span>' . esc_html__('Consultation reference', 'nirog-bhumi') . '</span><strong>' . esc_html(nirog_bhumi_consultation_reference($entry_id)) . '</strong></div><p>' . esc_html__('Continue on WhatsApp to receive payment details and share your payment confirmation.', 'nirog-bhumi') . '</p><div class="hero-buttons"><a class="pill primary" target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Continue on WhatsApp', 'nirog-bhumi') . '</a><a class="pill ghost" href="' . esc_url($status_url) . '">' . esc_html__('Check booking status', 'nirog-bhumi') . '</a></div></div>';
+}
+
 function nirog_bhumi_consultation_edit_url() {
   $entry_id = !empty($_COOKIE['nb_consultation_entry']) ? absint(wp_unslash($_COOKIE['nb_consultation_entry'])) : 0;
   if (!$entry_id || empty($_COOKIE['nb_consultation_edit_token'])) {
@@ -351,6 +416,9 @@ function nirog_bhumi_handle_consultation_form() {
 
   foreach ($fields as $key => $value) {
     update_post_meta($post_id, $key, $value);
+  }
+  if (!$is_update && !get_post_meta($post_id, 'payment_status', true)) {
+    update_post_meta($post_id, 'payment_status', 'pending');
   }
 
   if (!empty($_FILES['reports']['name'][0])) {
@@ -613,6 +681,7 @@ add_action('template_redirect', 'nirog_bhumi_maybe_redirect_consultation_to_cale
 
 function nirog_bhumi_consultation_metaboxes() {
   add_meta_box('nb_consultation_details', __('Consultation Details', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_metabox', 'nb_consultation', 'normal', 'high');
+  add_meta_box('nb_consultation_booking', __('Payment and Appointment', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_booking_metabox', 'nb_consultation', 'side', 'high');
 }
 add_action('add_meta_boxes', 'nirog_bhumi_consultation_metaboxes');
 
@@ -653,12 +722,89 @@ function nirog_bhumi_render_consultation_metabox($post) {
   echo '</div>';
 }
 
+function nirog_bhumi_render_consultation_booking_metabox($post) {
+  wp_nonce_field('nirog_consultation_booking_save', 'nirog_consultation_booking_nonce');
+  $status = get_post_meta($post->ID, 'payment_status', true) ?: 'pending';
+  $reference = nirog_bhumi_consultation_reference($post->ID);
+  $payment_reference = (string) get_post_meta($post->ID, 'payment_reference', true);
+  $slot_date = (string) get_post_meta($post->ID, 'slot_date', true);
+  $slot_time = (string) get_post_meta($post->ID, 'slot_time', true);
+  $meeting_details = (string) get_post_meta($post->ID, 'meeting_details', true);
+  $meeting_url = (string) get_post_meta($post->ID, 'meeting_url', true);
+  $invoice_number = (string) get_post_meta($post->ID, 'invoice_number', true);
+  ?>
+  <div class="nb-booking-admin">
+    <p><strong><?php esc_html_e('Reference', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($reference); ?></p>
+    <p><label for="nb-payment-status"><strong><?php esc_html_e('Payment status', 'nirog-bhumi'); ?></strong></label><br>
+      <select id="nb-payment-status" name="nb_payment_status" style="width:100%"><option value="pending" <?php selected($status, 'pending'); ?>><?php esc_html_e('Pending', 'nirog-bhumi'); ?></option><option value="verified" <?php selected($status, 'verified'); ?>><?php esc_html_e('Verified', 'nirog-bhumi'); ?></option></select></p>
+    <p><label for="nb-payment-reference"><strong><?php esc_html_e('Payment reference', 'nirog-bhumi'); ?></strong></label><input id="nb-payment-reference" name="nb_payment_reference" type="text" value="<?php echo esc_attr($payment_reference); ?>" style="width:100%"></p>
+    <p><label for="nb-slot-date"><strong><?php esc_html_e('Consultation date', 'nirog-bhumi'); ?></strong></label><input id="nb-slot-date" name="nb_slot_date" type="date" value="<?php echo esc_attr($slot_date); ?>" style="width:100%"></p>
+    <p><label for="nb-slot-time"><strong><?php esc_html_e('Consultation time', 'nirog-bhumi'); ?></strong></label><input id="nb-slot-time" name="nb_slot_time" type="time" value="<?php echo esc_attr($slot_time); ?>" style="width:100%"></p>
+    <p><label for="nb-meeting-details"><strong><?php esc_html_e('Meeting details', 'nirog-bhumi'); ?></strong></label><textarea id="nb-meeting-details" name="nb_meeting_details" rows="3" style="width:100%"><?php echo esc_textarea($meeting_details); ?></textarea></p>
+    <p><label for="nb-meeting-url"><strong><?php esc_html_e('Meeting link', 'nirog-bhumi'); ?></strong></label><input id="nb-meeting-url" name="nb_meeting_url" type="url" value="<?php echo esc_attr($meeting_url); ?>" style="width:100%"></p>
+    <?php if ($invoice_number) : ?><p><strong><?php esc_html_e('Invoice', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_number); ?></p><?php endif; ?>
+    <?php if ($status === 'verified') : ?><p><label><input type="checkbox" name="nb_resend_invoice" value="1"> <?php esc_html_e('Resend invoice email', 'nirog-bhumi'); ?></label></p><?php endif; ?>
+    <p><a href="<?php echo esc_url(nirog_bhumi_consultation_status_url($post->ID)); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open customer status page', 'nirog-bhumi'); ?></a></p>
+  </div>
+  <?php
+}
+
+function nirog_bhumi_send_consultation_invoice($post_id) {
+  $email = sanitize_email((string) get_post_meta($post_id, 'email', true));
+  if (!$email) {
+    return false;
+  }
+  $name = (string) get_post_meta($post_id, 'name', true);
+  $invoice_number = (string) get_post_meta($post_id, 'invoice_number', true);
+  if (!$invoice_number) {
+    $invoice_number = 'NB-INV-' . wp_date('Ymd') . '-' . str_pad((string) $post_id, 6, '0', STR_PAD_LEFT);
+    update_post_meta($post_id, 'invoice_number', $invoice_number);
+  }
+  $verified_at = (string) get_post_meta($post_id, 'payment_verified_at', true);
+  $slot_date = (string) get_post_meta($post_id, 'slot_date', true);
+  $slot_time = (string) get_post_meta($post_id, 'slot_time', true);
+  $status_url = nirog_bhumi_consultation_status_url($post_id);
+  $slot_line = $slot_date ? '<p><strong>Consultation:</strong> ' . esc_html(wp_date(get_option('date_format'), strtotime($slot_date))) . ($slot_time ? ' at ' . esc_html(wp_date(get_option('time_format'), strtotime($slot_time))) : '') . ' (Asia/Kolkata)</p>' : '<p>Your consultation time will be confirmed personally by the Nirog Bhumi team.</p>';
+  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. 500</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($status_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
+  $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8']);
+  if ($sent) {
+    update_post_meta($post_id, 'invoice_sent_at', current_time('mysql'));
+  }
+  return $sent;
+}
+
+function nirog_bhumi_save_consultation_booking($post_id) {
+  if (!isset($_POST['nirog_consultation_booking_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nirog_consultation_booking_nonce'])), 'nirog_consultation_booking_save')) {
+    return;
+  }
+  if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE || !current_user_can('edit_post', $post_id)) {
+    return;
+  }
+  $old_status = (string) get_post_meta($post_id, 'payment_status', true);
+  $status = isset($_POST['nb_payment_status']) && sanitize_key(wp_unslash($_POST['nb_payment_status'])) === 'verified' ? 'verified' : 'pending';
+  update_post_meta($post_id, 'payment_status', $status);
+  update_post_meta($post_id, 'payment_reference', isset($_POST['nb_payment_reference']) ? sanitize_text_field(wp_unslash($_POST['nb_payment_reference'])) : '');
+  update_post_meta($post_id, 'slot_date', isset($_POST['nb_slot_date']) ? sanitize_text_field(wp_unslash($_POST['nb_slot_date'])) : '');
+  update_post_meta($post_id, 'slot_time', isset($_POST['nb_slot_time']) ? sanitize_text_field(wp_unslash($_POST['nb_slot_time'])) : '');
+  update_post_meta($post_id, 'meeting_details', isset($_POST['nb_meeting_details']) ? sanitize_textarea_field(wp_unslash($_POST['nb_meeting_details'])) : '');
+  update_post_meta($post_id, 'meeting_url', isset($_POST['nb_meeting_url']) ? esc_url_raw(wp_unslash($_POST['nb_meeting_url'])) : '');
+  if ($status === 'verified' && (!$old_status || $old_status !== 'verified')) {
+    update_post_meta($post_id, 'payment_verified_at', current_time('mysql'));
+  }
+  $resend = !empty($_POST['nb_resend_invoice']);
+  if ($status === 'verified' && ($old_status !== 'verified' || $resend || !get_post_meta($post_id, 'invoice_sent_at', true))) {
+    nirog_bhumi_send_consultation_invoice($post_id);
+  }
+}
+add_action('save_post_nb_consultation', 'nirog_bhumi_save_consultation_booking');
+
 function nirog_bhumi_consultation_columns($columns) {
   return [
     'cb' => $columns['cb'],
     'title' => __('Entry', 'nirog-bhumi'),
     'nb_phone' => __('Phone', 'nirog-bhumi'),
     'nb_concern' => __('Concern', 'nirog-bhumi'),
+    'nb_payment' => __('Payment', 'nirog-bhumi'),
     'date' => $columns['date'],
   ];
 }
@@ -670,6 +816,9 @@ function nirog_bhumi_consultation_column_content($column, $post_id) {
   }
   if ($column === 'nb_concern') {
     echo esc_html(get_post_meta($post_id, 'concern', true));
+  }
+  if ($column === 'nb_payment') {
+    echo esc_html(get_post_meta($post_id, 'payment_status', true) === 'verified' ? __('Verified', 'nirog-bhumi') : __('Pending', 'nirog-bhumi'));
   }
 }
 add_action('manage_nb_consultation_posts_custom_column', 'nirog_bhumi_consultation_column_content', 10, 2);
