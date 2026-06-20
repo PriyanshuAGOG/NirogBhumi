@@ -16,6 +16,7 @@ $meeting_url = (string) get_post_meta($entry_id, 'meeting_url', true);
 $invoice_number = (string) get_post_meta($entry_id, 'invoice_number', true);
 $reference = nirog_bhumi_consultation_reference($entry_id);
 $whatsapp_url = nirog_bhumi_consultation_whatsapp_url($entry_id);
+$invoice_url = nirog_bhumi_consultation_invoice_url($entry_id);
 get_header(); ?>
 <main class="consultation-status-page">
   <section class="consultation-status-intro">
@@ -46,7 +47,7 @@ get_header(); ?>
     <div class="status-actions">
       <?php if ($payment_status !== 'verified') : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($whatsapp_url); ?>">Continue on WhatsApp</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_url) : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($meeting_url); ?>">Open meeting link</a><?php endif; ?>
-      <?php if ($payment_status === 'verified' && $invoice_number) : ?><button class="pill ghost" type="button" onclick="window.print()">Print invoice</button><?php endif; ?>
+      <?php if ($payment_status === 'verified' && $invoice_number) : ?><a class="pill ghost" href="<?php echo esc_url($invoice_url); ?>">View or print invoice</a><?php endif; ?>
     </div>
   </section>
 </main>

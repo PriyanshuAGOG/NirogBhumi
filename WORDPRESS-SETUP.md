@@ -195,6 +195,12 @@ After a customer submits the form:
 
 The first verification generates an invoice number and sends an HTML invoice email automatically. Enable and configure FluentSMTP so WordPress email delivery is reliable. Use `Resend invoice email` in the same panel if another copy is needed.
 
+Invoice numbers use one global financial-year sequence for all Nirog Bhumi products and services: `2026-27/001`, `2026-27/002`, `2026-27/003`, and so on. The sequence resets to `001` when the new Indian financial year begins on 1 April. Issued invoice numbers are permanent and cannot be deleted or reused.
+
+Before issuing the first live invoice, open `Settings > Nirog Bhumi Setup` and complete the Invoice Identity fields using details confirmed by your accountant: legal business name, address, GSTIN if applicable, SAC if applicable, email and phone.
+
+The invoice email contains a private invoice link. `View or print invoice` opens a dedicated A4 invoice page; the customer can print it or choose `Save as PDF` in the browser print dialog.
+
 The theme automatically creates the private `/consultation-status/` page. Do not add it to menus. Customers should access it only through their secure status link.
 
 ## 11. Payment Gateway Setup
