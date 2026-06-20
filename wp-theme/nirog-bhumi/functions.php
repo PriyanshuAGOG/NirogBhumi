@@ -353,7 +353,7 @@ function nirog_bhumi_ensure_consultation_status_page() {
 add_action('init', 'nirog_bhumi_ensure_consultation_status_page', 35);
 
 function nirog_bhumi_private_consultation_robots($robots) {
-  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar'])) {
+  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'approach', 'mission'])) {
     $robots['noindex'] = true;
     $robots['nofollow'] = true;
   }
