@@ -1032,7 +1032,6 @@ function nirog_bhumi_anonymise_consultation_record() {
 
   update_post_meta($entry_id, 'privacy_status', 'anonymised');
   update_post_meta($entry_id, 'anonymised_at', current_time('mysql', true));
-  update_post_meta($entry_id, 'anonymous_metric_record', $anonymous_id);
   wp_update_post([
     'ID' => $entry_id,
     'post_title' => $has_invoice ? sprintf(__('Restricted invoice record - %s', 'nirog-bhumi'), get_post_meta($entry_id, 'invoice_number', true)) : sprintf(__('Anonymised request - %d', 'nirog-bhumi'), $entry_id),
@@ -1275,7 +1274,6 @@ function nirog_bhumi_anonymise_form_entry() {
   }
   update_post_meta($entry_id, 'privacy_status', 'anonymised');
   update_post_meta($entry_id, 'anonymised_at', current_time('mysql', true));
-  update_post_meta($entry_id, 'anonymous_metric_record', $anonymous_id);
   wp_update_post(['ID' => $entry_id, 'post_title' => sprintf(__('Anonymised form entry - %d', 'nirog-bhumi'), $entry_id)]);
   wp_safe_redirect(admin_url('post.php?post=' . $entry_id . '&action=edit&nb_privacy=done'));
   exit;
