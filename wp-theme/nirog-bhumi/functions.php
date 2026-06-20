@@ -177,11 +177,13 @@ function nirog_bhumi_ensure_checkout_page() {
   }
   $checkout_id = (int) get_option('woocommerce_checkout_page_id');
   if ($checkout_id > 0 && get_post_status($checkout_id) === 'publish') {
+    nirog_bhumi_prepare_checkout_page($checkout_id);
     return $checkout_id;
   }
   $checkout_page = get_page_by_path('checkout');
   if ($checkout_page && $checkout_page->post_status === 'publish') {
     update_option('woocommerce_checkout_page_id', $checkout_page->ID);
+    nirog_bhumi_prepare_checkout_page($checkout_page->ID);
     return (int) $checkout_page->ID;
   }
   $checkout_id = wp_insert_post([
@@ -198,6 +200,17 @@ function nirog_bhumi_ensure_checkout_page() {
   return 0;
 }
 add_action('init', 'nirog_bhumi_ensure_checkout_page', 30);
+
+function nirog_bhumi_prepare_checkout_page($checkout_id) {
+  $content = (string) get_post_field('post_content', $checkout_id);
+  if (!trim($content) || has_block('woocommerce/checkout', $content)) {
+    wp_update_post([
+      'ID' => $checkout_id,
+      'post_content' => '<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->',
+    ]);
+    clean_post_cache($checkout_id);
+  }
+}
 
 function nirog_bhumi_register_consultations() {
   register_post_type('nb_consultation', [
