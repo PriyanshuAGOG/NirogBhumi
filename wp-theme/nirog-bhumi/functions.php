@@ -141,6 +141,20 @@ function nirog_bhumi_consultation_checkout_fields($fields) {
 }
 add_filter('woocommerce_checkout_fields', 'nirog_bhumi_consultation_checkout_fields', 30);
 
+function nirog_bhumi_consultation_coupons_enabled($enabled) {
+  return nirog_bhumi_cart_is_consultation_only() ? false : $enabled;
+}
+add_filter('woocommerce_coupons_enabled', 'nirog_bhumi_consultation_coupons_enabled', 30);
+
+function nirog_bhumi_customer_payment_error($message) {
+  $plain = wp_strip_all_tags((string) $message);
+  if (stripos($plain, 'authentication failed') !== false || stripos($plain, 'order creation failed') !== false) {
+    return __('Payment could not be started. Please try again shortly or contact Nirog Bhumi for assistance.', 'nirog-bhumi');
+  }
+  return $message;
+}
+add_filter('woocommerce_add_error', 'nirog_bhumi_customer_payment_error', 20);
+
 function nirog_bhumi_consultation_is_virtual($needs_shipping, $product) {
   return $product && (int) $product->get_id() === nirog_bhumi_consultation_product_id() ? false : $needs_shipping;
 }

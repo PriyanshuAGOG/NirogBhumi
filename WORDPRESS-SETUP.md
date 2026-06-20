@@ -129,6 +129,17 @@ Note: `Cal.com` does not need a WordPress plugin. It can be embedded directly in
 9. Run one test payment.
 10. Switch to live keys only after successful testing.
 
+If Razorpay reports `Authentication failed` or `Order creation failed`:
+
+1. Open the Razorpay Dashboard and generate a fresh API key pair under `Account & Settings > API Keys`.
+2. For testing, use a matching `rzp_test_...` Key ID and its Key Secret, and enable Test Mode in the WooCommerce Razorpay settings.
+3. For real payments, use a matching `rzp_live_...` Key ID and its Key Secret, and disable Test Mode.
+4. Do not enter the webhook secret in the API Key Secret field.
+5. Remove accidental spaces before or after both values and save the payment settings.
+6. Clear the site cache and begin a new consultation checkout. Do not reuse an order created with rejected credentials.
+
+Never share the Razorpay Key Secret in screenshots, support messages or source code.
+
 ## 8. Products To Create
 
 Go to `Products > Add New`.
