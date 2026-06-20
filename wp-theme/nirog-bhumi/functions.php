@@ -1,4 +1,6 @@
 <?php
+require_once get_template_directory() . '/inc/invoice-pdf.php';
+
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
   add_theme_support('post-thumbnails');
@@ -20,10 +22,14 @@ function nirog_bhumi_settings_defaults() {
     'consultation_product_id' => 0,
     'consultation_calendar_url' => home_url('/consultation-calendar/'),
     'consultation_clear_cart' => 'yes',
-    'invoice_legal_name' => 'Nirog Bhumi',
-    'invoice_address' => '',
-    'invoice_gstin' => '',
-    'invoice_sac' => '',
+    'invoice_legal_name' => 'Nirog Bhumi Pvt. Ltd.',
+    'invoice_address' => '18, Keshev Vihar, Gopalpura Bypass, Durgapura, Jaipur - 302018, Rajasthan',
+    'invoice_gstin' => '08AALCN5409N1ZW',
+    'invoice_cin' => 'U86900RJ2026PTC113272',
+    'invoice_state' => 'Rajasthan',
+    'invoice_state_code' => '08',
+    'invoice_sac' => '999319',
+    'invoice_gst_rate' => '18',
     'invoice_email' => get_option('admin_email'),
     'invoice_phone' => '+91 7357542882',
   ];
@@ -39,10 +45,14 @@ function nirog_bhumi_sanitize_settings($input) {
     'consultation_product_id' => isset($input['consultation_product_id']) ? absint($input['consultation_product_id']) : 0,
     'consultation_calendar_url' => !empty($input['consultation_calendar_url']) ? esc_url_raw($input['consultation_calendar_url']) : home_url('/consultation-calendar/'),
     'consultation_clear_cart' => !empty($input['consultation_clear_cart']) ? 'yes' : 'no',
-    'invoice_legal_name' => isset($input['invoice_legal_name']) ? sanitize_text_field($input['invoice_legal_name']) : 'Nirog Bhumi',
+    'invoice_legal_name' => isset($input['invoice_legal_name']) ? sanitize_text_field($input['invoice_legal_name']) : 'Nirog Bhumi Pvt. Ltd.',
     'invoice_address' => isset($input['invoice_address']) ? sanitize_textarea_field($input['invoice_address']) : '',
     'invoice_gstin' => isset($input['invoice_gstin']) ? strtoupper(sanitize_text_field($input['invoice_gstin'])) : '',
-    'invoice_sac' => isset($input['invoice_sac']) ? sanitize_text_field($input['invoice_sac']) : '',
+    'invoice_cin' => isset($input['invoice_cin']) ? strtoupper(sanitize_text_field($input['invoice_cin'])) : '',
+    'invoice_state' => isset($input['invoice_state']) ? sanitize_text_field($input['invoice_state']) : 'Rajasthan',
+    'invoice_state_code' => isset($input['invoice_state_code']) ? str_pad(substr(preg_replace('/\D/', '', $input['invoice_state_code']), 0, 2), 2, '0', STR_PAD_LEFT) : '08',
+    'invoice_sac' => isset($input['invoice_sac']) ? sanitize_text_field($input['invoice_sac']) : '999319',
+    'invoice_gst_rate' => isset($input['invoice_gst_rate']) ? (string) max(0, min(100, (float) $input['invoice_gst_rate'])) : '18',
     'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : get_option('admin_email'),
     'invoice_phone' => isset($input['invoice_phone']) ? sanitize_text_field($input['invoice_phone']) : '+91 7357542882',
   ];
@@ -93,11 +103,15 @@ function nirog_bhumi_render_settings_page() {
             <label><input name="nirog_bhumi_settings[consultation_clear_cart]" type="checkbox" value="yes" <?php checked($settings['consultation_clear_cart'], 'yes'); ?>> <?php esc_html_e('Recommended for the consultation-only checkout flow.', 'nirog-bhumi'); ?></label>
           </td>
         </tr>
-        <tr><th colspan="2"><h2><?php esc_html_e('Invoice identity', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Use the legal business details confirmed by your accountant. Leave GSTIN and SAC blank if they do not apply.', 'nirog-bhumi'); ?></p></th></tr>
+        <tr><th colspan="2"><h2><?php esc_html_e('Invoice identity', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Use the legal business and tax details confirmed by your accountant.', 'nirog-bhumi'); ?></p></th></tr>
         <tr><th scope="row"><label for="nirog-invoice-name"><?php esc_html_e('Legal business name', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-name" name="nirog_bhumi_settings[invoice_legal_name]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_legal_name']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-address"><?php esc_html_e('Business address', 'nirog-bhumi'); ?></label></th><td><textarea id="nirog-invoice-address" name="nirog_bhumi_settings[invoice_address]" rows="4" class="large-text"><?php echo esc_textarea($settings['invoice_address']); ?></textarea></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-gstin"><?php esc_html_e('GSTIN', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-gstin" name="nirog_bhumi_settings[invoice_gstin]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_gstin']); ?>"></td></tr>
+        <tr><th scope="row"><label for="nirog-invoice-cin"><?php esc_html_e('CIN', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-cin" name="nirog_bhumi_settings[invoice_cin]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_cin']); ?>"></td></tr>
+        <tr><th scope="row"><label for="nirog-invoice-state"><?php esc_html_e('Business state', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-state" name="nirog_bhumi_settings[invoice_state]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_state']); ?>"></td></tr>
+        <tr><th scope="row"><label for="nirog-invoice-state-code"><?php esc_html_e('Business state code', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-state-code" name="nirog_bhumi_settings[invoice_state_code]" type="text" inputmode="numeric" maxlength="2" class="small-text" value="<?php echo esc_attr($settings['invoice_state_code']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-sac"><?php esc_html_e('Service accounting code (SAC)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-sac" name="nirog_bhumi_settings[invoice_sac]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_sac']); ?>"></td></tr>
+        <tr><th scope="row"><label for="nirog-invoice-gst-rate"><?php esc_html_e('GST rate (%)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-gst-rate" name="nirog_bhumi_settings[invoice_gst_rate]" type="number" min="0" max="100" step="0.01" class="small-text" value="<?php echo esc_attr($settings['invoice_gst_rate']); ?>"><p class="description"><?php esc_html_e('For Rajasthan customers the rate is divided equally between CGST and SGST. For other states the full rate is applied as IGST.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-email"><?php esc_html_e('Invoice email', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-email" name="nirog_bhumi_settings[invoice_email]" type="email" class="regular-text" value="<?php echo esc_attr($settings['invoice_email']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-phone"><?php esc_html_e('Invoice phone', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-phone" name="nirog_bhumi_settings[invoice_phone]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_phone']); ?>"></td></tr>
       </table>
@@ -300,6 +314,9 @@ function nirog_bhumi_consultation_status_url($entry_id) {
 }
 
 function nirog_bhumi_consultation_invoice_url($entry_id) {
+  if (function_exists('nirog_bhumi_consultation_pdf_url')) {
+    return nirog_bhumi_consultation_pdf_url($entry_id);
+  }
   return add_query_arg([
     'entry' => absint($entry_id),
     'access' => nirog_bhumi_consultation_status_token($entry_id),
@@ -441,7 +458,10 @@ add_filter('woocommerce_email_order_meta_fields', 'nirog_bhumi_woocommerce_invoi
 function nirog_bhumi_consultation_whatsapp_url($entry_id) {
   $name = (string) get_post_meta($entry_id, 'name', true);
   $reference = nirog_bhumi_consultation_reference($entry_id);
-  $message = sprintf('Hello, I want to book a 30-minute consultation with Gautam Khandelwal. My name is %s and my consultation reference is %s. Please share the payment details for Rs. 500.', $name, $reference);
+  $settings = nirog_bhumi_get_settings();
+  $gst_rate = (float) ($settings['invoice_gst_rate'] ?? 18);
+  $total = 500 + round(500 * $gst_rate / 100, 2);
+  $message = sprintf('Hello, I want to book a 30-minute consultation with Gautam Khandelwal. My name is %s and my consultation reference is %s. The base amount is Rs. 500 plus GST (total Rs. %s). Please share the payment details.', $name, $reference, number_format($total, 2));
   return 'https://wa.me/917357542882?text=' . rawurlencode($message);
 }
 
@@ -452,9 +472,9 @@ function nirog_bhumi_render_consultation_payment_actions($entry_id) {
   $status = (string) get_post_meta($entry_id, 'payment_status', true);
   $status_url = nirog_bhumi_consultation_status_url($entry_id);
   if ($status === 'verified') {
-    return '<div class="manual-payment-state verified"><strong>' . esc_html__('Payment verified', 'nirog-bhumi') . '</strong><p>' . esc_html__('Your consultation booking is active.', 'nirog-bhumi') . '</p><a class="pill primary" href="' . esc_url($status_url) . '">' . esc_html__('View consultation status', 'nirog-bhumi') . '</a></div>';
+    return '<a class="pill primary" href="' . esc_url($status_url) . '">' . esc_html__('View consultation status', 'nirog-bhumi') . '</a>';
   }
-  return '<div class="manual-payment-state"><div class="consultation-reference"><span>' . esc_html__('Consultation reference', 'nirog-bhumi') . '</span><strong>' . esc_html(nirog_bhumi_consultation_reference($entry_id)) . '</strong></div><p>' . esc_html__('Continue on WhatsApp to receive payment details and share your payment confirmation.', 'nirog-bhumi') . '</p><div class="hero-buttons"><a class="pill primary" target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Continue on WhatsApp', 'nirog-bhumi') . '</a><a class="pill ghost" href="' . esc_url($status_url) . '">' . esc_html__('Check booking status', 'nirog-bhumi') . '</a></div></div>';
+  return '<a class="pill primary" target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Continue on WhatsApp', 'nirog-bhumi') . '</a>';
 }
 
 function nirog_bhumi_consultation_edit_url() {
@@ -470,7 +490,7 @@ function nirog_bhumi_consultation_edit_data() {
   if (!$entry_id) {
     return [];
   }
-  $keys = ['name', 'email', 'country_code', 'phone', 'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
+  $keys = ['name', 'email', 'country_code', 'phone', 'age', 'billing_address', 'billing_city', 'billing_state', 'billing_state_code', 'billing_postcode', 'billing_country', 'customer_gstin', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
   $data = ['consultation_entry_id' => $entry_id];
   foreach ($keys as $key) {
     $data[$key] = (string) get_post_meta($entry_id, $key, true);
@@ -529,6 +549,13 @@ function nirog_bhumi_handle_consultation_form() {
     'country_code' => $country_code,
     'phone' => $phone,
     'age' => nirog_bhumi_clean_field('age'),
+    'billing_address' => nirog_bhumi_clean_field('billing_address'),
+    'billing_city' => nirog_bhumi_clean_field('billing_city'),
+    'billing_state' => nirog_bhumi_clean_field('billing_state'),
+    'billing_state_code' => str_pad(substr(preg_replace('/\D/', '', nirog_bhumi_clean_field('billing_state_code')), 0, 2), 2, '0', STR_PAD_LEFT),
+    'billing_postcode' => nirog_bhumi_clean_field('billing_postcode'),
+    'billing_country' => nirog_bhumi_clean_field('billing_country') ?: 'India',
+    'customer_gstin' => strtoupper(nirog_bhumi_clean_field('customer_gstin')),
     'concern' => nirog_bhumi_clean_field('concern'),
     'fasting' => nirog_bhumi_clean_field('fasting'),
     'postmeal' => nirog_bhumi_clean_field('postmeal'),
@@ -825,6 +852,13 @@ function nirog_bhumi_render_consultation_metabox($post) {
     'country_code' => 'Country code',
     'phone' => 'Phone / WhatsApp',
     'age' => 'Age',
+    'billing_address' => 'Billing address',
+    'billing_city' => 'Billing city',
+    'billing_state' => 'Billing state',
+    'billing_state_code' => 'State code',
+    'billing_postcode' => 'Postal code',
+    'billing_country' => 'Country',
+    'customer_gstin' => 'Customer GSTIN',
     'concern' => 'Primary concern',
     'fasting' => 'Fasting sugar',
     'postmeal' => 'Post-meal sugar',
@@ -899,9 +933,16 @@ function nirog_bhumi_send_consultation_invoice($post_id) {
   $slot_time = (string) get_post_meta($post_id, 'slot_time', true);
   $status_url = nirog_bhumi_consultation_status_url($post_id);
   $invoice_url = nirog_bhumi_consultation_invoice_url($post_id);
+  $invoice_data = function_exists('nirog_bhumi_consultation_invoice_data') ? nirog_bhumi_consultation_invoice_data($post_id) : ['total' => 500];
+  $pdf_path = function_exists('nirog_bhumi_create_consultation_invoice_pdf') ? nirog_bhumi_create_consultation_invoice_pdf($post_id, true) : '';
+  if (!$pdf_path || !is_readable($pdf_path)) {
+    update_post_meta($post_id, 'invoice_error', __('Invoice PDF could not be generated. Check invoice settings and file permissions.', 'nirog-bhumi'));
+    return false;
+  }
   $slot_line = $slot_date ? '<p><strong>Consultation:</strong> ' . esc_html(wp_date(get_option('date_format'), strtotime($slot_date))) . ($slot_time ? ' at ' . esc_html(wp_date(get_option('time_format'), strtotime($slot_time))) : '') . ' (Asia/Kolkata)</p>' : '<p>Your consultation time will be confirmed personally by the Nirog Bhumi team.</p>';
-  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. 500</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">View or print invoice</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
-  $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8']);
+  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. ' . esc_html(number_format((float) $invoice_data['total'], 2)) . '</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">Download invoice PDF</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
+  $attachments = [$pdf_path];
+  $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8'], $attachments);
   if ($sent) {
     update_post_meta($post_id, 'invoice_sent_at', current_time('mysql'));
   }
@@ -1026,7 +1067,7 @@ function nirog_bhumi_anonymise_consultation_record() {
     'status_token_hash', 'appointment_date', 'appointment_time', 'meeting_details', 'meeting_url'
   ];
   if (!$has_invoice) {
-    $erase_keys = array_merge($erase_keys, ['name', 'email', 'country_code', 'phone', 'payment_reference', 'payment_verified_at']);
+    $erase_keys = array_merge($erase_keys, ['name', 'email', 'country_code', 'phone', 'billing_address', 'billing_city', 'billing_state', 'billing_state_code', 'billing_postcode', 'billing_country', 'customer_gstin', 'payment_reference', 'payment_verified_at']);
   }
   foreach ($erase_keys as $key) delete_post_meta($entry_id, $key);
 

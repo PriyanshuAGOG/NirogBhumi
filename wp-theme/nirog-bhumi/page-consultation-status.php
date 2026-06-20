@@ -47,7 +47,7 @@ get_header(); ?>
     <div class="status-actions">
       <?php if ($payment_status !== 'verified') : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($whatsapp_url); ?>">Continue on WhatsApp</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_url) : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($meeting_url); ?>">Open meeting link</a><?php endif; ?>
-      <?php if ($payment_status === 'verified' && $invoice_number) : ?><a class="pill ghost" href="<?php echo esc_url($invoice_url); ?>">View or print invoice</a><?php endif; ?>
+      <?php if ($payment_status === 'verified' && $invoice_number) : ?><a class="pill ghost" href="<?php echo esc_url($invoice_url); ?>">Download invoice PDF</a><?php endif; ?>
     </div>
   </section>
 </main>
