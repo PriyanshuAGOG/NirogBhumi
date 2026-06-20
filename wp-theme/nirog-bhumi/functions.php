@@ -1186,9 +1186,9 @@ function nirog_bhumi_handle_form_entry() {
     wp_mail($admin_email, sprintf(__('New %s entry - %s', 'nirog-bhumi'), $form_type, $title_name), sprintf("Form: %s
 Name: %s
 Email: %s
-Phone: %s
+Phone: %s %s
 
-View in WordPress dashboard: %s", $form_type, $name, $email, $phone, admin_url('post.php?post=' . $post_id . '&action=edit')));
+View in WordPress dashboard: %s", $form_type, $name, $email, $country_code, $phone, admin_url('post.php?post=' . $post_id . '&action=edit')));
   }
 
   wp_safe_redirect(add_query_arg('form_saved', '1', wp_get_referer() ?: home_url('/')));
@@ -1199,6 +1199,7 @@ add_action('admin_post_nirog_form_entry_submit', 'nirog_bhumi_handle_form_entry'
 
 function nirog_bhumi_form_entry_metaboxes() {
   add_meta_box('nb_form_entry_details', __('Entry Details', 'nirog-bhumi'), 'nirog_bhumi_render_form_entry_metabox', 'nb_form_entry', 'normal', 'high');
+  add_meta_box('nb_form_entry_privacy', __('Privacy and Erasure', 'nirog-bhumi'), 'nirog_bhumi_render_form_entry_privacy_metabox', 'nb_form_entry', 'side', 'default');
 }
 add_action('add_meta_boxes', 'nirog_bhumi_form_entry_metaboxes');
 
@@ -1223,6 +1224,63 @@ function nirog_bhumi_render_form_entry_metabox($post) {
   echo '</div>';
 }
 
+function nirog_bhumi_render_form_entry_privacy_metabox($post) {
+  if (get_post_meta($post->ID, 'privacy_status', true) === 'anonymised') {
+    echo '<p><strong>' . esc_html__('Anonymised', 'nirog-bhumi') . '</strong></p><p>' . esc_html__('Personal fields and uploaded files have been permanently removed.', 'nirog-bhumi') . '</p>';
+    return;
+  }
+  $message = esc_attr(__('This cannot be undone. Personal fields and uploaded files will be erased. Continue?', 'nirog-bhumi'));
+  echo '<p>' . esc_html__('Removes personal fields and files while retaining only non-identifying aggregate fields in a separate anonymous record.', 'nirog-bhumi') . '</p>';
+  echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" data-confirm="' . $message . '" onsubmit="return confirm(this.dataset.confirm);">';
+  wp_nonce_field('nirog_anonymise_form_entry_' . $post->ID, 'nirog_anonymise_nonce');
+  echo '<input type="hidden" name="action" value="nirog_anonymise_form_entry"><input type="hidden" name="entry_id" value="' . esc_attr($post->ID) . '">';
+  submit_button(__('Anonymise form entry', 'nirog-bhumi'), 'secondary', 'submit', false);
+  echo '</form>';
+}
+
+function nirog_bhumi_anonymise_form_entry() {
+  $entry_id = isset($_POST['entry_id']) ? absint($_POST['entry_id']) : 0;
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_form_entry' || !current_user_can('delete_post', $entry_id)) {
+    wp_die(esc_html__('You are not allowed to anonymise this record.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_anonymise_form_entry_' . $entry_id, 'nirog_anonymise_nonce');
+  if (get_post_meta($entry_id, 'privacy_status', true) === 'anonymised') {
+    wp_safe_redirect(admin_url('post.php?post=' . $entry_id . '&action=edit&nb_privacy=already'));
+    exit;
+  }
+
+  $created = get_post_time('U', true, $entry_id);
+  $quarter = wp_date('Y', $created) . ' Q' . (string) ceil(((int) wp_date('n', $created)) / 3);
+  $anonymous_id = wp_insert_post([
+    'post_type' => 'nb_health_metric',
+    'post_status' => 'private',
+    'post_title' => sprintf(__('Anonymous form metrics - %s', 'nirog-bhumi'), $quarter),
+  ], true);
+  if (is_wp_error($anonymous_id) || !$anonymous_id) {
+    wp_die(esc_html__('The anonymous record could not be created. No source data was changed.', 'nirog-bhumi'));
+  }
+
+  $retain = ['form_type', 'program', 'program_choice', 'concern', 'experience', 'collection_quarter'];
+  foreach ($retain as $key) {
+    $value = $key === 'collection_quarter' ? $quarter : get_post_meta($entry_id, $key, true);
+    if (is_scalar($value) && $value !== '') update_post_meta($anonymous_id, $key, sanitize_text_field((string) $value));
+  }
+  update_post_meta($anonymous_id, 'anonymised_at', current_time('mysql', true));
+
+  foreach (get_post_meta($entry_id) as $key => $values) {
+    if (str_ends_with($key, '_attachment_ids')) {
+      foreach ((array) maybe_unserialize($values[0]) as $attachment_id) wp_delete_attachment(absint($attachment_id), true);
+    }
+    delete_post_meta($entry_id, $key);
+  }
+  update_post_meta($entry_id, 'privacy_status', 'anonymised');
+  update_post_meta($entry_id, 'anonymised_at', current_time('mysql', true));
+  update_post_meta($entry_id, 'anonymous_metric_record', $anonymous_id);
+  wp_update_post(['ID' => $entry_id, 'post_title' => sprintf(__('Anonymised form entry - %d', 'nirog-bhumi'), $entry_id)]);
+  wp_safe_redirect(admin_url('post.php?post=' . $entry_id . '&action=edit&nb_privacy=done'));
+  exit;
+}
+add_action('admin_post_nirog_anonymise_form_entry', 'nirog_bhumi_anonymise_form_entry');
 function nirog_bhumi_form_entry_columns($columns) {
   return [
     'cb' => $columns['cb'],
