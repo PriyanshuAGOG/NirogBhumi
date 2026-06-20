@@ -470,7 +470,7 @@ function nirog_bhumi_consultation_edit_data() {
   if (!$entry_id) {
     return [];
   }
-  $keys = ['name', 'email', 'phone', 'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
+  $keys = ['name', 'email', 'country_code', 'phone', 'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
   $data = ['consultation_entry_id' => $entry_id];
   foreach ($keys as $key) {
     $data[$key] = (string) get_post_meta($entry_id, $key, true);
@@ -496,6 +496,8 @@ function nirog_bhumi_handle_consultation_form() {
 
   $name = nirog_bhumi_clean_field('name');
   $email = sanitize_email(nirog_bhumi_clean_field('email'));
+  $country_code = nirog_bhumi_clean_field('country_code');
+  $country_code = preg_match('/^\+[0-9]{1,4}$/', $country_code) ? $country_code : '+91';
   $phone = nirog_bhumi_clean_field('phone');
 
   if (!$name || !$email || !$phone) {
@@ -524,6 +526,7 @@ function nirog_bhumi_handle_consultation_form() {
   $fields = [
     'name' => $name,
     'email' => $email,
+    'country_code' => $country_code,
     'phone' => $phone,
     'age' => nirog_bhumi_clean_field('age'),
     'concern' => nirog_bhumi_clean_field('concern'),
@@ -581,15 +584,16 @@ function nirog_bhumi_handle_consultation_form() {
     $subject = $is_update ? __('Updated consultation response - %s', 'nirog-bhumi') : __('New consultation request - %s', 'nirog-bhumi');
     wp_mail($admin_email, sprintf($subject, $name), sprintf("Name: %s
 Email: %s
-Phone: %s
+Phone: %s %s
 Concern: %s
 
-View in WordPress dashboard: %s", $name, $email, $phone, $fields['concern'], admin_url('post.php?post=' . $post_id . '&action=edit')));
+View in WordPress dashboard: %s", $name, $email, $country_code, $phone, $fields['concern'], admin_url('post.php?post=' . $post_id . '&action=edit')));
   }
 
   $prefill = [
     'name' => $name,
     'email' => $email,
+    'country_code' => $country_code,
     'phone' => $phone,
   ];
   $cookie_value = rawurlencode(base64_encode(wp_json_encode($prefill)));
@@ -810,6 +814,7 @@ add_action('template_redirect', 'nirog_bhumi_maybe_redirect_consultation_to_cale
 function nirog_bhumi_consultation_metaboxes() {
   add_meta_box('nb_consultation_details', __('Consultation Details', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_metabox', 'nb_consultation', 'normal', 'high');
   add_meta_box('nb_consultation_booking', __('Payment and Appointment', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_booking_metabox', 'nb_consultation', 'side', 'high');
+  add_meta_box('nb_consultation_privacy', __('Privacy and Erasure', 'nirog-bhumi'), 'nirog_bhumi_render_consultation_privacy_metabox', 'nb_consultation', 'side', 'default');
 }
 add_action('add_meta_boxes', 'nirog_bhumi_consultation_metaboxes');
 
@@ -817,6 +822,7 @@ function nirog_bhumi_render_consultation_metabox($post) {
   $fields = [
     'name' => 'Name',
     'email' => 'Email',
+    'country_code' => 'Country code',
     'phone' => 'Phone / WhatsApp',
     'age' => 'Age',
     'concern' => 'Primary concern',
@@ -926,6 +932,125 @@ function nirog_bhumi_save_consultation_booking($post_id) {
   }
 }
 add_action('save_post_nb_consultation', 'nirog_bhumi_save_consultation_booking');
+function nirog_bhumi_register_anonymous_health_metrics() {
+  register_post_type('nb_health_metric', [
+    'labels' => [
+      'name' => __('Anonymous Health Metrics', 'nirog-bhumi'),
+      'singular_name' => __('Anonymous Health Metric', 'nirog-bhumi'),
+      'menu_name' => __('Anonymous Metrics', 'nirog-bhumi'),
+    ],
+    'public' => false,
+    'show_ui' => true,
+    'show_in_menu' => 'edit.php?post_type=nb_consultation',
+    'supports' => ['title'],
+    'capability_type' => 'post',
+    'map_meta_cap' => true,
+  ]);
+}
+add_action('init', 'nirog_bhumi_register_anonymous_health_metrics', 25);
+
+function nirog_bhumi_age_band($age) {
+  $age = absint($age);
+  if (!$age) return 'Not recorded';
+  if ($age < 30) return 'Under 30';
+  if ($age < 40) return '30-39';
+  if ($age < 50) return '40-49';
+  if ($age < 60) return '50-59';
+  return '60+';
+}
+
+function nirog_bhumi_render_consultation_privacy_metabox($post) {
+  $status = get_post_meta($post->ID, 'privacy_status', true);
+  if ($status === 'anonymised') {
+    echo '<p><strong>' . esc_html__('Anonymised', 'nirog-bhumi') . '</strong></p><p>' . esc_html__('Direct identifiers, free-text health notes, access tokens and uploaded reports have been removed.', 'nirog-bhumi') . '</p>';
+    return;
+  }
+  $has_invoice = (bool) get_post_meta($post->ID, 'invoice_number', true);
+  echo '<p>' . esc_html__('Creates a separate anonymous metrics record and irreversibly removes identifiable health information and uploaded reports.', 'nirog-bhumi') . '</p>';
+  if ($has_invoice) {
+    echo '<p><strong>' . esc_html__('Legal invoice hold:', 'nirog-bhumi') . '</strong> ' . esc_html__('The minimum identity and payment fields required for the issued invoice remain restricted in this record. Health details are still removed.', 'nirog-bhumi') . '</p>';
+  }
+  $confirm_message = esc_attr(__('This cannot be undone. An anonymous metrics record will be created and identifiable health data will be erased. Continue?', 'nirog-bhumi')); echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" data-confirm="' . $confirm_message . '" onsubmit="return confirm(this.dataset.confirm);">';
+  wp_nonce_field('nirog_anonymise_consultation_' . $post->ID, 'nirog_anonymise_nonce');
+  echo '<input type="hidden" name="action" value="nirog_anonymise_consultation"><input type="hidden" name="entry_id" value="' . esc_attr($post->ID) . '">';
+  submit_button(__('Anonymise health record', 'nirog-bhumi'), 'secondary', 'submit', false);
+  echo '</form>';
+}
+
+function nirog_bhumi_anonymise_consultation_record() {
+  $entry_id = isset($_POST['entry_id']) ? absint($_POST['entry_id']) : 0;
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation' || !current_user_can('delete_post', $entry_id)) {
+    wp_die(esc_html__('You are not allowed to anonymise this record.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_anonymise_consultation_' . $entry_id, 'nirog_anonymise_nonce');
+
+  if (get_post_meta($entry_id, 'privacy_status', true) === 'anonymised') {
+    wp_safe_redirect(admin_url('post.php?post=' . $entry_id . '&action=edit&nb_privacy=already'));
+    exit;
+  }
+
+  $created = get_post_time('U', true, $entry_id);
+  $quarter = wp_date('Y', $created) . ' Q' . (string) ceil(((int) wp_date('n', $created)) / 3);
+  $anonymous_id = wp_insert_post([
+    'post_type' => 'nb_health_metric',
+    'post_status' => 'private',
+    'post_title' => sprintf(__('Anonymous health metrics - %s', 'nirog-bhumi'), $quarter),
+  ], true);
+  if (is_wp_error($anonymous_id) || !$anonymous_id) {
+    wp_die(esc_html__('The anonymous metrics record could not be created. No source data was changed.', 'nirog-bhumi'));
+  }
+
+  $metrics = [
+    'age_band' => nirog_bhumi_age_band(get_post_meta($entry_id, 'age', true)),
+    'concern' => get_post_meta($entry_id, 'concern', true),
+    'fasting' => get_post_meta($entry_id, 'fasting', true),
+    'postmeal' => get_post_meta($entry_id, 'postmeal', true),
+    'hba1c' => get_post_meta($entry_id, 'hba1c', true),
+    'bp' => get_post_meta($entry_id, 'bp', true),
+    'body' => get_post_meta($entry_id, 'body', true),
+    'collection_quarter' => $quarter,
+  ];
+  foreach ($metrics as $key => $value) {
+    if ($value !== '') update_post_meta($anonymous_id, $key, sanitize_text_field((string) $value));
+  }
+  update_post_meta($anonymous_id, 'anonymised_at', current_time('mysql', true));
+
+  foreach ((array) get_post_meta($entry_id, 'report_attachment_ids', true) as $attachment_id) {
+    wp_delete_attachment(absint($attachment_id), true);
+  }
+
+  $has_invoice = (bool) get_post_meta($entry_id, 'invoice_number', true);
+  $erase_keys = [
+    'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal',
+    'consultation_disclaimer', 'data_processing_consent', 'followup_consent', 'report_attachment_ids', '_nb_edit_token_hash',
+    'status_token_hash', 'appointment_date', 'appointment_time', 'meeting_details', 'meeting_url'
+  ];
+  if (!$has_invoice) {
+    $erase_keys = array_merge($erase_keys, ['name', 'email', 'country_code', 'phone', 'payment_reference', 'payment_verified_at']);
+  }
+  foreach ($erase_keys as $key) delete_post_meta($entry_id, $key);
+
+  update_post_meta($entry_id, 'privacy_status', 'anonymised');
+  update_post_meta($entry_id, 'anonymised_at', current_time('mysql', true));
+  update_post_meta($entry_id, 'anonymous_metric_record', $anonymous_id);
+  wp_update_post([
+    'ID' => $entry_id,
+    'post_title' => $has_invoice ? sprintf(__('Restricted invoice record - %s', 'nirog-bhumi'), get_post_meta($entry_id, 'invoice_number', true)) : sprintf(__('Anonymised request - %d', 'nirog-bhumi'), $entry_id),
+  ]);
+
+  wp_safe_redirect(admin_url('post.php?post=' . $entry_id . '&action=edit&nb_privacy=done'));
+  exit;
+}
+add_action('admin_post_nirog_anonymise_consultation', 'nirog_bhumi_anonymise_consultation_record');
+
+function nirog_bhumi_anonymous_metric_metaboxes() {
+  add_meta_box('nb_anonymous_metric_details', __('Anonymous Health Metrics', 'nirog-bhumi'), function ($post) {
+    $labels = ['age_band' => 'Age band', 'concern' => 'Primary concern', 'fasting' => 'Fasting sugar', 'postmeal' => 'Post-meal sugar', 'hba1c' => 'HbA1c', 'bp' => 'Blood pressure', 'body' => 'Weight / waist', 'collection_quarter' => 'Collection quarter'];
+    foreach ($labels as $key => $label) echo '<p><strong>' . esc_html($label) . ':</strong><br>' . esc_html(get_post_meta($post->ID, $key, true) ?: '-') . '</p>';
+    echo '<p class="description">' . esc_html__('This record intentionally contains no name, email, phone, files, free-text notes or source-entry identifier.', 'nirog-bhumi') . '</p>';
+  }, 'nb_health_metric', 'normal', 'high');
+}
+add_action('add_meta_boxes', 'nirog_bhumi_anonymous_metric_metaboxes');
 
 function nirog_bhumi_protect_issued_invoice_from_trash($trash, $post) {
   if ($post && $post->post_type === 'nb_consultation' && get_post_meta($post->ID, 'invoice_number', true)) {
@@ -992,6 +1117,8 @@ function nirog_bhumi_handle_form_entry() {
   $form_type = nirog_bhumi_clean_field('form_type') ?: 'Website form';
   $name = nirog_bhumi_clean_field('name');
   $email = sanitize_email(nirog_bhumi_clean_field('email'));
+  $country_code = nirog_bhumi_clean_field('country_code');
+  $country_code = preg_match('/^\+[0-9]{1,4}$/', $country_code) ? $country_code : '+91';
   $phone = nirog_bhumi_clean_field('phone');
   $title_name = $name ?: ($email ?: __('Website entry', 'nirog-bhumi'));
 
