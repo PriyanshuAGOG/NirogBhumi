@@ -1,5 +1,6 @@
 <?php
 require_once get_template_directory() . '/inc/invoice-pdf.php';
+require_once get_template_directory() . '/inc/data-admin.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -456,12 +457,7 @@ function nirog_bhumi_woocommerce_invoice_email_field($fields, $sent_to_admin, $o
 add_filter('woocommerce_email_order_meta_fields', 'nirog_bhumi_woocommerce_invoice_email_field', 10, 3);
 
 function nirog_bhumi_consultation_whatsapp_url($entry_id) {
-  $name = (string) get_post_meta($entry_id, 'name', true);
-  $reference = nirog_bhumi_consultation_reference($entry_id);
-  $settings = nirog_bhumi_get_settings();
-  $gst_rate = (float) ($settings['invoice_gst_rate'] ?? 18);
-  $total = 500 + round(500 * $gst_rate / 100, 2);
-  $message = sprintf('Hello, I want to book a 30-minute consultation with Gautam Khandelwal. My name is %s and my consultation reference is %s. The base amount is Rs. 500 plus GST (total Rs. %s). Please share the payment details.', $name, $reference, number_format($total, 2));
+  $message = 'Hello, I would like to book a 30-minute consultation with Gautam Khandelwal. Please share the payment details with me.';
   return 'https://wa.me/917357542882?text=' . rawurlencode($message);
 }
 
@@ -920,6 +916,7 @@ function nirog_bhumi_render_consultation_booking_metabox($post) {
 function nirog_bhumi_send_consultation_invoice($post_id) {
   $email = sanitize_email((string) get_post_meta($post_id, 'email', true));
   if (!$email) {
+    update_post_meta($post_id, 'invoice_error', __('A valid customer email address is required before the invoice can be sent.', 'nirog-bhumi'));
     return false;
   }
   $name = (string) get_post_meta($post_id, 'name', true);
@@ -945,6 +942,12 @@ function nirog_bhumi_send_consultation_invoice($post_id) {
   $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8'], $attachments);
   if ($sent) {
     update_post_meta($post_id, 'invoice_sent_at', current_time('mysql'));
+    delete_post_meta($post_id, 'invoice_error');
+    delete_option('nirog_bhumi_last_mail_error');
+    delete_option('nirog_bhumi_last_mail_error_at');
+  } else {
+    $last_error = get_option('nirog_bhumi_last_mail_error');
+    update_post_meta($post_id, 'invoice_error', $last_error ? $last_error : __('WordPress could not send the invoice email. Configure authenticated SMTP and use Generate and send to retry.', 'nirog-bhumi'));
   }
   return $sent;
 }
