@@ -10,6 +10,6 @@
 <div class="page-frame">
 <header class="nb-header">
   <a class="brand" href="<?php echo esc_url(home_url('/')); ?>"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img-logo.png'); ?>" alt="<?php bloginfo('name'); ?>" width="300" height="69" loading="eager" decoding="async"></a>
-  <button class="menu" type="button" aria-label="Open menu" data-menu-toggle><span></span><span></span></button>
-  <nav data-menu><?php if (has_nav_menu('primary')) { wp_nav_menu(['theme_location'=>'primary','container'=>false,'fallback_cb'=>false,'items_wrap'=>'%3$s']); } else { ?><a href="<?php echo esc_url(home_url('/programmes/')); ?>">Our Programs</a><a href="<?php echo esc_url(home_url('/store/')); ?>">Store</a><a href="<?php echo esc_url(home_url('/education/')); ?>">Education</a><?php } ?></nav>
+  <button class="menu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="primary-navigation" data-menu-toggle><span></span><span></span></button>
+  <nav id="primary-navigation" data-menu><a href="<?php echo esc_url(home_url('/programmes/')); ?>">Our Programs</a><a href="<?php echo esc_url(home_url('/store/')); ?>">Store</a><a href="<?php echo esc_url(home_url('/education/')); ?>">Education</a><div class="nav-dropdown" data-nav-dropdown><button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-haspopup="true" data-nav-dropdown-toggle>About<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu"><a href="<?php echo esc_url(home_url('/about/')); ?>">About Us</a><a href="<?php echo esc_url(home_url('/founder-story/')); ?>">Founder's Story</a></div></div><a href="<?php echo esc_url(home_url('/faqs/')); ?>">FAQs</a></nav>
 </header>

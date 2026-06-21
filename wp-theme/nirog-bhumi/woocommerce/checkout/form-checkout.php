@@ -9,7 +9,7 @@
   <div class="checkout-head">
     <p class="eyebrow"><?php esc_html_e('Checkout', 'nirog-bhumi'); ?></p>
     <h1><?php echo esc_html($consultation_only ? __('Complete your consultation booking.', 'nirog-bhumi') : __('Secure checkout.', 'nirog-bhumi')); ?></h1>
-    <p><?php echo esc_html($consultation_only ? __('Confirm your contact details and pay the Rs. 500 booking amount.', 'nirog-bhumi') : __('Confirm contact, billing, delivery, order notes and payment details before placing your Nirog Bhumi order.', 'nirog-bhumi')); ?></p>
+    <p><?php echo esc_html($consultation_only ? __('Confirm your contact details and pay the Rs. 590 consultation amount.', 'nirog-bhumi') : __('Confirm contact, billing, delivery, order notes and payment details before placing your Nirog Bhumi order.', 'nirog-bhumi')); ?></p>
   </div>
   <div class="checkout-flow">
     <?php if ($checkout->get_checkout_fields()) : ?>

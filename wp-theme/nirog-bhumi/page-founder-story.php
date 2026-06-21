@@ -6,7 +6,7 @@ get_header(); ?>
 <main>
 <section class="founder-story-hero">
   <div><p class="eyebrow">Founder's story</p><h1>A personal journey into natural healing.</h1><p>Gautam Khandelwal's path to Nirog Bhumi began with his own health struggles, a life-changing meeting with his guru, and more than two decades of learning how disciplined natural living can reshape health.</p></div>
-  <figure><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/yoga-meditation-opt.jpg'); ?>" alt="Nirog Bhumi yoga and meditation practice" width="1100" height="733"></figure>
+  <figure><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/founder-gautam.jpg'); ?>" alt="Gautam Khandelwal, founder of Nirog Bhumi" width="1280" height="1280"></figure>
 </section>
 <section class="founder-timeline" aria-label="Gautam Khandelwal's naturopathy journey">
   <article><div class="timeline-marker"><span>01</span><small>1976 onward</small></div><div><h2>A food-loving childhood</h2><p>Born into a family where food was central to daily life, Gautam grew up without much food discipline. Sweets, bread, cheese and eggs were favourites, and overeating became normal. Dental problems appeared early, followed later by recurring digestive discomfort.</p></div></article>

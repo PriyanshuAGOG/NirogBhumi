@@ -38,7 +38,7 @@ get_header(); ?>
       <div><dt>Reference</dt><dd><?php echo esc_html($reference); ?></dd></div>
       <div><dt>Consultant</dt><dd>Gautam Khandelwal</dd></div>
       <div><dt>Duration</dt><dd>30 minutes</dd></div>
-      <div><dt>Amount</dt><dd>Rs. 500</dd></div>
+      <div><dt>Amount</dt><dd>Rs. 590</dd></div>
       <?php if ($payment_status === 'verified' && $slot_date) : ?><div><dt>Date</dt><dd><?php echo esc_html(wp_date(get_option('date_format'), strtotime($slot_date))); ?></dd></div><?php endif; ?>
       <?php if ($payment_status === 'verified' && $slot_time) : ?><div><dt>Time</dt><dd><?php echo esc_html(wp_date(get_option('time_format'), strtotime($slot_time))); ?> IST</dd></div><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_details) : ?><div><dt>Joining details</dt><dd><?php echo nl2br(esc_html($meeting_details)); ?></dd></div><?php endif; ?>
