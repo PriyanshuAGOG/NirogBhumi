@@ -5,7 +5,7 @@
 get_header(); ?>
 <main>
 <section class="hero diabetes-program-hero programme-simple-hero">
-  <div><figure class="hero-visual diabetes-hero-visual word-cross-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/diabetes-word-cross.png'); ?>" alt="Diabetes-related words crossed out for reversal" width="760" height="507"></figure></div>
+  <div><figure class="hero-visual diabetes-hero-visual word-cross-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/diabetes-word-cross.png'); ?>" alt="Diabetes-related words crossed out for reversal" width="960" height="720"></figure></div>
   <div class="hero-copy"><h1>6 Months Diabetes Reversal Program</h1><div class="hero-actions"><a class="pill primary" href="<?php echo esc_url(home_url('/consultation/')); ?>">Book Consultation</a></div></div>
 </section>
 <section class="diabetes-program-system programme-premium-redesign">
