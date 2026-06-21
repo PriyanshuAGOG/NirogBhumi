@@ -141,10 +141,20 @@ function nirog_bhumi_render_invoice_pdf($data) {
   $ink = '0.094 0.133 0.098';
   $muted = '0.38 0.43 0.38';
   $paper = '0.98 0.972 0.94';
+  $logo_path = get_template_directory() . '/assets/img/invoice-logo.jpg';
+  $logo_bytes = is_readable($logo_path) ? file_get_contents($logo_path) : '';
+  $logo_size = $logo_bytes ? getimagesize($logo_path) : false;
   $ops = "1 1 1 rg 0 0 595 842 re f\n";
   $ops .= nirog_bhumi_pdf_line(38, 36, 557, 36, 3, $green);
-  $ops .= nirog_bhumi_pdf_text(40, 70, 23, 'NIROG BHUMI', 'F3', $green);
-  $ops .= nirog_bhumi_pdf_text(40, 88, 8, 'Wellness and lifestyle medicine - Diabetes reversal', 'F1', $muted);
+  if ($logo_bytes && $logo_size) {
+    $logo_width = 174;
+    $logo_height = $logo_width * ($logo_size[1] / $logo_size[0]);
+    $logo_y = 842 - 49 - $logo_height;
+    $ops .= sprintf("q %.2F 0 0 %.2F %.2F %.2F cm /Im1 Do Q\n", $logo_width, $logo_height, 40, $logo_y);
+  } else {
+    $ops .= nirog_bhumi_pdf_text(40, 70, 23, 'NIROG BHUMI', 'F3', $green);
+  }
+  $ops .= nirog_bhumi_pdf_text(40, 99, 8, 'Wellness and lifestyle medicine - Diabetes reversal', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(410, 68, 21, 'TAX INVOICE', 'F3', $ink);
   $ops .= nirog_bhumi_pdf_text(425, 91, 8, $data['type'], 'F2', $green);
   $ops .= nirog_bhumi_pdf_line(38, 112, 557, 112, .6, '0.82 0.79 0.72');
@@ -237,11 +247,15 @@ function nirog_bhumi_render_invoice_pdf($data) {
   $objects = [];
   $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
   $objects[2] = '<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
-  $objects[3] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 4 0 R >>';
+  $image_resource = ($logo_bytes && $logo_size) ? ' /XObject << /Im1 8 0 R >>' : '';
+  $objects[3] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >>' . $image_resource . ' >> /Contents 4 0 R >>';
   $objects[4] = '<< /Length ' . strlen($ops) . ">>\nstream\n" . $ops . "endstream";
   $objects[5] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
   $objects[6] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>';
   $objects[7] = '<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman >>';
+  if ($logo_bytes && $logo_size) {
+    $objects[8] = '<< /Type /XObject /Subtype /Image /Width ' . (int) $logo_size[0] . ' /Height ' . (int) $logo_size[1] . ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' . strlen($logo_bytes) . ">>\nstream\n" . $logo_bytes . "\nendstream";
+  }
   $pdf = "%PDF-1.4\n";
   $offsets = [0];
   foreach ($objects as $number => $object) {
@@ -249,9 +263,10 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $pdf .= $number . " 0 obj\n" . $object . "\nendobj\n";
   }
   $xref = strlen($pdf);
-  $pdf .= "xref\n0 8\n0000000000 65535 f \n";
-  for ($i = 1; $i <= 7; $i++) $pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
-  $pdf .= "trailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n" . $xref . "\n%%EOF";
+  $object_count = count($objects);
+  $pdf .= "xref\n0 " . ($object_count + 1) . "\n0000000000 65535 f \n";
+  for ($i = 1; $i <= $object_count; $i++) $pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
+  $pdf .= "trailer\n<< /Size " . ($object_count + 1) . " /Root 1 0 R >>\nstartxref\n" . $xref . "\n%%EOF";
   return $pdf;
 }
 
@@ -300,4 +315,3 @@ function nirog_bhumi_download_consultation_invoice() {
 }
 add_action('admin_post_nopriv_nirog_download_invoice', 'nirog_bhumi_download_consultation_invoice');
 add_action('admin_post_nirog_download_invoice', 'nirog_bhumi_download_consultation_invoice');
-
