@@ -183,13 +183,21 @@ function nirog_bhumi_consultation_admin_column($column, $post_id) {
       echo esc_html__('Not sent', 'nirog-bhumi');
     }
     $status = get_post_meta($post_id, 'payment_status', true) ?: get_post_meta($post_id, 'status', true);
-    if ($status === 'verified') {
-      $url = wp_nonce_url(admin_url('admin-post.php?action=nirog_retry_invoice&post_id=' . $post_id), 'nirog_retry_invoice_' . $post_id);
-      echo '<br><a class="button button-small" style="margin-top:6px" href="' . esc_url($url) . '">' . esc_html__('Generate and send', 'nirog-bhumi') . '</a>';
-    }
+    $url = wp_nonce_url(admin_url('admin-post.php?action=nirog_retry_invoice&post_id=' . $post_id), 'nirog_retry_invoice_' . $post_id);
+    $label = $status === 'verified' ? __('Generate and send', 'nirog-bhumi') : __('Verify payment + invoice', 'nirog-bhumi');
+    echo '<br><a class="button button-small" style="margin-top:6px" href="' . esc_url($url) . '">' . esc_html($label) . '</a>';
   }
 }
 add_action('manage_nb_consultation_posts_custom_column', 'nirog_bhumi_consultation_admin_column', 10, 2);
+
+function nirog_bhumi_consultation_invoice_row_action($actions, $post) {
+  if (!$post || $post->post_type !== 'nb_consultation' || !current_user_can('edit_post', $post->ID)) return $actions;
+  $status = get_post_meta($post->ID, 'payment_status', true);
+  $url = wp_nonce_url(admin_url('admin-post.php?action=nirog_retry_invoice&post_id=' . $post->ID), 'nirog_retry_invoice_' . $post->ID);
+  $actions['nb_invoice'] = '<a href="' . esc_url($url) . '">' . esc_html($status === 'verified' ? __('Generate/send invoice', 'nirog-bhumi') : __('Verify payment and invoice', 'nirog-bhumi')) . '</a>';
+  return $actions;
+}
+add_filter('post_row_actions', 'nirog_bhumi_consultation_invoice_row_action', 20, 2);
 
 function nirog_bhumi_retry_invoice_delivery() {
   $post_id = isset($_GET['post_id']) ? absint($_GET['post_id']) : 0;
@@ -199,9 +207,9 @@ function nirog_bhumi_retry_invoice_delivery() {
   check_admin_referer('nirog_retry_invoice_' . $post_id);
   $redirect = admin_url('post.php?post=' . $post_id . '&action=edit');
   if (get_post_meta($post_id, 'payment_status', true) !== 'verified') {
-    update_post_meta($post_id, 'invoice_error', __('Mark the payment as Verified and save the entry before generating its invoice.', 'nirog-bhumi'));
-    wp_safe_redirect(add_query_arg('nb_invoice_retry', 'failed', $redirect));
-    exit;
+    update_post_meta($post_id, 'payment_status', 'verified');
+    update_post_meta($post_id, 'status', 'verified');
+    update_post_meta($post_id, 'payment_verified_at', current_time('mysql'));
   }
   delete_post_meta($post_id, 'invoice_error');
   $success = false;

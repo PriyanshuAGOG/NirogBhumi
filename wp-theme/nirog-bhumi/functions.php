@@ -954,7 +954,7 @@ function nirog_bhumi_render_consultation_booking_metabox($post) {
     <?php if ($invoice_number) : ?><p><strong><?php esc_html_e('Invoice', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_number); ?><?php if (get_post_meta($post->ID, '_nb_test_invoice', true) === 'yes') : ?> <em><?php esc_html_e('(test)', 'nirog-bhumi'); ?></em><?php endif; ?></p><p class="description"><?php esc_html_e('Issued invoice numbers are permanent and cannot be reused.', 'nirog-bhumi'); ?></p><?php endif; ?>
     <?php if ($invoice_sent_at) : ?><p style="color:#22712f"><strong><?php esc_html_e('Invoice email sent', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_sent_at); ?></p><?php endif; ?>
     <?php if ($invoice_error) : ?><div style="padding:10px;border-left:4px solid #b32d2e;background:#fff1f0"><strong><?php esc_html_e('Invoice error', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_error); ?></div><?php endif; ?>
-    <?php if ($status === 'verified') : ?><p><a class="button button-primary" href="<?php echo esc_url($invoice_action_url); ?>"><?php echo esc_html($invoice_sent_at ? __('Generate and resend invoice', 'nirog-bhumi') : __('Generate and send invoice', 'nirog-bhumi')); ?></a></p><?php endif; ?>
+    <p><a class="button button-primary" href="<?php echo esc_url($invoice_action_url); ?>"><?php echo esc_html($status === 'verified' ? ($invoice_sent_at ? __('Generate and resend invoice', 'nirog-bhumi') : __('Generate and send invoice', 'nirog-bhumi')) : __('Verify payment, generate and send', 'nirog-bhumi')); ?></a></p>
     <?php if ($status === 'verified' && $invoice_number) : ?><p><a class="button" href="<?php echo esc_url(nirog_bhumi_consultation_pdf_url($post->ID)); ?>"><?php esc_html_e('Download invoice PDF', 'nirog-bhumi'); ?></a></p><?php endif; ?>
     <p><a href="<?php echo esc_url(nirog_bhumi_consultation_status_url($post->ID)); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open customer status page', 'nirog-bhumi'); ?></a></p>
   </div>
@@ -1012,6 +1012,7 @@ function nirog_bhumi_save_consultation_booking($post_id) {
   $old_status = (string) get_post_meta($post_id, 'payment_status', true);
   $status = isset($_POST['nb_payment_status']) && sanitize_key(wp_unslash($_POST['nb_payment_status'])) === 'verified' ? 'verified' : 'pending';
   update_post_meta($post_id, 'payment_status', $status);
+  update_post_meta($post_id, 'status', $status);
   update_post_meta($post_id, 'payment_reference', isset($_POST['nb_payment_reference']) ? sanitize_text_field(wp_unslash($_POST['nb_payment_reference'])) : '');
   update_post_meta($post_id, 'slot_date', isset($_POST['nb_slot_date']) ? sanitize_text_field(wp_unslash($_POST['nb_slot_date'])) : '');
   update_post_meta($post_id, 'slot_time', isset($_POST['nb_slot_time']) ? sanitize_text_field(wp_unslash($_POST['nb_slot_time'])) : '');
