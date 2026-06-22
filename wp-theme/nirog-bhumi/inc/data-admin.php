@@ -193,20 +193,26 @@ add_action('manage_nb_consultation_posts_custom_column', 'nirog_bhumi_consultati
 
 function nirog_bhumi_retry_invoice_delivery() {
   $post_id = isset($_GET['post_id']) ? absint($_GET['post_id']) : 0;
-  if (!$post_id || !current_user_can('edit_post', $post_id)) {
+  if (!$post_id || get_post_type($post_id) !== 'nb_consultation' || !current_user_can('edit_post', $post_id)) {
     wp_die(esc_html__('You are not allowed to send this invoice.', 'nirog-bhumi'));
   }
   check_admin_referer('nirog_retry_invoice_' . $post_id);
-  delete_post_meta($post_id, 'invoice_error');
-  if (function_exists('nirog_bhumi_send_consultation_invoice')) {
-    nirog_bhumi_send_consultation_invoice($post_id);
+  $redirect = admin_url('post.php?post=' . $post_id . '&action=edit');
+  if (get_post_meta($post_id, 'payment_status', true) !== 'verified') {
+    update_post_meta($post_id, 'invoice_error', __('Mark the payment as Verified and save the entry before generating its invoice.', 'nirog-bhumi'));
+    wp_safe_redirect(add_query_arg('nb_invoice_retry', 'failed', $redirect));
+    exit;
   }
-  $sent = get_post_meta($post_id, 'invoice_sent_at', true);
-  if (!$sent && !get_post_meta($post_id, 'invoice_error', true)) {
+  delete_post_meta($post_id, 'invoice_error');
+  $success = false;
+  if (function_exists('nirog_bhumi_send_consultation_invoice')) {
+    $success = (bool) nirog_bhumi_send_consultation_invoice($post_id);
+  }
+  if (!$success && !get_post_meta($post_id, 'invoice_error', true)) {
     $last_error = get_option('nirog_bhumi_last_mail_error');
     update_post_meta($post_id, 'invoice_error', $last_error ? $last_error : __('WordPress could not send the email. Configure authenticated SMTP and retry.', 'nirog-bhumi'));
   }
-  wp_safe_redirect(add_query_arg('nb_invoice_retry', $sent ? 'sent' : 'failed', admin_url('edit.php?post_type=nb_consultation')));
+  wp_safe_redirect(add_query_arg('nb_invoice_retry', $success ? 'sent' : 'failed', $redirect));
   exit;
 }
 add_action('admin_post_nirog_retry_invoice', 'nirog_bhumi_retry_invoice_delivery');

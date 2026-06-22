@@ -379,20 +379,33 @@ function nirog_bhumi_install_invoice_sequence_table() {
     last_number bigint(20) unsigned NOT NULL DEFAULT 0,
     PRIMARY KEY  (financial_year)
   ) ENGINE=InnoDB {$charset};");
-  update_option('nirog_bhumi_invoice_sequence_version', '1');
+  if (nirog_bhumi_invoice_sequence_table_exists()) {
+    update_option('nirog_bhumi_invoice_sequence_version', '2');
+    return true;
+  }
+  return false;
 }
 add_action('after_switch_theme', 'nirog_bhumi_install_invoice_sequence_table');
 
+function nirog_bhumi_invoice_sequence_table_exists() {
+  global $wpdb;
+  $table = $wpdb->prefix . 'nb_invoice_sequences';
+  return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table;
+}
+
 function nirog_bhumi_maybe_install_invoice_sequence_table() {
-  if (get_option('nirog_bhumi_invoice_sequence_version') !== '1') {
-    nirog_bhumi_install_invoice_sequence_table();
+  if (get_option('nirog_bhumi_invoice_sequence_version') !== '2' || !nirog_bhumi_invoice_sequence_table_exists()) {
+    return nirog_bhumi_install_invoice_sequence_table();
   }
+  return true;
 }
 add_action('init', 'nirog_bhumi_maybe_install_invoice_sequence_table', 36);
 
 function nirog_bhumi_next_sequential_invoice_number() {
   global $wpdb;
-  nirog_bhumi_maybe_install_invoice_sequence_table();
+  if (!nirog_bhumi_maybe_install_invoice_sequence_table()) {
+    return '';
+  }
   $table = $wpdb->prefix . 'nb_invoice_sequences';
   $financial_year = nirog_bhumi_invoice_financial_year();
   $query = $wpdb->prepare(
@@ -415,15 +428,44 @@ function nirog_bhumi_assign_sequential_invoice_number($post_id) {
   if ($existing) {
     return $existing;
   }
-  $invoice = nirog_bhumi_next_sequential_invoice_number();
-  if (!$invoice) {
+  $lock_key = 'nirog_bhumi_invoice_lock_' . absint($post_id);
+  $lock_acquired = add_option($lock_key, time(), '', false);
+  if (!$lock_acquired && (int) get_option($lock_key) < time() - 120) {
+    delete_option($lock_key);
+    $lock_acquired = add_option($lock_key, time(), '', false);
+  }
+  if (!$lock_acquired) {
+    for ($attempt = 0; $attempt < 20; $attempt++) {
+      usleep(50000);
+      $existing = (string) get_post_meta($post_id, 'invoice_number', true);
+      if ($existing) return $existing;
+    }
     return '';
   }
-  $invoice_number = $invoice['number'];
-  update_post_meta($post_id, 'invoice_number', $invoice_number);
-  update_post_meta($post_id, 'invoice_financial_year', $invoice['financial_year']);
-  update_post_meta($post_id, 'invoice_sequence', $invoice['sequence']);
-  return $invoice_number;
+  try {
+    $existing = (string) get_post_meta($post_id, 'invoice_number', true);
+    if ($existing) return $existing;
+    $financial_year = nirog_bhumi_invoice_financial_year();
+    $test_option = 'nirog_bhumi_test_invoice_000_' . str_replace('-', '_', $financial_year);
+    if (add_option($test_option, (string) absint($post_id), '', false)) {
+      $invoice_number = $financial_year . '/000';
+      update_post_meta($post_id, 'invoice_number', $invoice_number);
+      update_post_meta($post_id, 'invoice_financial_year', $financial_year);
+      update_post_meta($post_id, 'invoice_sequence', 0);
+      update_post_meta($post_id, '_nb_test_invoice', 'yes');
+      return $invoice_number;
+    }
+    $invoice = nirog_bhumi_next_sequential_invoice_number();
+    if (!$invoice) return '';
+    $invoice_number = $invoice['number'];
+    update_post_meta($post_id, 'invoice_number', $invoice_number);
+    update_post_meta($post_id, 'invoice_financial_year', $invoice['financial_year']);
+    update_post_meta($post_id, 'invoice_sequence', $invoice['sequence']);
+    delete_post_meta($post_id, '_nb_test_invoice');
+    return $invoice_number;
+  } finally {
+    delete_option($lock_key);
+  }
 }
 
 function nirog_bhumi_assign_woocommerce_order_invoice($order_id) {
@@ -896,6 +938,9 @@ function nirog_bhumi_render_consultation_booking_metabox($post) {
   $meeting_details = (string) get_post_meta($post->ID, 'meeting_details', true);
   $meeting_url = (string) get_post_meta($post->ID, 'meeting_url', true);
   $invoice_number = (string) get_post_meta($post->ID, 'invoice_number', true);
+  $invoice_sent_at = (string) get_post_meta($post->ID, 'invoice_sent_at', true);
+  $invoice_error = (string) get_post_meta($post->ID, 'invoice_error', true);
+  $invoice_action_url = wp_nonce_url(admin_url('admin-post.php?action=nirog_retry_invoice&post_id=' . $post->ID), 'nirog_retry_invoice_' . $post->ID);
   ?>
   <div class="nb-booking-admin">
     <p><strong><?php esc_html_e('Reference', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($reference); ?></p>
@@ -906,14 +951,18 @@ function nirog_bhumi_render_consultation_booking_metabox($post) {
     <p><label for="nb-slot-time"><strong><?php esc_html_e('Consultation time', 'nirog-bhumi'); ?></strong></label><input id="nb-slot-time" name="nb_slot_time" type="time" value="<?php echo esc_attr($slot_time); ?>" style="width:100%"></p>
     <p><label for="nb-meeting-details"><strong><?php esc_html_e('Meeting details', 'nirog-bhumi'); ?></strong></label><textarea id="nb-meeting-details" name="nb_meeting_details" rows="3" style="width:100%"><?php echo esc_textarea($meeting_details); ?></textarea></p>
     <p><label for="nb-meeting-url"><strong><?php esc_html_e('Meeting link', 'nirog-bhumi'); ?></strong></label><input id="nb-meeting-url" name="nb_meeting_url" type="url" value="<?php echo esc_attr($meeting_url); ?>" style="width:100%"></p>
-    <?php if ($invoice_number) : ?><p><strong><?php esc_html_e('Invoice', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_number); ?></p><p class="description"><?php esc_html_e('Issued invoice numbers are permanent and cannot be reused.', 'nirog-bhumi'); ?></p><?php endif; ?>
-    <?php if ($status === 'verified') : ?><p><label><input type="checkbox" name="nb_resend_invoice" value="1"> <?php esc_html_e('Resend invoice email', 'nirog-bhumi'); ?></label></p><?php endif; ?>
+    <?php if ($invoice_number) : ?><p><strong><?php esc_html_e('Invoice', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_number); ?><?php if (get_post_meta($post->ID, '_nb_test_invoice', true) === 'yes') : ?> <em><?php esc_html_e('(test)', 'nirog-bhumi'); ?></em><?php endif; ?></p><p class="description"><?php esc_html_e('Issued invoice numbers are permanent and cannot be reused.', 'nirog-bhumi'); ?></p><?php endif; ?>
+    <?php if ($invoice_sent_at) : ?><p style="color:#22712f"><strong><?php esc_html_e('Invoice email sent', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_sent_at); ?></p><?php endif; ?>
+    <?php if ($invoice_error) : ?><div style="padding:10px;border-left:4px solid #b32d2e;background:#fff1f0"><strong><?php esc_html_e('Invoice error', 'nirog-bhumi'); ?></strong><br><?php echo esc_html($invoice_error); ?></div><?php endif; ?>
+    <?php if ($status === 'verified') : ?><p><a class="button button-primary" href="<?php echo esc_url($invoice_action_url); ?>"><?php echo esc_html($invoice_sent_at ? __('Generate and resend invoice', 'nirog-bhumi') : __('Generate and send invoice', 'nirog-bhumi')); ?></a></p><?php endif; ?>
+    <?php if ($status === 'verified' && $invoice_number) : ?><p><a class="button" href="<?php echo esc_url(nirog_bhumi_consultation_pdf_url($post->ID)); ?>"><?php esc_html_e('Download invoice PDF', 'nirog-bhumi'); ?></a></p><?php endif; ?>
     <p><a href="<?php echo esc_url(nirog_bhumi_consultation_status_url($post->ID)); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open customer status page', 'nirog-bhumi'); ?></a></p>
   </div>
   <?php
 }
 
 function nirog_bhumi_send_consultation_invoice($post_id) {
+  update_post_meta($post_id, 'invoice_generation_attempted_at', current_time('mysql'));
   $email = sanitize_email((string) get_post_meta($post_id, 'email', true));
   if (!$email) {
     update_post_meta($post_id, 'invoice_error', __('A valid customer email address is required before the invoice can be sent.', 'nirog-bhumi'));
@@ -936,6 +985,7 @@ function nirog_bhumi_send_consultation_invoice($post_id) {
     update_post_meta($post_id, 'invoice_error', __('Invoice PDF could not be generated. Check invoice settings and file permissions.', 'nirog-bhumi'));
     return false;
   }
+  update_post_meta($post_id, 'invoice_pdf_generated_at', current_time('mysql'));
   $slot_line = $slot_date ? '<p><strong>Consultation:</strong> ' . esc_html(wp_date(get_option('date_format'), strtotime($slot_date))) . ($slot_time ? ' at ' . esc_html(wp_date(get_option('time_format'), strtotime($slot_time))) : '') . ' (Asia/Kolkata)</p>' : '<p>Your consultation time will be confirmed personally by the Nirog Bhumi team.</p>';
   $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. ' . esc_html(number_format((float) $invoice_data['total'], 2)) . '</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">Download invoice PDF</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
   $attachments = [$pdf_path];
