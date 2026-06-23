@@ -1,14 +1,44 @@
 <?php
 /**
  * Static Nirog Bhumi template generated from education/index.html.
+ *
+ * Published "Education Articles" (the nb_education_post type) are shown inside
+ * the six education categories below, alongside the curated external articles.
+ * Assign each article one of the six Education Topics in WordPress admin and it
+ * appears under the matching category automatically.
  */
 $nb_education_posts = get_posts([
   'post_type' => 'nb_education_post',
   'post_status' => 'publish',
-  'posts_per_page' => 9,
+  'posts_per_page' => -1,
   'orderby' => 'date',
   'order' => 'DESC',
 ]);
+
+// Group published articles by their education topic so each vertical can render
+// the ones that belong to it. Articles without a recognised topic fall back to
+// the first category so they are never lost.
+$nb_topics = function_exists('nirog_bhumi_education_topics') ? nirog_bhumi_education_topics() : [];
+$nb_fallback_topic = $nb_topics ? strtolower($nb_topics[0]) : 'foundations of health';
+$nb_education_groups = [];
+foreach ($nb_education_posts as $nb_post) {
+  $names = wp_get_post_terms($nb_post->ID, 'nb_education_topic', ['fields' => 'names']);
+  if (is_wp_error($names) || !$names) {
+    $names = [$nb_fallback_topic];
+  }
+  $placed = false;
+  foreach ($names as $name) {
+    $key = strtolower(trim($name));
+    $nb_education_groups[$key][] = $nb_post;
+    $placed = true;
+  }
+  if (!$placed) {
+    $nb_education_groups[$nb_fallback_topic][] = $nb_post;
+  }
+}
+
+// 16 curated external references + however many Nirog Bhumi articles are live.
+$nb_reference_count = 16 + count($nb_education_posts);
 
 $nb_education_schema = [];
 foreach ($nb_education_posts as $nb_post) {
@@ -35,40 +65,10 @@ get_header(); ?>
 <?php if (!empty($nb_education_schema)) : ?>
 <script type="application/ld+json"><?php echo wp_json_encode(['@context' => 'https://schema.org', '@type' => 'Blog', 'name' => 'Nirog Bhumi Education Articles', 'blogPost' => $nb_education_schema], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
 <?php endif; ?>
-<section class="legal-split legal-intro-only"><div><p class="eyebrow">Nirog Bhumi Articles</p><h1>Fresh education articles for diabetes reversal and metabolic health.</h1><p>Use this section for your own published articles so traffic lands on Nirog Bhumi. Add and manage posts from WordPress Admin under <strong>Education Articles</strong>.</p></div></section>
-<section class="education-search">
-  <label>Search Nirog Bhumi articles<input data-nb-article-search type="search" placeholder="Search insulin resistance, post-meal walk, sleep, stress, fasting..."></label>
-  <p data-nb-article-count><?php echo esc_html(count($nb_education_posts)); ?> article<?php echo count($nb_education_posts) === 1 ? '' : 's'; ?> available</p>
-</section>
-<section class="consult-cards" data-nb-article-grid>
-  <?php if ($nb_education_posts) : foreach ($nb_education_posts as $index => $nb_post) :
-    $title = get_the_title($nb_post);
-    $excerpt = wp_strip_all_tags(get_the_excerpt($nb_post));
-    if (!$excerpt) {
-      $excerpt = wp_trim_words(wp_strip_all_tags((string) $nb_post->post_content), 28);
-    }
-    $date = get_the_date('d M Y', $nb_post);
-    $topics = wp_get_post_terms($nb_post->ID, 'nb_education_topic', ['fields' => 'names']);
-    $topic_text = !is_wp_error($topics) && $topics ? implode(', ', $topics) : 'Education';
-    $search_text = strtolower(trim($title . ' ' . $excerpt . ' ' . $topic_text));
-  ?>
-  <article data-nb-article-card data-search="<?php echo esc_attr($search_text); ?>">
-    <small><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) . ' | ' . $date . ' | ' . $topic_text); ?></small>
-    <h2><a href="<?php echo esc_url(get_permalink($nb_post)); ?>"><?php echo esc_html($title); ?></a></h2>
-    <p><?php echo esc_html($excerpt); ?></p>
-    <a class="pill ghost" href="<?php echo esc_url(get_permalink($nb_post)); ?>">Read article</a>
-  </article>
-  <?php endforeach; else : ?>
-  <article>
-    <h2>No education articles published yet.</h2>
-    <p>Start with your first post from WordPress admin under Education Articles. Once published, it appears here automatically.</p>
-  </article>
-  <?php endif; ?>
-</section>
-<section class="education-guide first" data-read-more-root><p class="eyebrow">How to make the best use of this library</p><h1>Use these articles as learning resources, not personalised medical advice.</h1><p>The external articles linked on this page have been carefully selected and curated by Nirog Bhumi to help readers understand how lifestyle, nutrition, movement, sleep, stress reduction, weight management, and other health changes may support better metabolic health and, in turn, lead to Type 2 diabetes reversal.</p><p>These articles are shared for educational and reference purposes only. Nirog Bhumi does not claim ownership over any third-party articles, images, videos, graphics, or media content. All rights belong to the respective publishers, authors, and media organisations. Nirog Bhumi is not responsible for their content, accuracy, policies, advertisements, future changes, or availability. Some articles may be behind a paywall.</p><p>While Nirog Bhumi generally agrees with the broad viewpoint expressed in these curated articles, especially where they support lifestyle-based improvement in Type 2 diabetes, we may not agree with every recommendation, statement, interpretation, or dietary suggestion made in them. For example, an article may mention eggs or other animal-based foods as part of a healthy diet, whereas Nirog Bhumi promotes a whole-food, plant-based dietary approach for diabetes reversal.</p><div class="read-more-content" data-read-more-content><p>Readers are encouraged to use these articles as learning resources, not as personalised medical advice. Please consult your physician, diabetologist, or qualified healthcare practitioner before acting upon anything mentioned in these articles, especially before making changes to your diet, medicines, supplements, herbs, fasting routine, exercise, or diabetes management plan.</p><p>Nirog Bhumi shall not be held responsible for any action taken by readers based on the content contained in these articles. Any reliance on such content is entirely at the reader discretion and risk.</p></div><button class="read-more-toggle" type="button" data-read-more-toggle>More...</button></section>
+<section class="education-guide first" data-read-more-root><p class="eyebrow">How to make the best use of this library</p><h1>Use these articles as learning resources, not personalised medical advice.</h1><p>The articles linked on this page have been carefully selected and curated by Nirog Bhumi to help readers understand how lifestyle, nutrition, movement, sleep, stress reduction, weight management, and other health changes may support better metabolic health and, in turn, lead to Type 2 diabetes reversal.</p><p>External articles are shared for educational and reference purposes only. Nirog Bhumi does not claim ownership over any third-party articles, images, videos, graphics, or media content. All rights belong to the respective publishers, authors, and media organisations. Nirog Bhumi is not responsible for their content, accuracy, policies, advertisements, future changes, or availability. Some articles may be behind a paywall.</p><p>While Nirog Bhumi generally agrees with the broad viewpoint expressed in these curated articles, especially where they support lifestyle-based improvement in Type 2 diabetes, we may not agree with every recommendation, statement, interpretation, or dietary suggestion made in them. For example, an article may mention eggs or other animal-based foods as part of a healthy diet, whereas Nirog Bhumi promotes a whole-food, plant-based dietary approach for diabetes reversal.</p><div class="read-more-content" data-read-more-content><p>Readers are encouraged to use these articles as learning resources, not as personalised medical advice. Please consult your physician, diabetologist, or qualified healthcare practitioner before acting upon anything mentioned in these articles, especially before making changes to your diet, medicines, supplements, herbs, fasting routine, exercise, or diabetes management plan.</p><p>Nirog Bhumi shall not be held responsible for any action taken by readers based on the content contained in these articles. Any reliance on such content is entirely at the reader discretion and risk.</p></div><button class="read-more-toggle" type="button" data-read-more-toggle>More...</button></section>
 <section class="education-search">
   <label>Search education<input data-education-search type="search" placeholder="Search movement, chewing, food routine, low carb, sleep..."></label>
-  <p data-education-count>16 references available</p>
+  <p data-education-count><?php echo esc_html($nb_reference_count); ?> references available</p>
 </section>
 <section class="vertical-map"><a href="#vertical-1"><span>01</span><strong>Foundations of Health</strong><small>General health</small></a><a href="#vertical-2"><span>02</span><strong>Movement</strong><small>Walking, yoga, soleus push ups</small></a><a href="#vertical-3"><span>03</span><strong>How to Eat</strong><small>Chewing, order, timing</small></a><a href="#vertical-4"><span>04</span><strong>What to Eat</strong><small>Fibre and whole foods</small></a><a href="#vertical-5"><span>05</span><strong>What to Avoid</strong><small>Ultra-processed food</small></a><a href="#vertical-6"><span>06</span><strong>Recovery, Stress & Tracking</strong><small>Sleep, stress, digestion</small></a></section>
 <section class="education-vertical" id="vertical-1" data-edu-section>
@@ -78,7 +78,7 @@ get_header(); ?>
     <h3>Bollywood template of big biceps and 6-pack is not fitness</h3>
     <p>A useful article for reframing fitness around functional health and sustainable living.</p>
     <a href="https://timesofindia.indiatimes.com/life-style/health-plus/bollywood-template-of-big-biceps-6-pack-isnt-fitness-living-healthy-is/articleshow/129633763.cms" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['foundations of health'] ?? [], 1); ?></div>
 </section><section class="education-vertical" id="vertical-2" data-edu-section>
   <div class="vertical-intro"><span>02</span><h2>Movement</h2><p>This section covers walking, yoga, simple seated movements, and post-meal activity that can be easily practised in daily life.</p><small>Why less intensive, frequent movement, especially after meals, can often matter more than occasional intense exercise.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="movement walking, yoga, soleus push ups researcher discovers a muscle that can promote glucose and fat burning while sitting medical xpress introduces the idea of soleus push-ups and why light muscular activity can be metabolically meaningful.">
@@ -91,7 +91,7 @@ get_header(); ?>
     <h3>Just move your heels: a 3-min trick may reduce post-meal sugar spike</h3>
     <p>A simple entry point for readers who need a low-friction post-meal movement habit.</p>
     <a href="https://timesofindia.indiatimes.com/india/just-move-your-heels-a-3-min-trick-may-reduce-post-meal-sugar-spike/articleshow/128284378.cms" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['movement'] ?? [], 2); ?></div>
 </section><section class="education-vertical" id="vertical-3" data-edu-section>
   <div class="vertical-intro"><span>03</span><h2>How to Eat</h2><p>The way food is eaten changes the glucose response. This vertical covers slow chewing, meal sequencing, early eating windows and the rhythm of breakfast, lunch and dinner.</p><small>Why how you eat can matter almost as much as what you eat.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="how to eat chewing, order, timing how slow chewing can help prevent diabetes and other health issues times of india eating slowly helps the body feel full sooner, digest better, and reduce unnecessary glucose spikes.">
@@ -124,7 +124,7 @@ get_header(); ?>
     <h3>Time-restricted eating and early eating windows</h3>
     <p>Why earlier eating windows may better support metabolism.</p>
     <a href="https://www.medicalnewstoday.com/articles/time-restricted-eating-early-window-best-metabolism" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['how to eat'] ?? [], 6); ?></div>
 </section><section class="education-vertical" id="vertical-4" data-edu-section>
   <div class="vertical-intro"><span>04</span><h2>What to Eat</h2><p>What we eat shapes inflammation, satiety, gut rhythm and glucose stability. This vertical focuses on consuming foods high in fibre, and incorporating a whole foods plant-based diet.</p><small>Use this when building grocery lists and meal plans.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="what to eat fibre and whole foods the foods that fight inflammation the new york times a list of anti-inflammatory foods.">
@@ -137,7 +137,7 @@ get_header(); ?>
     <h3>Low-carb diet may reduce need for drugs in type 2 diabetes</h3>
     <p>Enhance beta-cell function by adopting a low-carb diet.</p>
     <a href="https://www.medicalnewstoday.com/articles/low-carb-diet-may-eliminate-need-for-drugs-in-type-2-diabetes" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['what to eat'] ?? [], 2); ?></div>
 </section><section class="education-vertical" id="vertical-5" data-edu-section>
   <div class="vertical-intro"><span>05</span><h2>What to Avoid</h2><p>Reversal becomes harder when daily food is dominated by ultra-processed foods, preservatives, sweet drinks, refined snacks and confusing sugar substitutes.</p><small>Use this to identify the foods and drinks that quietly make diabetes reversal harder.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="what to avoid ultra-processed food food preservatives linked to type 2 diabetes and cancer, studies warn medical news today a cautionary overview of additives and packaged-foods.">
@@ -155,7 +155,7 @@ get_header(); ?>
     <h3>Are sugar substitutes healthier than the real thing?</h3>
     <p>The bitter truth of sugar substitutes.</p>
     <a href="https://www.economist.com/science-and-technology/2026/04/10/are-sugar-substitutes-healthier-than-the-real-thing" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['what to avoid'] ?? [], 3); ?></div>
 </section><section class="education-vertical" id="vertical-6" data-edu-section>
   <div class="vertical-intro"><span>06</span><h2>Recovery, Stress & Tracking</h2><p>Blood sugar is also shaped by sleep, stress, digestion, emotional eating and whether progress is being tracked. This vertical connects meditation, sleep rhythm and tracking.</p><small>Learn how sleep rhythm, stress management, digestion, and calm tracking can improve metabolic progress.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="recovery, stress & tracking sleep, stress, digestion sleep is more important for longevity than diet, exercise, social ties, study says medical news today a readable reference for why sleep rhythm deserves serious attention in metabolic recovery.">
@@ -168,7 +168,7 @@ get_header(); ?>
     <h3>Mindfulness may be as effective as antidepressant for anxiety symptoms</h3>
     <p>A useful article for understanding mindfulness as a serious stress-regulation practice.</p>
     <a href="https://www.medicalnewstoday.com/articles/mindfulness-may-be-as-effective-as-antidepressant-relieving-anxiety-symptoms" target="_blank" rel="noopener">Read article</a>
-  </article></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['recovery, stress & tracking'] ?? [], 2); ?></div>
 </section>
 </main>
 <?php get_footer(); ?>

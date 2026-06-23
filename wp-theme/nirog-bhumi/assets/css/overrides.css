@@ -5,3 +5,15 @@
 .programmes-menu-grid img{transform:none !important;display:block;backface-visibility:hidden}
 .programmes-menu-grid article>div{min-width:0}
 .program-card-tagline{white-space:normal;word-break:break-word}
+
+/*
+ * The "6 Months Diabetes Reversal Program" card carries an extra tagline and a
+ * longer heading, so on some viewports its content was taller than the fixed
+ * card height and the bottom (tagline / button) was clipped by overflow:hidden.
+ * Let every card size to its content and rely on the grid's equal-height rows
+ * so cards stay aligned without clipping. The figure keeps its own clip for the
+ * rounded image corners.
+ */
+.programmes-menu-grid{grid-auto-rows:1fr;align-items:stretch}
+.programmes-menu-grid article{height:auto!important;min-height:0!important;overflow:visible!important}
+.programmes-menu-grid figure{overflow:hidden}

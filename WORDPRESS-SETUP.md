@@ -391,3 +391,44 @@ Before any update:
 - The frontend pages are converted into PHP templates.
 - WooCommerce pages are dynamic and ready for real orders.
 - Do not edit WordPress core files.
+
+## 20. Publishing Education Articles
+
+The Education page shows six fixed categories with curated external links.
+Articles you publish in WordPress appear automatically inside the matching
+category, next to the external links — no template editing needed.
+
+### How to publish
+
+1. In the WordPress admin sidebar, open **Education Articles → Add New**.
+2. **Title** — this becomes the article heading and link text on the page.
+3. **Content** — write the full article in the main editor. This is the page
+   readers land on when they click "Read article".
+4. **Excerpt** — open the *Excerpt* panel (Screen Options → Excerpt if hidden)
+   and write 1–2 sentences. This is the summary shown on the card. If left
+   blank, the first ~26 words of the content are used.
+5. **Education Topic** — in the *Education Topics* box, tick **exactly one** of
+   the six categories. This decides which category section the article shows up
+   under:
+   - Foundations of Health
+   - Movement
+   - How to Eat
+   - What to Eat
+   - What to Avoid
+   - Recovery, Stress & Tracking
+   These six topics are created automatically; just pick one. (Ticking more than
+   one shows the article under each ticked category.)
+6. **Featured image** (optional) — used for SEO/social sharing.
+7. Click **Publish**.
+
+The article now appears on `/education/` inside its category, the on-page
+search includes it, and the reference count updates on its own. Editing or
+moving an article to another topic updates the page immediately.
+
+### Notes
+
+- Only **Published** articles appear. Drafts and pending posts stay hidden.
+- Articles with no topic selected fall back to *Foundations of Health* so they
+  are never lost — but always pick a topic for correct placement.
+- External curated links are hard-coded in `page-education.php` and are not
+  affected by anything you publish.
