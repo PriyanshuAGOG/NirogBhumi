@@ -14,7 +14,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
-  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.1');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.2');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.0', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
@@ -1066,15 +1066,17 @@ function nirog_bhumi_render_consultation_privacy_metabox($post) {
   if ($has_invoice) {
     echo '<p><strong>' . esc_html__('Legal invoice hold:', 'nirog-bhumi') . '</strong> ' . esc_html__('The minimum identity and payment fields required for the issued invoice remain restricted in this record. Health details are still removed.', 'nirog-bhumi') . '</p>';
   }
-  $confirm_message = esc_attr(__('This cannot be undone. An anonymous metrics record will be created and identifiable health data will be erased. Continue?', 'nirog-bhumi')); echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" data-confirm="' . $confirm_message . '" onsubmit="return confirm(this.dataset.confirm);">';
-  wp_nonce_field('nirog_anonymise_consultation_' . $post->ID, 'nirog_anonymise_nonce');
-  echo '<input type="hidden" name="action" value="nirog_anonymise_consultation"><input type="hidden" name="entry_id" value="' . esc_attr($post->ID) . '">';
-  submit_button(__('Anonymise health record', 'nirog-bhumi'), 'secondary', 'submit', false);
-  echo '</form>';
+  $confirm_message = esc_js(__('This cannot be undone. An anonymous metrics record will be created and identifiable health data will be erased. Continue?', 'nirog-bhumi'));
+  $anonymise_url = wp_nonce_url(
+    admin_url('admin-post.php?action=nirog_anonymise_consultation&entry_id=' . $post->ID),
+    'nirog_anonymise_consultation_' . $post->ID,
+    'nirog_anonymise_nonce'
+  );
+  echo '<p><a href="' . esc_url($anonymise_url) . '" class="button button-secondary" onclick="return confirm(\'' . $confirm_message . '\');">' . esc_html__('Anonymise health record', 'nirog-bhumi') . '</a></p>';
 }
 
 function nirog_bhumi_anonymise_consultation_record() {
-  $entry_id = isset($_POST['entry_id']) ? absint($_POST['entry_id']) : 0;
+  $entry_id = isset($_REQUEST['entry_id']) ? absint($_REQUEST['entry_id']) : 0;
   if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation' || !current_user_can('delete_post', $entry_id)) {
     wp_die(esc_html__('You are not allowed to anonymise this record.', 'nirog-bhumi'));
   }
@@ -1324,17 +1326,18 @@ function nirog_bhumi_render_form_entry_privacy_metabox($post) {
     echo '<p><strong>' . esc_html__('Anonymised', 'nirog-bhumi') . '</strong></p><p>' . esc_html__('Personal fields and uploaded files have been permanently removed.', 'nirog-bhumi') . '</p>';
     return;
   }
-  $message = esc_attr(__('This cannot be undone. Personal fields and uploaded files will be erased. Continue?', 'nirog-bhumi'));
+  $message = esc_js(__('This cannot be undone. Personal fields and uploaded files will be erased. Continue?', 'nirog-bhumi'));
   echo '<p>' . esc_html__('Removes personal fields and files while retaining only non-identifying aggregate fields in a separate anonymous record.', 'nirog-bhumi') . '</p>';
-  echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" data-confirm="' . $message . '" onsubmit="return confirm(this.dataset.confirm);">';
-  wp_nonce_field('nirog_anonymise_form_entry_' . $post->ID, 'nirog_anonymise_nonce');
-  echo '<input type="hidden" name="action" value="nirog_anonymise_form_entry"><input type="hidden" name="entry_id" value="' . esc_attr($post->ID) . '">';
-  submit_button(__('Anonymise form entry', 'nirog-bhumi'), 'secondary', 'submit', false);
-  echo '</form>';
+  $anonymise_url = wp_nonce_url(
+    admin_url('admin-post.php?action=nirog_anonymise_form_entry&entry_id=' . $post->ID),
+    'nirog_anonymise_form_entry_' . $post->ID,
+    'nirog_anonymise_nonce'
+  );
+  echo '<p><a href="' . esc_url($anonymise_url) . '" class="button button-secondary" onclick="return confirm(\'' . $message . '\');">' . esc_html__('Anonymise form entry', 'nirog-bhumi') . '</a></p>';
 }
 
 function nirog_bhumi_anonymise_form_entry() {
-  $entry_id = isset($_POST['entry_id']) ? absint($_POST['entry_id']) : 0;
+  $entry_id = isset($_REQUEST['entry_id']) ? absint($_REQUEST['entry_id']) : 0;
   if (!$entry_id || get_post_type($entry_id) !== 'nb_form_entry' || !current_user_can('delete_post', $entry_id)) {
     wp_die(esc_html__('You are not allowed to anonymise this record.', 'nirog-bhumi'));
   }
@@ -1430,3 +1433,70 @@ function nirog_bhumi_register_education_articles() {
   ]);
 }
 add_action('init', 'nirog_bhumi_register_education_articles');
+
+/**
+ * The six fixed education categories used on the Education page. The term names
+ * here must match the vertical headings rendered in page-education.php so that
+ * published articles land under the right category automatically.
+ */
+function nirog_bhumi_education_topics() {
+  return [
+    'Foundations of Health',
+    'Movement',
+    'How to Eat',
+    'What to Eat',
+    'What to Avoid',
+    'Recovery, Stress & Tracking',
+  ];
+}
+
+/**
+ * Seed the six education topics once so the editor always offers a fixed,
+ * foolproof list to assign an article to.
+ */
+function nirog_bhumi_seed_education_topics() {
+  if (get_option('nirog_bhumi_education_topics_seeded') === '6') {
+    return;
+  }
+  foreach (nirog_bhumi_education_topics() as $topic) {
+    if (!term_exists($topic, 'nb_education_topic')) {
+      wp_insert_term($topic, 'nb_education_topic');
+    }
+  }
+  update_option('nirog_bhumi_education_topics_seeded', '6');
+}
+add_action('init', 'nirog_bhumi_seed_education_topics', 30);
+
+/**
+ * Render the published Nirog Bhumi articles for one education category as
+ * edu-cards that sit alongside the curated external articles.
+ *
+ * @param WP_Post[] $posts       Published nb_education_post objects for the category.
+ * @param int       $start_index Number of external cards already shown in the vertical.
+ * @return string HTML for the matching article cards.
+ */
+function nirog_bhumi_education_cards_html($posts, $start_index = 0) {
+  if (empty($posts)) {
+    return '';
+  }
+  $html = '';
+  $index = (int) $start_index;
+  foreach ($posts as $nb_post) {
+    $index++;
+    $title = get_the_title($nb_post);
+    $excerpt = wp_strip_all_tags(get_the_excerpt($nb_post));
+    if (!$excerpt) {
+      $excerpt = wp_trim_words(wp_strip_all_tags((string) $nb_post->post_content), 26);
+    }
+    $topics = wp_get_post_terms($nb_post->ID, 'nb_education_topic', ['fields' => 'names']);
+    $topic_text = !is_wp_error($topics) && $topics ? implode(', ', $topics) : '';
+    $search_text = strtolower(trim($topic_text . ' ' . $title . ' nirog bhumi ' . $excerpt));
+    $html .= '<article class="edu-card" data-edu-card data-nb-own data-search="' . esc_attr($search_text) . '">'
+      . '<div><span>' . esc_html(str_pad((string) $index, 2, '0', STR_PAD_LEFT)) . '</span><small>Nirog Bhumi</small></div>'
+      . '<h3>' . esc_html($title) . '</h3>'
+      . '<p>' . esc_html($excerpt) . '</p>'
+      . '<a href="' . esc_url(get_permalink($nb_post)) . '">Read article</a>'
+      . '</article>';
+  }
+  return $html;
+}
