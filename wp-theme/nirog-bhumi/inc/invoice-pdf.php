@@ -213,7 +213,7 @@ function nirog_bhumi_render_invoice_pdf($data) {
   foreach ($headers as [$x, $label]) $ops .= nirog_bhumi_pdf_text($x, 349, 7.5, $label, 'F2', $green);
   $ops .= nirog_bhumi_pdf_text(47, 386, 9, '1', 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(70, 382, 10, '30-minute consultation with Gautam Khandelwal', 'F2', $ink);
-  $ops .= nirog_bhumi_pdf_text(70, 397, 8, 'Naturopathy and lifestyle consultation', 'F1', $muted);
+  $ops .= nirog_bhumi_pdf_text(70, 397, 8, 'Consultation for Diabetes reversal', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(310, 386, 9, $data['sac'], 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(380, 386, 9, '1', 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(420, 386, 9, number_format($data['base'], 2), 'F1', $ink);
