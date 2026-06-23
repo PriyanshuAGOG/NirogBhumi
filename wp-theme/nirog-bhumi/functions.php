@@ -32,7 +32,7 @@ function nirog_bhumi_settings_defaults() {
     'invoice_state_code' => '08',
     'invoice_sac' => '999319',
     'invoice_gst_rate' => '18',
-    'invoice_email' => 'gk@nirogbhumi.com',
+    'invoice_email' => 'priyanshu@nirogbhumi.com',
     'invoice_phone' => '+91 7357542882',
   ];
 }
@@ -55,7 +55,7 @@ function nirog_bhumi_sanitize_settings($input) {
     'invoice_state_code' => isset($input['invoice_state_code']) ? str_pad(substr(preg_replace('/\D/', '', $input['invoice_state_code']), 0, 2), 2, '0', STR_PAD_LEFT) : '08',
     'invoice_sac' => isset($input['invoice_sac']) ? sanitize_text_field($input['invoice_sac']) : '999319',
     'invoice_gst_rate' => isset($input['invoice_gst_rate']) ? (string) max(0, min(100, (float) $input['invoice_gst_rate'])) : '18',
-    'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : 'gk@nirogbhumi.com',
+    'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : 'priyanshu@nirogbhumi.com',
     'invoice_phone' => isset($input['invoice_phone']) ? sanitize_text_field($input['invoice_phone']) : '+91 7357542882',
   ];
 }
@@ -402,6 +402,29 @@ function nirog_bhumi_maybe_install_invoice_sequence_table() {
 }
 add_action('init', 'nirog_bhumi_maybe_install_invoice_sequence_table', 36);
 
+/**
+ * One-time rollout reset: clear any earlier test-invoice guards and reset the
+ * sequential counter for the current financial year so the next two invoices
+ * are numbered 000 (for testing) and live numbering then starts at 001.
+ */
+function nirog_bhumi_reset_invoice_numbering_for_rollout() {
+  if (get_option('nirog_bhumi_invoice_rollout') === '1') {
+    return;
+  }
+  $financial_year = nirog_bhumi_invoice_financial_year();
+  $fy_key = str_replace('-', '_', $financial_year);
+  delete_option('nirog_bhumi_test_invoice_000_' . $fy_key);
+  delete_option('nirog_bhumi_test_invoice_1_' . $fy_key);
+  delete_option('nirog_bhumi_test_invoice_2_' . $fy_key);
+  if (nirog_bhumi_invoice_sequence_table_exists()) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'nb_invoice_sequences';
+    $wpdb->query($wpdb->prepare("UPDATE {$table} SET last_number = 0 WHERE financial_year = %s", $financial_year));
+  }
+  update_option('nirog_bhumi_invoice_rollout', '1');
+}
+add_action('init', 'nirog_bhumi_reset_invoice_numbering_for_rollout', 37);
+
 function nirog_bhumi_next_sequential_invoice_number() {
   global $wpdb;
   if (!nirog_bhumi_maybe_install_invoice_sequence_table()) {
@@ -447,14 +470,19 @@ function nirog_bhumi_assign_sequential_invoice_number($post_id) {
     $existing = (string) get_post_meta($post_id, 'invoice_number', true);
     if ($existing) return $existing;
     $financial_year = nirog_bhumi_invoice_financial_year();
-    $test_option = 'nirog_bhumi_test_invoice_000_' . str_replace('-', '_', $financial_year);
-    if (add_option($test_option, (string) absint($post_id), '', false)) {
-      $invoice_number = $financial_year . '/000';
-      update_post_meta($post_id, 'invoice_number', $invoice_number);
-      update_post_meta($post_id, 'invoice_financial_year', $financial_year);
-      update_post_meta($post_id, 'invoice_sequence', 0);
-      update_post_meta($post_id, '_nb_test_invoice', 'yes');
-      return $invoice_number;
+    $fy_key = str_replace('-', '_', $financial_year);
+    // The first two invoices of the financial year are numbered 000 for testing.
+    // Live numbering (001, 002, ...) begins from the third invoice onwards.
+    for ($slot = 1; $slot <= 2; $slot++) {
+      $test_option = 'nirog_bhumi_test_invoice_' . $slot . '_' . $fy_key;
+      if (add_option($test_option, (string) absint($post_id), '', false)) {
+        $invoice_number = $financial_year . '/000';
+        update_post_meta($post_id, 'invoice_number', $invoice_number);
+        update_post_meta($post_id, 'invoice_financial_year', $financial_year);
+        update_post_meta($post_id, 'invoice_sequence', 0);
+        update_post_meta($post_id, '_nb_test_invoice', 'yes');
+        return $invoice_number;
+      }
     }
     $invoice = nirog_bhumi_next_sequential_invoice_number();
     if (!$invoice) return '';

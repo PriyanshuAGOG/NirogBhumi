@@ -115,7 +115,7 @@ function nirog_bhumi_consultation_invoice_data($post_id) {
     'state_code' => str_pad($state_code ?: $supplier_code, 2, '0', STR_PAD_LEFT),
     'postcode' => get_post_meta($post_id, 'billing_postcode', true),
     'country' => $country,
-    'customer_gstin' => get_post_meta($post_id, 'customer_gstin', true) ?: 'Unregistered',
+    'customer_gstin' => get_post_meta($post_id, 'customer_gstin', true),
     'legal_name' => $settings['invoice_legal_name'],
     'business_address' => $settings['invoice_address'],
     'business_gstin' => $settings['invoice_gstin'],
@@ -154,18 +154,17 @@ function nirog_bhumi_render_invoice_pdf($data) {
   } else {
     $ops .= nirog_bhumi_pdf_text(40, 70, 23, 'NIROG BHUMI', 'F3', $green);
   }
-  $ops .= nirog_bhumi_pdf_text(40, 99, 8, 'Wellness and lifestyle medicine - Diabetes reversal', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(410, 68, 21, 'TAX INVOICE', 'F3', $ink);
-  $ops .= nirog_bhumi_pdf_text(425, 91, 8, $data['type'], 'F2', $green);
   $ops .= nirog_bhumi_pdf_line(38, 112, 557, 112, .6, '0.82 0.79 0.72');
 
   $ops .= nirog_bhumi_pdf_text(40, 132, 7.5, 'REGISTERED OFFICE', 'F2', $muted);
   $top = 148;
+  $ops .= nirog_bhumi_pdf_text(40, $top, 9, $data['legal_name'], 'F2', $ink);
+  $top += 13;
   foreach (nirog_bhumi_pdf_wrap($data['business_address'], 76) as $line) {
     $ops .= nirog_bhumi_pdf_text(40, $top, 8.5, $line, 'F1', $ink);
     $top += 12;
   }
-  $ops .= nirog_bhumi_pdf_text(40, $top + 2, 8.5, trim($data['business_phone']), 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(405, 132, 8, 'GSTIN', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(462, 132, 8.5, $data['business_gstin'], 'F2', $ink);
   if ($data['business_cin']) {
@@ -175,17 +174,32 @@ function nirog_bhumi_render_invoice_pdf($data) {
   $ops .= nirog_bhumi_pdf_text(405, 164, 8, 'STATE', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(462, 164, 8.5, $data['business_state'] . ' (' . $data['business_state_code'] . ')', 'F1', $ink);
 
-  $ops .= nirog_bhumi_pdf_rect(38, 194, 326, 112, $paper);
+  $location_lines = [];
+  foreach (nirog_bhumi_pdf_wrap($data['address'], 49) as $line) {
+    if ($line !== '') $location_lines[] = $line;
+  }
+  $city_line = trim(trim($data['city'] . ', ' . $data['state'] . ' - ' . $data['postcode']), ', -');
+  foreach (nirog_bhumi_pdf_wrap($city_line, 49) as $line) {
+    if ($line !== '') $location_lines[] = $line;
+  }
+  $location_lines = array_slice($location_lines, 0, 2);
+  $bill_detail = $location_lines;
+  if ($data['phone'] !== '') $bill_detail[] = 'Phone: ' . $data['phone'];
+  if ($data['email'] !== '') $bill_detail[] = 'Email: ' . $data['email'];
+  $bill_detail[] = 'GSTIN: ' . $data['customer_gstin'];
+
+  $bill_box_top = 194;
+  $bill_rows_top = 248;
+  $bill_step = 12;
+  $bill_box_height = ($bill_rows_top - $bill_box_top) + (count($bill_detail) * $bill_step) + 8;
+  $ops .= nirog_bhumi_pdf_rect(38, $bill_box_top, 326, $bill_box_height, $paper);
   $ops .= nirog_bhumi_pdf_text(52, 214, 7.5, 'BILLED TO', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(52, 232, 10, $data['name'], 'F2', $ink);
-  $bill_lines = array_merge(nirog_bhumi_pdf_wrap($data['address'], 49), nirog_bhumi_pdf_wrap(trim($data['city'] . ', ' . $data['state'] . ' - ' . $data['postcode']), 49));
-  $bill_top = 248;
-  foreach ($bill_lines as $line) {
-    if ($line === '') continue;
+  $bill_top = $bill_rows_top;
+  foreach ($bill_detail as $line) {
     $ops .= nirog_bhumi_pdf_text(52, $bill_top, 8.5, $line, 'F1', $ink);
-    $bill_top += 12;
+    $bill_top += $bill_step;
   }
-  $ops .= nirog_bhumi_pdf_text(52, 282, 8.5, $data['phone'], 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(190, 214, 7.5, 'PLACE OF SUPPLY', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(190, 232, 9, $data['state'] . ' (' . $data['state_code'] . ')', 'F2', $ink);
 
@@ -193,10 +207,6 @@ function nirog_bhumi_render_invoice_pdf($data) {
   $ops .= nirog_bhumi_pdf_text(470, 208, 9, $data['invoice_number'], 'F2', $ink);
   $ops .= nirog_bhumi_pdf_text(390, 228, 8, 'Invoice Date', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(470, 228, 9, $data['invoice_date'], 'F1', $ink);
-  $ops .= nirog_bhumi_pdf_text(390, 248, 8, 'Payment Terms', 'F1', $muted);
-  $ops .= nirog_bhumi_pdf_text(470, 248, 9, 'Paid', 'F2', $ink);
-  $ops .= nirog_bhumi_pdf_text(390, 268, 8, 'Reverse Charge', 'F1', $muted);
-  $ops .= nirog_bhumi_pdf_text(470, 268, 9, 'No', 'F1', $ink);
 
   $ops .= nirog_bhumi_pdf_rect(38, 330, 519, 30, '0.933 0.91 0.85');
   $headers = [[46, '#'], [70, 'DESCRIPTION'], [310, 'HSN/SAC'], [374, 'QTY'], [420, 'RATE'], [486, 'AMOUNT']];
@@ -238,7 +248,7 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $ops .= nirog_bhumi_pdf_text(40, 692 + ($index * 12), 8, $line, 'F1', $muted);
   }
   $ops .= nirog_bhumi_pdf_text(370, 674, 9, 'For Nirog Bhumi Pvt. Ltd.', 'F2', $green);
-  $ops .= nirog_bhumi_pdf_text(370, 690, 8.5, 'gk@nirogbhumi.com', 'F1', $ink);
+  $ops .= nirog_bhumi_pdf_text(370, 690, 8.5, $data['business_email'] ?: 'priyanshu@nirogbhumi.com', 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(370, 706, 8, 'This is a computer-generated invoice.', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(245, 792, 8, 'nirogbhumi.com', 'F2', $muted);
 
