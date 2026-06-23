@@ -16,24 +16,27 @@ $nb_education_posts = get_posts([
 ]);
 
 // Group published articles by their education topic so each vertical can render
-// the ones that belong to it. Articles without a recognised topic fall back to
-// the first category so they are never lost.
+// the ones that belong to it. Matching uses a normalised key so it is robust to
+// casing and HTML-encoded ampersands. Articles without a recognised topic fall
+// back to the first category so they are never lost.
 $nb_topics = function_exists('nirog_bhumi_education_topics') ? nirog_bhumi_education_topics() : [];
-$nb_fallback_topic = $nb_topics ? strtolower($nb_topics[0]) : 'foundations of health';
+$nb_fallback_key = $nb_topics ? nirog_bhumi_education_topic_key($nb_topics[0]) : nirog_bhumi_education_topic_key('Foundations of Health');
 $nb_education_groups = [];
 foreach ($nb_education_posts as $nb_post) {
   $names = wp_get_post_terms($nb_post->ID, 'nb_education_topic', ['fields' => 'names']);
   if (is_wp_error($names) || !$names) {
-    $names = [$nb_fallback_topic];
+    $names = [];
   }
-  $placed = false;
+  $keys = [];
   foreach ($names as $name) {
-    $key = strtolower(trim($name));
-    $nb_education_groups[$key][] = $nb_post;
-    $placed = true;
+    $keys[] = nirog_bhumi_education_topic_key($name);
   }
-  if (!$placed) {
-    $nb_education_groups[$nb_fallback_topic][] = $nb_post;
+  $keys = array_filter(array_unique($keys));
+  if (!$keys) {
+    $keys = [$nb_fallback_key];
+  }
+  foreach ($keys as $key) {
+    $nb_education_groups[$key][] = $nb_post;
   }
 }
 
@@ -78,7 +81,7 @@ get_header(); ?>
     <h3>Bollywood template of big biceps and 6-pack is not fitness</h3>
     <p>A useful article for reframing fitness around functional health and sustainable living.</p>
     <a href="https://timesofindia.indiatimes.com/life-style/health-plus/bollywood-template-of-big-biceps-6-pack-isnt-fitness-living-healthy-is/articleshow/129633763.cms" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['foundations of health'] ?? [], 1); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('Foundations of Health')] ?? [], 1); ?></div>
 </section><section class="education-vertical" id="vertical-2" data-edu-section>
   <div class="vertical-intro"><span>02</span><h2>Movement</h2><p>This section covers walking, yoga, simple seated movements, and post-meal activity that can be easily practised in daily life.</p><small>Why less intensive, frequent movement, especially after meals, can often matter more than occasional intense exercise.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="movement walking, yoga, soleus push ups researcher discovers a muscle that can promote glucose and fat burning while sitting medical xpress introduces the idea of soleus push-ups and why light muscular activity can be metabolically meaningful.">
@@ -91,7 +94,7 @@ get_header(); ?>
     <h3>Just move your heels: a 3-min trick may reduce post-meal sugar spike</h3>
     <p>A simple entry point for readers who need a low-friction post-meal movement habit.</p>
     <a href="https://timesofindia.indiatimes.com/india/just-move-your-heels-a-3-min-trick-may-reduce-post-meal-sugar-spike/articleshow/128284378.cms" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['movement'] ?? [], 2); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('Movement')] ?? [], 2); ?></div>
 </section><section class="education-vertical" id="vertical-3" data-edu-section>
   <div class="vertical-intro"><span>03</span><h2>How to Eat</h2><p>The way food is eaten changes the glucose response. This vertical covers slow chewing, meal sequencing, early eating windows and the rhythm of breakfast, lunch and dinner.</p><small>Why how you eat can matter almost as much as what you eat.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="how to eat chewing, order, timing how slow chewing can help prevent diabetes and other health issues times of india eating slowly helps the body feel full sooner, digest better, and reduce unnecessary glucose spikes.">
@@ -124,7 +127,7 @@ get_header(); ?>
     <h3>Time-restricted eating and early eating windows</h3>
     <p>Why earlier eating windows may better support metabolism.</p>
     <a href="https://www.medicalnewstoday.com/articles/time-restricted-eating-early-window-best-metabolism" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['how to eat'] ?? [], 6); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('How to Eat')] ?? [], 6); ?></div>
 </section><section class="education-vertical" id="vertical-4" data-edu-section>
   <div class="vertical-intro"><span>04</span><h2>What to Eat</h2><p>What we eat shapes inflammation, satiety, gut rhythm and glucose stability. This vertical focuses on consuming foods high in fibre, and incorporating a whole foods plant-based diet.</p><small>Use this when building grocery lists and meal plans.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="what to eat fibre and whole foods the foods that fight inflammation the new york times a list of anti-inflammatory foods.">
@@ -137,7 +140,7 @@ get_header(); ?>
     <h3>Low-carb diet may reduce need for drugs in type 2 diabetes</h3>
     <p>Enhance beta-cell function by adopting a low-carb diet.</p>
     <a href="https://www.medicalnewstoday.com/articles/low-carb-diet-may-eliminate-need-for-drugs-in-type-2-diabetes" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['what to eat'] ?? [], 2); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('What to Eat')] ?? [], 2); ?></div>
 </section><section class="education-vertical" id="vertical-5" data-edu-section>
   <div class="vertical-intro"><span>05</span><h2>What to Avoid</h2><p>Reversal becomes harder when daily food is dominated by ultra-processed foods, preservatives, sweet drinks, refined snacks and confusing sugar substitutes.</p><small>Use this to identify the foods and drinks that quietly make diabetes reversal harder.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="what to avoid ultra-processed food food preservatives linked to type 2 diabetes and cancer, studies warn medical news today a cautionary overview of additives and packaged-foods.">
@@ -155,7 +158,7 @@ get_header(); ?>
     <h3>Are sugar substitutes healthier than the real thing?</h3>
     <p>The bitter truth of sugar substitutes.</p>
     <a href="https://www.economist.com/science-and-technology/2026/04/10/are-sugar-substitutes-healthier-than-the-real-thing" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['what to avoid'] ?? [], 3); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('What to Avoid')] ?? [], 3); ?></div>
 </section><section class="education-vertical" id="vertical-6" data-edu-section>
   <div class="vertical-intro"><span>06</span><h2>Recovery, Stress & Tracking</h2><p>Blood sugar is also shaped by sleep, stress, digestion, emotional eating and whether progress is being tracked. This vertical connects meditation, sleep rhythm and tracking.</p><small>Learn how sleep rhythm, stress management, digestion, and calm tracking can improve metabolic progress.</small></div>
   <div class="edu-grid"><article class="edu-card" data-edu-card data-search="recovery, stress & tracking sleep, stress, digestion sleep is more important for longevity than diet, exercise, social ties, study says medical news today a readable reference for why sleep rhythm deserves serious attention in metabolic recovery.">
@@ -168,7 +171,7 @@ get_header(); ?>
     <h3>Mindfulness may be as effective as antidepressant for anxiety symptoms</h3>
     <p>A useful article for understanding mindfulness as a serious stress-regulation practice.</p>
     <a href="https://www.medicalnewstoday.com/articles/mindfulness-may-be-as-effective-as-antidepressant-relieving-anxiety-symptoms" target="_blank" rel="noopener">Read article</a>
-  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups['recovery, stress & tracking'] ?? [], 2); ?></div>
+  </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('Recovery, Stress & Tracking')] ?? [], 2); ?></div>
 </section>
 </main>
 <?php get_footer(); ?>

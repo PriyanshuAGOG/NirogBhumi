@@ -1451,6 +1451,18 @@ function nirog_bhumi_education_topics() {
 }
 
 /**
+ * Normalise a topic name to a comparison key so category matching is robust to
+ * casing, surrounding whitespace, punctuation and HTML-encoded ampersands
+ * (WordPress can return "Recovery, Stress &amp; Tracking"). e.g. both
+ * "Recovery, Stress & Tracking" and "recovery, stress &amp; tracking" become
+ * "recoverystresstracking".
+ */
+function nirog_bhumi_education_topic_key($name) {
+  $decoded = html_entity_decode((string) $name, ENT_QUOTES, 'UTF-8');
+  return preg_replace('/[^a-z0-9]+/', '', strtolower($decoded));
+}
+
+/**
  * Seed the six education topics once so the editor always offers a fixed,
  * foolproof list to assign an article to.
  */
