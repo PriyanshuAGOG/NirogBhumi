@@ -1,0 +1,7 @@
+/* Theme overrides to prevent programmes card clipping */
+.programmes-menu-grid{grid-auto-rows:1fr}
+.programmes-menu-grid article{overflow:hidden;border-radius:8px}
+.programmes-menu-grid figure{overflow:hidden;border-top-left-radius:8px;border-top-right-radius:8px}
+.programmes-menu-grid img{transform:none !important;display:block;backface-visibility:hidden}
+.programmes-menu-grid article>div{min-width:0}
+.program-card-tagline{white-space:normal;word-break:break-word}

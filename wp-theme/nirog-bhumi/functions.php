@@ -14,6 +14,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.1');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.0', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
@@ -31,7 +32,7 @@ function nirog_bhumi_settings_defaults() {
     'invoice_state_code' => '08',
     'invoice_sac' => '999319',
     'invoice_gst_rate' => '18',
-    'invoice_email' => get_option('admin_email'),
+    'invoice_email' => 'gk@nirogbhumi.com',
     'invoice_phone' => '+91 7357542882',
   ];
 }
@@ -54,7 +55,7 @@ function nirog_bhumi_sanitize_settings($input) {
     'invoice_state_code' => isset($input['invoice_state_code']) ? str_pad(substr(preg_replace('/\D/', '', $input['invoice_state_code']), 0, 2), 2, '0', STR_PAD_LEFT) : '08',
     'invoice_sac' => isset($input['invoice_sac']) ? sanitize_text_field($input['invoice_sac']) : '999319',
     'invoice_gst_rate' => isset($input['invoice_gst_rate']) ? (string) max(0, min(100, (float) $input['invoice_gst_rate'])) : '18',
-    'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : get_option('admin_email'),
+    'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : 'gk@nirogbhumi.com',
     'invoice_phone' => isset($input['invoice_phone']) ? sanitize_text_field($input['invoice_phone']) : '+91 7357542882',
   ];
 }
@@ -1394,3 +1395,38 @@ function nirog_bhumi_form_entry_column_content($column, $post_id) {
   }
 }
 add_action('manage_nb_form_entry_posts_custom_column', 'nirog_bhumi_form_entry_column_content', 10, 2);
+
+function nirog_bhumi_register_education_articles() {
+  register_post_type('nb_education_post', [
+    'labels' => [
+      'name' => __('Education Articles', 'nirog-bhumi'),
+      'singular_name' => __('Education Article', 'nirog-bhumi'),
+      'menu_name' => __('Education Articles', 'nirog-bhumi'),
+      'add_new_item' => __('Add New Education Article', 'nirog-bhumi'),
+      'edit_item' => __('Edit Education Article', 'nirog-bhumi'),
+      'view_item' => __('View Education Article', 'nirog-bhumi'),
+      'all_items' => __('All Education Articles', 'nirog-bhumi'),
+    ],
+    'public' => true,
+    'show_ui' => true,
+    'show_in_menu' => true,
+    'menu_icon' => 'dashicons-welcome-learn-more',
+    'show_in_rest' => true,
+    'has_archive' => true,
+    'rewrite' => ['slug' => 'education-articles', 'with_front' => false],
+    'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
+  ]);
+
+  register_taxonomy('nb_education_topic', ['nb_education_post'], [
+    'labels' => [
+      'name' => __('Education Topics', 'nirog-bhumi'),
+      'singular_name' => __('Education Topic', 'nirog-bhumi'),
+    ],
+    'public' => true,
+    'show_ui' => true,
+    'show_in_rest' => true,
+    'hierarchical' => true,
+    'rewrite' => ['slug' => 'education-topic', 'with_front' => false],
+  ]);
+}
+add_action('init', 'nirog_bhumi_register_education_articles');
