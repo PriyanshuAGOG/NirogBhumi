@@ -165,7 +165,7 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $ops .= nirog_bhumi_pdf_text(40, $top, 8.5, $line, 'F1', $ink);
     $top += 12;
   }
-  $ops .= nirog_bhumi_pdf_text(40, $top + 2, 8.5, trim($data['business_phone'] . ' - ' . $data['business_email']), 'F1', $ink);
+  $ops .= nirog_bhumi_pdf_text(40, $top + 2, 8.5, trim($data['business_phone']), 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(405, 132, 8, 'GSTIN', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(462, 132, 8.5, $data['business_gstin'], 'F2', $ink);
   if ($data['business_cin']) {
@@ -188,8 +188,6 @@ function nirog_bhumi_render_invoice_pdf($data) {
   $ops .= nirog_bhumi_pdf_text(52, 282, 8.5, $data['phone'], 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(190, 214, 7.5, 'PLACE OF SUPPLY', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(190, 232, 9, $data['state'] . ' (' . $data['state_code'] . ')', 'F2', $ink);
-  $ops .= nirog_bhumi_pdf_text(190, 254, 7.5, 'CUSTOMER GSTIN', 'F2', $muted);
-  $ops .= nirog_bhumi_pdf_text(190, 272, 8.5, $data['customer_gstin'], 'F1', $ink);
 
   $ops .= nirog_bhumi_pdf_text(390, 208, 8, 'Invoice No.', 'F1', $muted);
   $ops .= nirog_bhumi_pdf_text(470, 208, 9, $data['invoice_number'], 'F2', $ink);
@@ -240,9 +238,9 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $ops .= nirog_bhumi_pdf_text(40, 692 + ($index * 12), 8, $line, 'F1', $muted);
   }
   $ops .= nirog_bhumi_pdf_text(370, 674, 9, 'For Nirog Bhumi Pvt. Ltd.', 'F2', $green);
-  $ops .= nirog_bhumi_pdf_line(405, 724, 535, 724, .5, '0.65 0.63 0.58');
-  $ops .= nirog_bhumi_pdf_text(426, 740, 8, 'Authorised Signatory', 'F1', $muted);
-  $ops .= nirog_bhumi_pdf_text(128, 792, 8, 'Computer-generated invoice - nirogbhumi.com', 'F1', $muted);
+  $ops .= nirog_bhumi_pdf_text(370, 690, 8.5, 'gk@nirogbhumi.com', 'F1', $ink);
+  $ops .= nirog_bhumi_pdf_text(370, 706, 8, 'This is a computer-generated invoice.', 'F1', $muted);
+  $ops .= nirog_bhumi_pdf_text(245, 792, 8, 'nirogbhumi.com', 'F2', $muted);
 
   $objects = [];
   $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';

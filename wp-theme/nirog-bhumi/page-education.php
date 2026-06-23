@@ -2,8 +2,69 @@
 /**
  * Static Nirog Bhumi template generated from education/index.html.
  */
+$nb_education_posts = get_posts([
+  'post_type' => 'nb_education_post',
+  'post_status' => 'publish',
+  'posts_per_page' => 9,
+  'orderby' => 'date',
+  'order' => 'DESC',
+]);
+
+$nb_education_schema = [];
+foreach ($nb_education_posts as $nb_post) {
+  $nb_education_schema[] = [
+    '@type' => 'BlogPosting',
+    'headline' => get_the_title($nb_post),
+    'url' => get_permalink($nb_post),
+    'datePublished' => get_the_date('c', $nb_post),
+    'dateModified' => get_the_modified_date('c', $nb_post),
+    'description' => wp_strip_all_tags(get_the_excerpt($nb_post)),
+    'author' => [
+      '@type' => 'Person',
+      'name' => get_the_author_meta('display_name', (int) $nb_post->post_author),
+    ],
+    'publisher' => [
+      '@type' => 'Organization',
+      'name' => 'Nirog Bhumi',
+    ],
+  ];
+}
+
 get_header(); ?>
 <main>
+<?php if (!empty($nb_education_schema)) : ?>
+<script type="application/ld+json"><?php echo wp_json_encode(['@context' => 'https://schema.org', '@type' => 'Blog', 'name' => 'Nirog Bhumi Education Articles', 'blogPost' => $nb_education_schema], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<?php endif; ?>
+<section class="legal-split legal-intro-only"><div><p class="eyebrow">Nirog Bhumi Articles</p><h1>Fresh education articles for diabetes reversal and metabolic health.</h1><p>Use this section for your own published articles so traffic lands on Nirog Bhumi. Add and manage posts from WordPress Admin under <strong>Education Articles</strong>.</p></div></section>
+<section class="education-search">
+  <label>Search Nirog Bhumi articles<input data-nb-article-search type="search" placeholder="Search insulin resistance, post-meal walk, sleep, stress, fasting..."></label>
+  <p data-nb-article-count><?php echo esc_html(count($nb_education_posts)); ?> article<?php echo count($nb_education_posts) === 1 ? '' : 's'; ?> available</p>
+</section>
+<section class="consult-cards" data-nb-article-grid>
+  <?php if ($nb_education_posts) : foreach ($nb_education_posts as $index => $nb_post) :
+    $title = get_the_title($nb_post);
+    $excerpt = wp_strip_all_tags(get_the_excerpt($nb_post));
+    if (!$excerpt) {
+      $excerpt = wp_trim_words(wp_strip_all_tags((string) $nb_post->post_content), 28);
+    }
+    $date = get_the_date('d M Y', $nb_post);
+    $topics = wp_get_post_terms($nb_post->ID, 'nb_education_topic', ['fields' => 'names']);
+    $topic_text = !is_wp_error($topics) && $topics ? implode(', ', $topics) : 'Education';
+    $search_text = strtolower(trim($title . ' ' . $excerpt . ' ' . $topic_text));
+  ?>
+  <article data-nb-article-card data-search="<?php echo esc_attr($search_text); ?>">
+    <small><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) . ' | ' . $date . ' | ' . $topic_text); ?></small>
+    <h2><a href="<?php echo esc_url(get_permalink($nb_post)); ?>"><?php echo esc_html($title); ?></a></h2>
+    <p><?php echo esc_html($excerpt); ?></p>
+    <a class="pill ghost" href="<?php echo esc_url(get_permalink($nb_post)); ?>">Read article</a>
+  </article>
+  <?php endforeach; else : ?>
+  <article>
+    <h2>No education articles published yet.</h2>
+    <p>Start with your first post from WordPress admin under Education Articles. Once published, it appears here automatically.</p>
+  </article>
+  <?php endif; ?>
+</section>
 <section class="education-guide first" data-read-more-root><p class="eyebrow">How to make the best use of this library</p><h1>Use these articles as learning resources, not personalised medical advice.</h1><p>The external articles linked on this page have been carefully selected and curated by Nirog Bhumi to help readers understand how lifestyle, nutrition, movement, sleep, stress reduction, weight management, and other health changes may support better metabolic health and, in turn, lead to Type 2 diabetes reversal.</p><p>These articles are shared for educational and reference purposes only. Nirog Bhumi does not claim ownership over any third-party articles, images, videos, graphics, or media content. All rights belong to the respective publishers, authors, and media organisations. Nirog Bhumi is not responsible for their content, accuracy, policies, advertisements, future changes, or availability. Some articles may be behind a paywall.</p><p>While Nirog Bhumi generally agrees with the broad viewpoint expressed in these curated articles, especially where they support lifestyle-based improvement in Type 2 diabetes, we may not agree with every recommendation, statement, interpretation, or dietary suggestion made in them. For example, an article may mention eggs or other animal-based foods as part of a healthy diet, whereas Nirog Bhumi promotes a whole-food, plant-based dietary approach for diabetes reversal.</p><div class="read-more-content" data-read-more-content><p>Readers are encouraged to use these articles as learning resources, not as personalised medical advice. Please consult your physician, diabetologist, or qualified healthcare practitioner before acting upon anything mentioned in these articles, especially before making changes to your diet, medicines, supplements, herbs, fasting routine, exercise, or diabetes management plan.</p><p>Nirog Bhumi shall not be held responsible for any action taken by readers based on the content contained in these articles. Any reliance on such content is entirely at the reader discretion and risk.</p></div><button class="read-more-toggle" type="button" data-read-more-toggle>More...</button></section>
 <section class="education-search">
   <label>Search education<input data-education-search type="search" placeholder="Search movement, chewing, food routine, low carb, sleep..."></label>

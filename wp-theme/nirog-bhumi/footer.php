@@ -6,7 +6,7 @@
     <div><h3>Care</h3><a href="<?php echo esc_url(home_url('/6-month-healing/')); ?>">6 Months Diabetes Reversal Program</a><a href="<?php echo esc_url(home_url('/yoga-programme/')); ?>">Yoga for Diabetes</a><a href="<?php echo esc_url(home_url('/consultation/')); ?>">Consultation</a></div>
     <div><h3>Store</h3><a href="<?php echo esc_url(home_url('/store/')); ?>">Shop</a></div>
     <div><h3>Nirog Bhumi</h3><a href="<?php echo esc_url(home_url('/about/')); ?>">About</a><a href="<?php echo esc_url(home_url('/founder-story/')); ?>">Founder's Story</a><a href="<?php echo esc_url(home_url('/education/')); ?>">Education</a><a href="<?php echo esc_url(home_url('/branding/')); ?>">Brand Kit</a><a href="<?php echo esc_url(home_url('/careers/')); ?>">Careers</a></div>
-    <div><h3>Support</h3><a href="<?php echo esc_url(home_url('/faqs/')); ?>">FAQs</a><a href="<?php echo esc_url(home_url('/terms-and-conditions/')); ?>">Terms</a><a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy</a><a href="<?php echo esc_url(home_url('/medical-disclaimer/')); ?>">Medical Disclaimer</a></div>
+    <div><h3>Support</h3><a href="<?php echo esc_url(home_url('/faqs/')); ?>">FAQs</a><a href="<?php echo esc_url(home_url('/terms-and-conditions/')); ?>">Terms</a><a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy</a><a href="<?php echo esc_url(home_url('/medical-disclaimer/')); ?>">Medical Disclaimer</a><a href="<?php echo esc_url(home_url('/policies/')); ?>">Policies</a></div>
   </div>
   <p class="fine">Wellness education only. Nirog Bhumi does not replace medical advice, diagnosis or treatment. Speak with your doctor before changing medication, diet or activity.</p>
 </footer>
