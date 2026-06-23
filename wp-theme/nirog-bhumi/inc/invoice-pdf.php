@@ -165,6 +165,7 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $ops .= nirog_bhumi_pdf_text(40, $top, 8.5, $line, 'F1', $ink);
     $top += 12;
   }
+  $ops .= nirog_bhumi_pdf_text(40, $top + 1, 8.5, $data['business_email'] ?: 'priyanshu@nirogbhumi.com', 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(405, 132, 8, 'GSTIN', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(462, 132, 8.5, $data['business_gstin'], 'F2', $ink);
   if ($data['business_cin']) {
@@ -248,9 +249,9 @@ function nirog_bhumi_render_invoice_pdf($data) {
     $ops .= nirog_bhumi_pdf_text(40, 692 + ($index * 12), 8, $line, 'F1', $muted);
   }
   $ops .= nirog_bhumi_pdf_text(370, 674, 9, 'For Nirog Bhumi Pvt. Ltd.', 'F2', $green);
-  $ops .= nirog_bhumi_pdf_text(370, 690, 8.5, $data['business_email'] ?: 'priyanshu@nirogbhumi.com', 'F1', $ink);
-  $ops .= nirog_bhumi_pdf_text(370, 706, 8, 'This is a computer-generated invoice.', 'F1', $muted);
-  $ops .= nirog_bhumi_pdf_text(245, 792, 8, 'nirogbhumi.com', 'F2', $muted);
+  $ops .= nirog_bhumi_pdf_text(370, 706, 8, 'Authorised signatory', 'F1', $muted);
+  $ops .= nirog_bhumi_pdf_text(272, 780, 8, 'nirogbhumi.com', 'F2', $muted);
+  $ops .= nirog_bhumi_pdf_text(223, 794, 8, 'This is a computer-generated invoice.', 'F1', $muted);
 
   $objects = [];
   $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
