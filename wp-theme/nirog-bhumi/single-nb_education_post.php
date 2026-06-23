@@ -38,10 +38,10 @@ if (have_posts()) :
     </div>
   </section>
 
-  <section class="accordion-section">
-    <article open>
-      <div><?php the_content(); ?></div>
-    </article>
+  <section class="nb-article-section">
+    <div class="nb-article-body">
+      <?php the_content(); ?>
+    </div>
   </section>
 
   <section class="consult-cards">
