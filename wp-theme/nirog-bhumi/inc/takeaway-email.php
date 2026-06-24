@@ -110,28 +110,16 @@ function nirog_bhumi_order_is_sendable($order) {
   return $order->is_paid();
 }
 
-/** Send the takeaway email for one order. Guards against double sending. */
-function nirog_bhumi_send_takeaway_email($order) {
-  if (is_numeric($order) && function_exists('wc_get_order')) {
-    $order = wc_get_order((int) $order);
-  }
-  if (!$order || $order->get_meta('takeaway_email_sent_status') === 'sent') {
-    return false;
-  }
-  if (!nirog_bhumi_order_is_sendable($order)) {
-    return false;
-  }
-  $to = $order->get_billing_email();
+/** Build and send the takeaway email to one recipient. Returns bool. */
+function nirog_bhumi_takeaway_email_send($to, $name, $context_id = '') {
+  $to = sanitize_email((string) $to);
   if (!$to) {
     return false;
   }
   $cfg = nirog_bhumi_takeaway_settings();
-  $name = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
-  if (!$name) {
-    $name = 'there';
-  }
+  $name = trim((string) $name) ?: 'there';
   $booklet  = $cfg['booklet_url'] ?: home_url('/');
-  $feedback = add_query_arg('o', $order->get_id(), $cfg['feedback_url'] ?: home_url('/consultation-feedback/'));
+  $feedback = add_query_arg('o', rawurlencode((string) $context_id), $cfg['feedback_url'] ?: home_url('/consultation-feedback/'));
 
   $subject = 'Your Nirog Bhumi Consultation Takeaway Kit';
   $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126;line-height:1.6">'
@@ -146,13 +134,86 @@ function nirog_bhumi_send_takeaway_email($order) {
     . '<p>Warmly,<br>Team Nirog Bhumi</p>'
     . '</div>';
 
-  $sent = wp_mail($to, $subject, $body, ['Content-Type: text/html; charset=UTF-8']);
+  return (bool) wp_mail($to, $subject, $body, ['Content-Type: text/html; charset=UTF-8']);
+}
+
+/** Send the takeaway email for one WooCommerce order. Guards against double sending. */
+function nirog_bhumi_send_takeaway_email($order) {
+  if (is_numeric($order) && function_exists('wc_get_order')) {
+    $order = wc_get_order((int) $order);
+  }
+  if (!$order || $order->get_meta('takeaway_email_sent_status') === 'sent') {
+    return false;
+  }
+  if (!nirog_bhumi_order_is_sendable($order)) {
+    return false;
+  }
+  $name = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+  $sent = nirog_bhumi_takeaway_email_send($order->get_billing_email(), $name, 'order-' . $order->get_id());
   if ($sent) {
     $order->update_meta_data('takeaway_email_sent_status', 'sent');
     $order->update_meta_data('takeaway_email_sent_at', current_time('mysql'));
     $order->save();
   }
-  return (bool) $sent;
+  return $sent;
+}
+
+/**
+ * Manual / no-gateway flow keyed to the consultation entry (nb_consultation).
+ * Used when payments are verified manually and there is no WooCommerce order.
+ */
+
+/** Compute and store the takeaway schedule on a verified consultation entry. */
+function nirog_bhumi_sync_takeaway_schedule_for_entry($entry_id) {
+  if (get_post_type($entry_id) !== 'nb_consultation') {
+    return;
+  }
+  if (get_post_meta($entry_id, 'payment_status', true) !== 'verified') {
+    return;
+  }
+  $slot_date = (string) get_post_meta($entry_id, 'slot_date', true);
+  $slot_time = (string) get_post_meta($entry_id, 'slot_time', true);
+  if (!$slot_date || !$slot_time) {
+    return;
+  }
+  $cfg = nirog_bhumi_takeaway_settings();
+  $start = DateTime::createFromFormat('Y-m-d H:i', $slot_date . ' ' . substr($slot_time, 0, 5), wp_timezone());
+  if (!$start) {
+    return;
+  }
+  $end  = (clone $start)->modify('+' . $cfg['duration'] . ' minutes');
+  $send = (clone $end)->modify('+' . $cfg['delay'] . ' minutes');
+  update_post_meta($entry_id, 'consultation_start_time', $start->format('Y-m-d H:i:s'));
+  update_post_meta($entry_id, 'consultation_end_time', $end->format('Y-m-d H:i:s'));
+  update_post_meta($entry_id, 'takeaway_email_scheduled_time', $send->format('Y-m-d H:i:s'));
+  if (get_post_meta($entry_id, 'takeaway_email_sent_status', true) !== 'sent') {
+    update_post_meta($entry_id, 'takeaway_email_sent_status', 'pending');
+  }
+}
+
+/** Send the takeaway email for one consultation entry. */
+function nirog_bhumi_send_takeaway_email_for_entry($entry_id, $force = false) {
+  if (get_post_type($entry_id) !== 'nb_consultation') {
+    return false;
+  }
+  if (!$force && get_post_meta($entry_id, 'takeaway_email_sent_status', true) === 'sent') {
+    return false;
+  }
+  if (get_post_meta($entry_id, 'payment_status', true) !== 'verified') {
+    return false;
+  }
+  if (function_exists('nirog_bhumi_is_anonymised_record') && nirog_bhumi_is_anonymised_record($entry_id)) {
+    return false;
+  }
+  $to = get_post_meta($entry_id, 'email', true);
+  $name = get_post_meta($entry_id, 'name', true);
+  $ref = function_exists('nirog_bhumi_consultation_reference') ? nirog_bhumi_consultation_reference($entry_id) : (string) $entry_id;
+  $sent = nirog_bhumi_takeaway_email_send($to, $name, $ref);
+  if ($sent) {
+    update_post_meta($entry_id, 'takeaway_email_sent_status', 'sent');
+    update_post_meta($entry_id, 'takeaway_email_sent_at', current_time('mysql'));
+  }
+  return $sent;
 }
 
 /** Recurring sweep: send any due, paid, not-yet-sent takeaway emails. */
@@ -186,8 +247,58 @@ function nirog_bhumi_takeaway_sweep() {
     }
     nirog_bhumi_send_takeaway_email($order);
   }
+
+  // Manual / no-gateway flow: verified consultation entries with a due schedule.
+  $entries = get_posts([
+    'post_type'      => 'nb_consultation',
+    'post_status'    => ['private', 'publish', 'draft'],
+    'posts_per_page' => 25,
+    'orderby'        => 'date',
+    'order'          => 'ASC',
+    'meta_query'     => [[
+      'key'   => 'takeaway_email_sent_status',
+      'value' => 'pending',
+    ]],
+  ]);
+  foreach ($entries as $entry) {
+    $scheduled = get_post_meta($entry->ID, 'takeaway_email_scheduled_time', true);
+    if (!$scheduled || nirog_bhumi_local_to_timestamp($scheduled) > $now) {
+      continue;
+    }
+    if (get_post_meta($entry->ID, 'payment_status', true) !== 'verified') {
+      continue; // still awaiting manual verification; check again next sweep
+    }
+    nirog_bhumi_send_takeaway_email_for_entry($entry->ID);
+  }
 }
 add_action('nirog_bhumi_takeaway_sweep', 'nirog_bhumi_takeaway_sweep');
+
+/** Admin "Send takeaway email now" action for a consultation entry. */
+function nirog_bhumi_manual_send_takeaway() {
+  $entry_id = isset($_GET['entry']) ? absint($_GET['entry']) : 0;
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation' || !current_user_can('edit_post', $entry_id)) {
+    wp_die(esc_html__('You are not allowed to send this email.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_send_takeaway_' . $entry_id);
+  $sent = nirog_bhumi_send_takeaway_email_for_entry($entry_id, true);
+  wp_safe_redirect(add_query_arg('nb_takeaway', $sent ? 'sent' : 'failed', admin_url('post.php?post=' . $entry_id . '&action=edit')));
+  exit;
+}
+add_action('admin_post_nirog_send_takeaway', 'nirog_bhumi_manual_send_takeaway');
+
+/** Admin notice for the manual takeaway send result. */
+function nirog_bhumi_takeaway_admin_notice() {
+  if (!current_user_can('edit_posts') || !isset($_GET['nb_takeaway'])) {
+    return;
+  }
+  $sent = sanitize_key(wp_unslash($_GET['nb_takeaway'])) === 'sent';
+  echo '<div class="notice ' . ($sent ? 'notice-success' : 'notice-error') . ' is-dismissible"><p>'
+    . esc_html($sent
+      ? __('Takeaway email sent.', 'nirog-bhumi')
+      : __('Takeaway email was not sent. Ensure payment is marked Verified, the customer email is present, and SMTP is configured.', 'nirog-bhumi'))
+    . '</p></div>';
+}
+add_action('admin_notices', 'nirog_bhumi_takeaway_admin_notice');
 
 /** Register a 5-minute cron interval. */
 function nirog_bhumi_takeaway_cron_schedule($schedules) {

@@ -1009,6 +1009,20 @@ function nirog_bhumi_render_consultation_booking_metabox($post) {
     <p><a class="button button-primary" href="<?php echo esc_url($invoice_action_url); ?>"><?php echo esc_html($status === 'verified' ? ($invoice_sent_at ? __('Generate and resend invoice', 'nirog-bhumi') : __('Generate and send invoice', 'nirog-bhumi')) : __('Verify payment, generate and send', 'nirog-bhumi')); ?></a></p>
     <?php if ($status === 'verified' && $invoice_number) : ?><p><a class="button" href="<?php echo esc_url(nirog_bhumi_consultation_pdf_url($post->ID)); ?>"><?php esc_html_e('Download invoice PDF', 'nirog-bhumi'); ?></a></p><?php endif; ?>
     <p><a href="<?php echo esc_url(nirog_bhumi_consultation_status_url($post->ID)); ?>" target="_blank" rel="noopener"><?php esc_html_e('Open customer status page', 'nirog-bhumi'); ?></a></p>
+    <?php
+    $takeaway_status = (string) get_post_meta($post->ID, 'takeaway_email_sent_status', true);
+    $takeaway_sent_at = (string) get_post_meta($post->ID, 'takeaway_email_sent_at', true);
+    $takeaway_scheduled = (string) get_post_meta($post->ID, 'takeaway_email_scheduled_time', true);
+    $takeaway_url = wp_nonce_url(admin_url('admin-post.php?action=nirog_send_takeaway&entry=' . $post->ID), 'nirog_send_takeaway_' . $post->ID);
+    ?>
+    <hr>
+    <p><strong><?php esc_html_e('Takeaway email', 'nirog-bhumi'); ?></strong><br>
+      <?php echo esc_html($takeaway_status ? ucfirst($takeaway_status) : __('Not scheduled', 'nirog-bhumi')); ?>
+      <?php if ($takeaway_scheduled && $takeaway_status !== 'sent') : ?><br><span class="description"><?php esc_html_e('Scheduled for', 'nirog-bhumi'); ?>: <?php echo esc_html($takeaway_scheduled); ?></span><?php endif; ?>
+      <?php if ($takeaway_sent_at) : ?><br><span class="description" style="color:#22712f"><?php esc_html_e('Sent at', 'nirog-bhumi'); ?>: <?php echo esc_html($takeaway_sent_at); ?></span><?php endif; ?>
+    </p>
+    <p><a class="button" href="<?php echo esc_url($takeaway_url); ?>"><?php echo esc_html($takeaway_sent_at ? __('Resend takeaway email now', 'nirog-bhumi') : __('Send takeaway email now', 'nirog-bhumi')); ?></a></p>
+    <p class="description"><?php esc_html_e('Sends the booklet + feedback email immediately. Mark payment Verified and Update the entry first.', 'nirog-bhumi'); ?></p>
   </div>
   <?php
 }
@@ -1079,6 +1093,9 @@ function nirog_bhumi_save_consultation_booking($post_id) {
   }
   if (function_exists('nirog_bhumi_sync_takeaway_schedule_from_entry')) {
     nirog_bhumi_sync_takeaway_schedule_from_entry($post_id);
+  }
+  if (function_exists('nirog_bhumi_sync_takeaway_schedule_for_entry')) {
+    nirog_bhumi_sync_takeaway_schedule_for_entry($post_id);
   }
 }
 add_action('save_post_nb_consultation', 'nirog_bhumi_save_consultation_booking');

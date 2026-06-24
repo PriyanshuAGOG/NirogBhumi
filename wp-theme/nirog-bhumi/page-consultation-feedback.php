@@ -10,12 +10,6 @@ $order_ref = isset($_GET['o']) ? absint($_GET['o']) : '';
 ?>
 <main>
 <section class="interest-page refined-interest">
-  <div class="interest-intro">
-    <p class="eyebrow">Consultation feedback</p>
-    <h1>How was your consultation?</h1>
-    <p>Thank you for attending your consultation with Nirog Bhumi. Your feedback takes about a minute and helps us improve the experience for everyone.</p>
-    <div class="interest-points"><span>1 minute</span><span>Private</span><span>Helps us improve</span></div>
-  </div>
   <?php if ($submitted) : ?>
   <div class="interest-form-card">
     <h2>Thank you for your feedback.</h2>
@@ -56,11 +50,6 @@ $order_ref = isset($_GET['o']) ? absint($_GET['o']) : '';
     </div>
     <button class="pill primary" type="submit">Submit feedback</button><p data-form-status></p>
   </form>
-  <aside class="interest-aside">
-    <h2>Why we ask</h2>
-    <p>Your feedback is read by the Nirog Bhumi team and used only to improve the consultation experience. It is stored privately and never shared.</p>
-    <ul><li>Be as honest as you like.</li><li>There are no wrong answers.</li><li>It takes about a minute.</li></ul>
-  </aside>
   <?php endif; ?>
 </section>
 </main>
