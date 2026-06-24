@@ -473,3 +473,22 @@ Example: a 4:00 PM consultation (30 min) ends 4:30 PM; the email goes out at 4:4
 `/consultation-feedback/` is a hidden page (noindex, not in any menu) reached only
 from the email link. Responses are saved under **Form Entries** as
 "Consultation Feedback", viewable/exportable from the WordPress dashboard.
+
+### Cal.com automatic scheduling
+
+Instead of typing the consultation date/time by hand, Cal.com can push each
+booking to the site and the takeaway email then schedules itself.
+
+1. In **Settings → Nirog Bhumi Setup → "Cal.com calendar integration"**, copy the
+   **Webhook subscriber URL** (`/wp-json/nirog/v1/cal-booking`) and set a secret.
+2. In **Cal.com → Settings → Developer → Webhooks → New Webhook**, paste that URL,
+   use the same **Secret**, and subscribe to **Booking Created, Rescheduled,
+   Cancelled**.
+3. When a customer books, the webhook matches them to their consultation entry by
+   email, stores the start/end time, and arms the takeaway email for
+   end + delay. The 5-minute sweep then sends it automatically.
+4. Cancelled bookings are marked `skipped` and never emailed.
+
+The **"Auto-send for Cal.com bookings"** checkbox controls whether Cal.com
+bookings send automatically (recommended), or still wait for the payment status
+to be marked Verified.

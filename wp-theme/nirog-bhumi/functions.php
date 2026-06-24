@@ -2,6 +2,7 @@
 require_once get_template_directory() . '/inc/invoice-pdf.php';
 require_once get_template_directory() . '/inc/data-admin.php';
 require_once get_template_directory() . '/inc/takeaway-email.php';
+require_once get_template_directory() . '/inc/cal-integration.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -39,6 +40,8 @@ function nirog_bhumi_settings_defaults() {
     'takeaway_feedback_url' => home_url('/consultation-feedback/'),
     'consultation_duration_minutes' => 30,
     'takeaway_email_delay_minutes' => 10,
+    'cal_webhook_secret' => '',
+    'cal_autosend' => 'yes',
   ];
 }
 
@@ -66,6 +69,8 @@ function nirog_bhumi_sanitize_settings($input) {
     'takeaway_feedback_url' => !empty($input['takeaway_feedback_url']) ? esc_url_raw($input['takeaway_feedback_url']) : home_url('/consultation-feedback/'),
     'consultation_duration_minutes' => isset($input['consultation_duration_minutes']) ? max(1, absint($input['consultation_duration_minutes'])) : 30,
     'takeaway_email_delay_minutes' => isset($input['takeaway_email_delay_minutes']) ? max(0, absint($input['takeaway_email_delay_minutes'])) : 10,
+    'cal_webhook_secret' => isset($input['cal_webhook_secret']) ? sanitize_text_field($input['cal_webhook_secret']) : '',
+    'cal_autosend' => !empty($input['cal_autosend']) ? 'yes' : 'no',
   ];
 }
 
@@ -130,6 +135,10 @@ function nirog_bhumi_render_settings_page() {
         <tr><th scope="row"><label for="nirog-takeaway-feedback"><?php esc_html_e('Feedback form link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-feedback" name="nirog_bhumi_settings[takeaway_feedback_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_feedback_url']); ?>"><p class="description"><?php esc_html_e('Defaults to the hidden feedback form at /consultation-feedback/.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-consultation-duration"><?php esc_html_e('Consultation duration (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-consultation-duration" name="nirog_bhumi_settings[consultation_duration_minutes]" type="number" min="1" class="small-text" value="<?php echo esc_attr($settings['consultation_duration_minutes']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-takeaway-delay"><?php esc_html_e('Email delay after end (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-delay" name="nirog_bhumi_settings[takeaway_email_delay_minutes]" type="number" min="0" class="small-text" value="<?php echo esc_attr($settings['takeaway_email_delay_minutes']); ?>"></td></tr>
+        <tr><th colspan="2"><h2><?php esc_html_e('Cal.com calendar integration', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Pull the consultation date/time automatically from Cal.com bookings. In Cal.com add a webhook (Booking Created, Rescheduled, Cancelled) to the Subscriber URL below, with the same secret.', 'nirog-bhumi'); ?></p></th></tr>
+        <tr><th scope="row"><?php esc_html_e('Webhook subscriber URL', 'nirog-bhumi'); ?></th><td><input type="text" class="large-text code" readonly onclick="this.select()" value="<?php echo esc_attr(nirog_bhumi_cal_webhook_url()); ?>"><p class="description"><?php esc_html_e('Paste this into the Cal.com webhook "Subscriber URL" field.', 'nirog-bhumi'); ?></p></td></tr>
+        <tr><th scope="row"><label for="nirog-cal-secret"><?php esc_html_e('Cal.com webhook secret', 'nirog-bhumi'); ?></label></th><td><input id="nirog-cal-secret" name="nirog_bhumi_settings[cal_webhook_secret]" type="text" class="regular-text code" value="<?php echo esc_attr($settings['cal_webhook_secret']); ?>"><p class="description"><?php esc_html_e('Use the same secret you set on the Cal.com webhook. Recommended for security.', 'nirog-bhumi'); ?></p></td></tr>
+        <tr><th scope="row"><?php esc_html_e('Auto-send for Cal.com bookings', 'nirog-bhumi'); ?></th><td><label><input name="nirog_bhumi_settings[cal_autosend]" type="checkbox" value="yes" <?php checked($settings['cal_autosend'], 'yes'); ?>> <?php esc_html_e('Send the takeaway email for Cal.com bookings automatically, without waiting for manual payment verification.', 'nirog-bhumi'); ?></label></td></tr>
       </table>
       <?php submit_button(); ?>
     </form>
