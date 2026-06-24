@@ -432,3 +432,44 @@ moving an article to another topic updates the page immediately.
   are never lost — but always pick a topic for correct placement.
 - External curated links are hard-coded in `page-education.php` and are not
   affected by anything you publish.
+
+## 21. Post-Consultation Takeaway Email
+
+After a consultation's scheduled end time passes, the paying customer is emailed
+a takeaway booklet link and a feedback form link — automatically.
+
+### How it works
+
+1. The customer pays for the consultation (WooCommerce order).
+2. You set the consultation **date and time** on the consultation entry
+   (Consultations → the entry → "Payment and Appointment" box).
+3. On save, the system stores on the **order**:
+   `consultation_start_time`, `consultation_end_time` (start + duration),
+   `takeaway_email_scheduled_time` (end + delay) and
+   `takeaway_email_sent_status = pending`.
+4. A WordPress cron job runs every 5 minutes. When the scheduled time has passed
+   and the order is paid (and not cancelled/refunded/failed), it sends the email
+   once and marks `takeaway_email_sent_status = sent` with `takeaway_email_sent_at`.
+5. Cancelled/refunded/failed orders are marked `skipped` and never emailed.
+   The email is never sent twice for the same order.
+
+The takeaway status is shown on the WooCommerce order screen (under Order details).
+
+### Settings (Settings → Nirog Bhumi Setup → "Post-consultation takeaway email")
+
+- **Takeaway booklet link** – URL of the booklet PDF/page.
+- **Feedback form link** – defaults to the hidden `/consultation-feedback/` form.
+- **Consultation duration (minutes)** – default 30.
+- **Email delay after end (minutes)** – default 10.
+
+Example: a 4:00 PM consultation (30 min) ends 4:30 PM; the email goes out at 4:40 PM
+(within the next 5-minute cron sweep).
+
+> WP-Cron runs on site traffic. For exact timing on a low-traffic site, set a real
+> server cron to hit `wp-cron.php` every few minutes.
+
+### Feedback form
+
+`/consultation-feedback/` is a hidden page (noindex, not in any menu) reached only
+from the email link. Responses are saved under **Form Entries** as
+"Consultation Feedback", viewable/exportable from the WordPress dashboard.

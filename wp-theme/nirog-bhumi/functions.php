@@ -1,6 +1,7 @@
 <?php
 require_once get_template_directory() . '/inc/invoice-pdf.php';
 require_once get_template_directory() . '/inc/data-admin.php';
+require_once get_template_directory() . '/inc/takeaway-email.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -34,6 +35,10 @@ function nirog_bhumi_settings_defaults() {
     'invoice_gst_rate' => '18',
     'invoice_email' => 'priyanshu@nirogbhumi.com',
     'invoice_phone' => '+91 7357542882',
+    'takeaway_booklet_url' => '',
+    'takeaway_feedback_url' => home_url('/consultation-feedback/'),
+    'consultation_duration_minutes' => 30,
+    'takeaway_email_delay_minutes' => 10,
   ];
 }
 
@@ -57,6 +62,10 @@ function nirog_bhumi_sanitize_settings($input) {
     'invoice_gst_rate' => isset($input['invoice_gst_rate']) ? (string) max(0, min(100, (float) $input['invoice_gst_rate'])) : '18',
     'invoice_email' => isset($input['invoice_email']) ? sanitize_email($input['invoice_email']) : 'priyanshu@nirogbhumi.com',
     'invoice_phone' => isset($input['invoice_phone']) ? sanitize_text_field($input['invoice_phone']) : '+91 7357542882',
+    'takeaway_booklet_url' => !empty($input['takeaway_booklet_url']) ? esc_url_raw($input['takeaway_booklet_url']) : '',
+    'takeaway_feedback_url' => !empty($input['takeaway_feedback_url']) ? esc_url_raw($input['takeaway_feedback_url']) : home_url('/consultation-feedback/'),
+    'consultation_duration_minutes' => isset($input['consultation_duration_minutes']) ? max(1, absint($input['consultation_duration_minutes'])) : 30,
+    'takeaway_email_delay_minutes' => isset($input['takeaway_email_delay_minutes']) ? max(0, absint($input['takeaway_email_delay_minutes'])) : 10,
   ];
 }
 
@@ -116,6 +125,11 @@ function nirog_bhumi_render_settings_page() {
         <tr><th scope="row"><label for="nirog-invoice-gst-rate"><?php esc_html_e('GST rate (%)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-gst-rate" name="nirog_bhumi_settings[invoice_gst_rate]" type="number" min="0" max="100" step="0.01" class="small-text" value="<?php echo esc_attr($settings['invoice_gst_rate']); ?>"><p class="description"><?php esc_html_e('For Rajasthan customers the rate is divided equally between CGST and SGST. For other states the full rate is applied as IGST.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-email"><?php esc_html_e('Invoice email', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-email" name="nirog_bhumi_settings[invoice_email]" type="email" class="regular-text" value="<?php echo esc_attr($settings['invoice_email']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-phone"><?php esc_html_e('Invoice phone', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-phone" name="nirog_bhumi_settings[invoice_phone]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_phone']); ?>"></td></tr>
+        <tr><th colspan="2"><h2><?php esc_html_e('Post-consultation takeaway email', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Sent automatically once the consultation end time has passed, only for paid orders. The end time is calculated from the consultation duration, and the email goes out after the delay below.', 'nirog-bhumi'); ?></p></th></tr>
+        <tr><th scope="row"><label for="nirog-takeaway-booklet"><?php esc_html_e('Takeaway booklet link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-booklet" name="nirog_bhumi_settings[takeaway_booklet_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_booklet_url']); ?>" placeholder="https://nirogbhumi.com/your-booklet.pdf"><p class="description"><?php esc_html_e('Link to the consultation takeaway booklet (PDF or page).', 'nirog-bhumi'); ?></p></td></tr>
+        <tr><th scope="row"><label for="nirog-takeaway-feedback"><?php esc_html_e('Feedback form link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-feedback" name="nirog_bhumi_settings[takeaway_feedback_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_feedback_url']); ?>"><p class="description"><?php esc_html_e('Defaults to the hidden feedback form at /consultation-feedback/.', 'nirog-bhumi'); ?></p></td></tr>
+        <tr><th scope="row"><label for="nirog-consultation-duration"><?php esc_html_e('Consultation duration (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-consultation-duration" name="nirog_bhumi_settings[consultation_duration_minutes]" type="number" min="1" class="small-text" value="<?php echo esc_attr($settings['consultation_duration_minutes']); ?>"></td></tr>
+        <tr><th scope="row"><label for="nirog-takeaway-delay"><?php esc_html_e('Email delay after end (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-delay" name="nirog_bhumi_settings[takeaway_email_delay_minutes]" type="number" min="0" class="small-text" value="<?php echo esc_attr($settings['takeaway_email_delay_minutes']); ?>"></td></tr>
       </table>
       <?php submit_button(); ?>
     </form>
@@ -351,11 +365,20 @@ function nirog_bhumi_ensure_consultation_status_page() {
       'post_content' => '',
     ]);
   }
+  if (!get_page_by_path('consultation-feedback')) {
+    wp_insert_post([
+      'post_type' => 'page',
+      'post_status' => 'publish',
+      'post_title' => __('Consultation Feedback', 'nirog-bhumi'),
+      'post_name' => 'consultation-feedback',
+      'post_content' => '',
+    ]);
+  }
 }
 add_action('init', 'nirog_bhumi_ensure_consultation_status_page', 35);
 
 function nirog_bhumi_private_consultation_robots($robots) {
-  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'approach', 'mission'])) {
+  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'consultation-feedback', 'approach', 'mission'])) {
     $robots['noindex'] = true;
     $robots['nofollow'] = true;
   }
@@ -1053,6 +1076,9 @@ function nirog_bhumi_save_consultation_booking($post_id) {
   $resend = !empty($_POST['nb_resend_invoice']);
   if ($status === 'verified' && ($old_status !== 'verified' || $resend || !get_post_meta($post_id, 'invoice_sent_at', true))) {
     nirog_bhumi_send_consultation_invoice($post_id);
+  }
+  if (function_exists('nirog_bhumi_sync_takeaway_schedule_from_entry')) {
+    nirog_bhumi_sync_takeaway_schedule_from_entry($post_id);
   }
 }
 add_action('save_post_nb_consultation', 'nirog_bhumi_save_consultation_booking');
