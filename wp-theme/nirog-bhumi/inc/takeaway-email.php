@@ -286,12 +286,21 @@ function nirog_bhumi_manual_send_takeaway() {
     wp_safe_redirect(add_query_arg('nb_takeaway', 'unverified', $redirect));
     exit;
   }
-  if (!sanitize_email((string) get_post_meta($entry_id, 'email', true))) {
+  $to = sanitize_email((string) get_post_meta($entry_id, 'email', true));
+  if (!$to) {
     wp_safe_redirect(add_query_arg('nb_takeaway', 'noemail', $redirect));
     exit;
   }
+  // Explicit admin action: send directly, bypassing the automated-sweep guards
+  // (e.g. anonymised-record / already-sent), so testing and resends always work.
   delete_option('nirog_bhumi_last_mail_error');
-  $sent = nirog_bhumi_send_takeaway_email_for_entry($entry_id, true);
+  $name = (string) get_post_meta($entry_id, 'name', true);
+  $ref = function_exists('nirog_bhumi_consultation_reference') ? nirog_bhumi_consultation_reference($entry_id) : (string) $entry_id;
+  $sent = nirog_bhumi_takeaway_email_send($to, $name, $ref);
+  if ($sent) {
+    update_post_meta($entry_id, 'takeaway_email_sent_status', 'sent');
+    update_post_meta($entry_id, 'takeaway_email_sent_at', current_time('mysql'));
+  }
   wp_safe_redirect(add_query_arg('nb_takeaway', $sent ? 'sent' : 'mailfail', $redirect));
   exit;
 }
