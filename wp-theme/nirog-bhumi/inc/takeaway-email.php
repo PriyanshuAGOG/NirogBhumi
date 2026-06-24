@@ -280,8 +280,19 @@ function nirog_bhumi_manual_send_takeaway() {
     wp_die(esc_html__('You are not allowed to send this email.', 'nirog-bhumi'));
   }
   check_admin_referer('nirog_send_takeaway_' . $entry_id);
+  $redirect = admin_url('post.php?post=' . $entry_id . '&action=edit');
+
+  if (get_post_meta($entry_id, 'payment_status', true) !== 'verified') {
+    wp_safe_redirect(add_query_arg('nb_takeaway', 'unverified', $redirect));
+    exit;
+  }
+  if (!sanitize_email((string) get_post_meta($entry_id, 'email', true))) {
+    wp_safe_redirect(add_query_arg('nb_takeaway', 'noemail', $redirect));
+    exit;
+  }
+  delete_option('nirog_bhumi_last_mail_error');
   $sent = nirog_bhumi_send_takeaway_email_for_entry($entry_id, true);
-  wp_safe_redirect(add_query_arg('nb_takeaway', $sent ? 'sent' : 'failed', admin_url('post.php?post=' . $entry_id . '&action=edit')));
+  wp_safe_redirect(add_query_arg('nb_takeaway', $sent ? 'sent' : 'mailfail', $redirect));
   exit;
 }
 add_action('admin_post_nirog_send_takeaway', 'nirog_bhumi_manual_send_takeaway');
@@ -291,12 +302,22 @@ function nirog_bhumi_takeaway_admin_notice() {
   if (!current_user_can('edit_posts') || !isset($_GET['nb_takeaway'])) {
     return;
   }
-  $sent = sanitize_key(wp_unslash($_GET['nb_takeaway'])) === 'sent';
-  echo '<div class="notice ' . ($sent ? 'notice-success' : 'notice-error') . ' is-dismissible"><p>'
-    . esc_html($sent
-      ? __('Takeaway email sent.', 'nirog-bhumi')
-      : __('Takeaway email was not sent. Ensure payment is marked Verified, the customer email is present, and SMTP is configured.', 'nirog-bhumi'))
-    . '</p></div>';
+  $code = sanitize_key(wp_unslash($_GET['nb_takeaway']));
+  if ($code === 'sent') {
+    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Takeaway email sent.', 'nirog-bhumi') . '</p></div>';
+    return;
+  }
+  if ($code === 'unverified') {
+    $message = __('Mark the payment status as Verified and click Update before sending the takeaway email.', 'nirog-bhumi');
+  } elseif ($code === 'noemail') {
+    $message = __('No customer email is stored on this consultation, so the takeaway email cannot be sent.', 'nirog-bhumi');
+  } else {
+    $mail_error = (string) get_option('nirog_bhumi_last_mail_error');
+    $message = $mail_error
+      ? sprintf(__('WordPress could not send the email: %s. Configure an authenticated SMTP plugin and try again.', 'nirog-bhumi'), $mail_error)
+      : __('WordPress could not send the email. Your server is likely not configured to send mail - install and configure an SMTP plugin (the same applies to invoice emails).', 'nirog-bhumi');
+  }
+  echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($message) . '</p></div>';
 }
 add_action('admin_notices', 'nirog_bhumi_takeaway_admin_notice');
 
