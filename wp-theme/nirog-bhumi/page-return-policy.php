@@ -1,0 +1,20 @@
+<?php
+/**
+ * Return Policy.
+ */
+get_header(); ?>
+<main>
+<section class="legal-split legal-intro-only"><div><p class="eyebrow">Return Policy</p><h1>Returns, replacements and exchanges.</h1><p><strong>Last Updated:</strong> <?php echo esc_html(nirog_bhumi_policy_last_updated()); ?></p><p>This Return Policy applies to physical products purchased through the Nirog Bhumi Platform, operated by Nirog Bhumi Private Limited. It does not apply to consultations, digital services, programs, subscriptions, live sessions, recordings, community access or digital content.</p></div></section>
+<section class="accordion-section">
+  <details open><summary>5.1 Return Eligibility</summary><p>A product may be eligible for return, replacement or exchange if it is damaged on arrival; it is defective; it is the wrong product; it is missing parts or components; it is materially different from the product ordered; or it qualifies for return under the product-specific policy shown at the time of purchase.</p></details>
+  <details><summary>5.2 Return Request Window</summary><p>Return or replacement requests must be raised within 48 hours of delivery unless a different period is specifically mentioned on the product page. Requests raised after the return window may not be accepted.</p></details>
+  <details><summary>5.3 Product Condition for Return</summary><p>To be eligible for return, the product must generally be: unused; unopened, where applicable; in the same condition as received; in original packaging; with invoice, tags, labels, accessories, manuals and all included items; and supported by photos/videos where damage, defect or wrong delivery is claimed.</p></details>
+  <details><summary>5.4 Non-Returnable Products</summary><p>The following products may not be eligible for return unless damaged, defective or wrongly delivered: food products; perishable products; consumable products; herbs, supplements or ingestible items; opened or used wellness products; hygiene-sensitive products; customized or personalized products; products damaged due to misuse, negligence or improper storage by the user; and products specifically marked as non-returnable on the product page.</p></details>
+  <details><summary>5.5 Third-Party Seller Returns</summary><p>For products sold by third-party sellers: return eligibility may be governed by seller-specific terms displayed on the product page. Nirog Bhumi may coordinate the return request with the seller. The seller may inspect the returned product before approving refund, exchange or replacement. If the seller rejects the return after valid inspection, Nirog Bhumi will communicate the reason to the user, and Nirog Bhumi shall not be liable for any claims made by the buyer in such cases.</p></details>
+  <details><summary>5.6 Return Pickup and Shipping</summary><p>Where return is approved, return pickup may be arranged by Nirog Bhumi, the seller or logistics partner where serviceable. If return pickup is not available, you may be asked to ship the product to the address provided by us. Return shipping cost may be borne by Nirog Bhumi, the seller or the user depending on the reason for return and product-specific policy.</p></details>
+  <details><summary>5.7 Inspection and Approval</summary><p>Once the returned product is received, it will be inspected by Nirog Bhumi or the concerned seller. After inspection, we may approve or reject the return, replacement, exchange or refund request. If approved, the refund or replacement will be processed as per our Cancellation &amp; Refund Policy. If rejected, the product may be sent back to you or disposed of as per applicable policy, depending on the nature of the product.</p></details>
+  <details><summary>5.8 Exchange and Replacement</summary><p>Replacement or exchange may be offered where the product is damaged, defective, wrong or incomplete and where replacement stock is available. If replacement stock is unavailable, an eligible refund or store credit may be offered.</p></details>
+</section>
+<?php nirog_bhumi_policy_contact_block(); ?>
+</main>
+<?php get_footer(); ?>

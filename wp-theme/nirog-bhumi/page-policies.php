@@ -10,7 +10,15 @@ get_header(); ?>
       <h1>Clear rules for safe, respectful and lawful participation.</h1>
       <p>These Policies apply to the Nirog Bhumi website, consultations, diabetes reversal programs, yoga programs, wellness education, digital content, community groups, product purchases, payment facilities and all related services.</p>
       <p><strong>Definitions:</strong> "Nirog Bhumi", "we", "us" and "our" refer to Nirog Bhumi and authorised team members. "You", "user", "participant", "client" and "customer" refer to anyone using Nirog Bhumi services.</p>
-      <p>If Nirog Bhumi operates through a registered legal entity, replace "Nirog Bhumi" with the full legal entity name before publishing.</p>
+      <p>Operated by <strong>Nirog Bhumi Private Limited</strong>, registered office: 18 Keshev Vihar, Gopalpura Bypass, Durgapura, Jaipur - 302018, Rajasthan, India. GSTIN: 08AALCN5409N1ZW.</p>
+      <p><strong>Dedicated policy pages:</strong>
+        <a href="<?php echo esc_url(home_url('/terms-and-conditions/')); ?>">Terms &amp; Conditions</a> &middot;
+        <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a> &middot;
+        <a href="<?php echo esc_url(home_url('/cancellation-refund-policy/')); ?>">Cancellation &amp; Refund Policy</a> &middot;
+        <a href="<?php echo esc_url(home_url('/return-policy/')); ?>">Return Policy</a> &middot;
+        <a href="<?php echo esc_url(home_url('/shipping-delivery-policy/')); ?>">Shipping &amp; Delivery Policy</a> &middot;
+        <a href="<?php echo esc_url(home_url('/medical-disclaimer/')); ?>">Medical Disclaimer</a>
+      </p>
     </div>
   </section>
 

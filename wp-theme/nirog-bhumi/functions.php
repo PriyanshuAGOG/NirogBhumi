@@ -386,6 +386,55 @@ function nirog_bhumi_ensure_consultation_status_page() {
 }
 add_action('init', 'nirog_bhumi_ensure_consultation_status_page', 35);
 
+/** Ensure the dedicated policy pages exist (for payment-gateway verification). */
+function nirog_bhumi_ensure_policy_pages() {
+  $pages = [
+    'cancellation-refund-policy' => __('Cancellation & Refund Policy', 'nirog-bhumi'),
+    'return-policy' => __('Return Policy', 'nirog-bhumi'),
+    'shipping-delivery-policy' => __('Shipping & Delivery Policy', 'nirog-bhumi'),
+  ];
+  foreach ($pages as $slug => $title) {
+    if (!get_page_by_path($slug)) {
+      wp_insert_post([
+        'post_type' => 'page',
+        'post_status' => 'publish',
+        'post_title' => $title,
+        'post_name' => $slug,
+        'post_content' => '',
+      ]);
+    }
+  }
+}
+add_action('init', 'nirog_bhumi_ensure_policy_pages', 36);
+
+/** Last-updated date shown on policy pages. */
+function nirog_bhumi_policy_last_updated() {
+  return '25 June 2026';
+}
+
+/** Shared contact / grievance redressal block for policy pages. */
+function nirog_bhumi_policy_contact_block() {
+  ?>
+  <section class="legal-split legal-intro-only">
+    <div>
+      <p class="eyebrow"><?php esc_html_e('Contact & Grievance Redressal', 'nirog-bhumi'); ?></p>
+      <h2><?php esc_html_e('Reach the Nirog Bhumi team', 'nirog-bhumi'); ?></h2>
+      <p><?php esc_html_e('For questions, complaints, grievances, refund or return requests, privacy requests or support, please contact our Grievance Officer.', 'nirog-bhumi'); ?></p>
+      <p>
+        <strong><?php esc_html_e('Grievance Officer:', 'nirog-bhumi'); ?></strong> Priyanshu Agarwal (Chief Operations Officer)<br>
+        <strong><?php esc_html_e('Legal Entity:', 'nirog-bhumi'); ?></strong> Nirog Bhumi Private Limited<br>
+        <strong><?php esc_html_e('Registered Office:', 'nirog-bhumi'); ?></strong> 18 Keshev Vihar, Gopalpura Bypass, Durgapura, Jaipur - 302018, Rajasthan, India<br>
+        <strong>GSTIN:</strong> 08AALCN5409N1ZW<br>
+        <strong><?php esc_html_e('Email:', 'nirog-bhumi'); ?></strong> <a href="mailto:priyanshu@nirogbhumi.com">priyanshu@nirogbhumi.com</a><br>
+        <strong><?php esc_html_e('Phone:', 'nirog-bhumi'); ?></strong> +91 9588810249<br>
+        <strong><?php esc_html_e('Working Hours:', 'nirog-bhumi'); ?></strong> <?php esc_html_e('Monday to Friday, 9:00 AM to 6:00 PM, excluding public holidays.', 'nirog-bhumi'); ?>
+      </p>
+      <p><?php esc_html_e('We will endeavour to acknowledge grievances within 48 hours and resolve them within a reasonable time in accordance with applicable law.', 'nirog-bhumi'); ?></p>
+    </div>
+  </section>
+  <?php
+}
+
 function nirog_bhumi_private_consultation_robots($robots) {
   if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'consultation-feedback', 'approach', 'mission'])) {
     $robots['noindex'] = true;
