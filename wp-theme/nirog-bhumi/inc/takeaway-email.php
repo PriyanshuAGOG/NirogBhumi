@@ -181,10 +181,7 @@ function nirog_bhumi_takeaway_email_send($to, $name, $context_id = '') {
       <!-- Divider -->
       <hr style="border:none;border-top:1px solid #e8e4da;margin:0 0 28px">
 
-      <!-- What next -->
-      <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a2e1c">What Happens Next?</h3>
-      <p style="margin:0 0 12px;font-size:14px;color:#2f3e30;line-height:1.75">Gautam will review the details you shared and, where applicable, follow up with specific observations or recommendations for your next step &mdash; whether that is a program, a product, or simply a change in approach.</p>
-      <p style="margin:0 0 28px;font-size:14px;color:#2f3e30;line-height:1.75">In the meantime, start with the booklet. Even one switch, applied consistently, can shift your numbers meaningfully over 30&ndash;90 days.</p>
+      <p style="margin:0 0 28px;font-size:15px;color:#2f3e30;line-height:1.75">Start with the booklet today. Even one switch, applied consistently, can shift your numbers meaningfully over 30&ndash;90 days. Small steps, done daily, are what reversal is built on.</p>
 
       <!-- Reminder -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f5f0;border-left:3px solid #2e6b35;border-radius:0 8px 8px 0;margin-bottom:32px">
