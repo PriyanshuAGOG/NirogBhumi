@@ -484,12 +484,12 @@ function nirog_bhumi_maybe_install_invoice_sequence_table() {
 add_action('init', 'nirog_bhumi_maybe_install_invoice_sequence_table', 36);
 
 /**
- * One-time rollout reset: clear any earlier test-invoice guards and reset the
- * sequential counter for the current financial year so the next two invoices
- * are numbered 000 (for testing) and live numbering then starts at 001.
+ * One-time rollout reset for invoice numbering. Clears any earlier test-invoice
+ * guards and resets the sequential counter for the current financial year so the
+ * next issued invoice starts the live series at 001.
  */
 function nirog_bhumi_reset_invoice_numbering_for_rollout() {
-  if (get_option('nirog_bhumi_invoice_rollout') === '1') {
+  if (get_option('nirog_bhumi_invoice_rollout') === '2') {
     return;
   }
   $financial_year = nirog_bhumi_invoice_financial_year();
@@ -502,7 +502,7 @@ function nirog_bhumi_reset_invoice_numbering_for_rollout() {
     $table = $wpdb->prefix . 'nb_invoice_sequences';
     $wpdb->query($wpdb->prepare("UPDATE {$table} SET last_number = 0 WHERE financial_year = %s", $financial_year));
   }
-  update_option('nirog_bhumi_invoice_rollout', '1');
+  update_option('nirog_bhumi_invoice_rollout', '2');
 }
 add_action('init', 'nirog_bhumi_reset_invoice_numbering_for_rollout', 37);
 
@@ -550,21 +550,6 @@ function nirog_bhumi_assign_sequential_invoice_number($post_id) {
   try {
     $existing = (string) get_post_meta($post_id, 'invoice_number', true);
     if ($existing) return $existing;
-    $financial_year = nirog_bhumi_invoice_financial_year();
-    $fy_key = str_replace('-', '_', $financial_year);
-    // The first two invoices of the financial year are numbered 000 for testing.
-    // Live numbering (001, 002, ...) begins from the third invoice onwards.
-    for ($slot = 1; $slot <= 2; $slot++) {
-      $test_option = 'nirog_bhumi_test_invoice_' . $slot . '_' . $fy_key;
-      if (add_option($test_option, (string) absint($post_id), '', false)) {
-        $invoice_number = $financial_year . '/000';
-        update_post_meta($post_id, 'invoice_number', $invoice_number);
-        update_post_meta($post_id, 'invoice_financial_year', $financial_year);
-        update_post_meta($post_id, 'invoice_sequence', 0);
-        update_post_meta($post_id, '_nb_test_invoice', 'yes');
-        return $invoice_number;
-      }
-    }
     $invoice = nirog_bhumi_next_sequential_invoice_number();
     if (!$invoice) return '';
     $invoice_number = $invoice['number'];
@@ -638,7 +623,7 @@ function nirog_bhumi_consultation_edit_data() {
   if (!$entry_id) {
     return [];
   }
-  $keys = ['name', 'email', 'country_code', 'phone', 'age', 'billing_address', 'billing_city', 'billing_state', 'billing_state_code', 'billing_postcode', 'billing_country', 'customer_gstin', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
+  $keys = ['name', 'email', 'country_code', 'phone', 'age', 'billing_address', 'billing_city', 'billing_state', 'billing_state_code', 'billing_postcode', 'billing_country', 'customer_gstin', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'height', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal', 'consultation_disclaimer', 'data_processing_consent', 'followup_consent'];
   $data = ['consultation_entry_id' => $entry_id];
   foreach ($keys as $key) {
     $data[$key] = (string) get_post_meta($entry_id, $key, true);
@@ -709,6 +694,7 @@ function nirog_bhumi_handle_consultation_form() {
     'postmeal' => nirog_bhumi_clean_field('postmeal'),
     'hba1c' => nirog_bhumi_clean_field('hba1c'),
     'bp' => nirog_bhumi_clean_field('bp'),
+    'height' => nirog_bhumi_clean_field('height'),
     'body' => nirog_bhumi_clean_field('body'),
     'medicines' => nirog_bhumi_clean_textarea('medicines'),
     'conditions' => nirog_bhumi_clean_textarea('conditions'),
@@ -1012,6 +998,7 @@ function nirog_bhumi_render_consultation_metabox($post) {
     'postmeal' => 'Post-meal sugar',
     'hba1c' => 'HbA1c',
     'bp' => 'Blood pressure',
+    'height' => 'Height',
     'body' => 'Weight / waist',
     'medicines' => 'Current medication or insulin',
     'conditions' => 'Other health conditions',
@@ -1234,6 +1221,7 @@ function nirog_bhumi_anonymise_consultation_record() {
     'postmeal' => get_post_meta($entry_id, 'postmeal', true),
     'hba1c' => get_post_meta($entry_id, 'hba1c', true),
     'bp' => get_post_meta($entry_id, 'bp', true),
+    'height' => get_post_meta($entry_id, 'height', true),
     'body' => get_post_meta($entry_id, 'body', true),
     'collection_quarter' => $quarter,
   ];
@@ -1248,7 +1236,7 @@ function nirog_bhumi_anonymise_consultation_record() {
 
   $has_invoice = (bool) get_post_meta($entry_id, 'invoice_number', true);
   $erase_keys = [
-    'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal',
+    'age', 'concern', 'fasting', 'postmeal', 'hba1c', 'bp', 'height', 'body', 'medicines', 'conditions', 'food', 'lifestyle', 'goal',
     'consultation_disclaimer', 'data_processing_consent', 'followup_consent', 'report_attachment_ids', '_nb_edit_token_hash',
     'status_token_hash', 'appointment_date', 'appointment_time', 'meeting_details', 'meeting_url'
   ];
@@ -1271,7 +1259,7 @@ add_action('admin_post_nirog_anonymise_consultation', 'nirog_bhumi_anonymise_con
 
 function nirog_bhumi_anonymous_metric_metaboxes() {
   add_meta_box('nb_anonymous_metric_details', __('Anonymous Health Metrics', 'nirog-bhumi'), function ($post) {
-    $labels = ['age_band' => 'Age band', 'concern' => 'Primary concern', 'fasting' => 'Fasting sugar', 'postmeal' => 'Post-meal sugar', 'hba1c' => 'HbA1c', 'bp' => 'Blood pressure', 'body' => 'Weight / waist', 'collection_quarter' => 'Collection quarter'];
+    $labels = ['age_band' => 'Age band', 'concern' => 'Primary concern', 'fasting' => 'Fasting sugar', 'postmeal' => 'Post-meal sugar', 'hba1c' => 'HbA1c', 'bp' => 'Blood pressure', 'height' => 'Height', 'body' => 'Weight / waist', 'collection_quarter' => 'Collection quarter'];
     foreach ($labels as $key => $label) echo '<p><strong>' . esc_html($label) . ':</strong><br>' . esc_html(get_post_meta($post->ID, $key, true) ?: '-') . '</p>';
     echo '<p class="description">' . esc_html__('This record intentionally contains no name, email, phone, files, free-text notes or source-entry identifier.', 'nirog-bhumi') . '</p>';
   }, 'nb_health_metric', 'normal', 'high');
