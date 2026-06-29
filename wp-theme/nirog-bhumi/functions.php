@@ -142,7 +142,7 @@ function nirog_bhumi_render_settings_page() {
         <tr><th scope="row"><label for="nirog-invoice-email"><?php esc_html_e('Invoice email', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-email" name="nirog_bhumi_settings[invoice_email]" type="email" class="regular-text" value="<?php echo esc_attr($settings['invoice_email']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-invoice-phone"><?php esc_html_e('Invoice phone', 'nirog-bhumi'); ?></label></th><td><input id="nirog-invoice-phone" name="nirog_bhumi_settings[invoice_phone]" type="text" class="regular-text" value="<?php echo esc_attr($settings['invoice_phone']); ?>"></td></tr>
         <tr><th colspan="2"><h2><?php esc_html_e('Post-consultation takeaway email', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Sent automatically once the consultation end time has passed, only for paid orders. The end time is calculated from the consultation duration, and the email goes out after the delay below.', 'nirog-bhumi'); ?></p></th></tr>
-        <tr><th scope="row"><label for="nirog-takeaway-booklet"><?php esc_html_e('Takeaway booklet link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-booklet" name="nirog_bhumi_settings[takeaway_booklet_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_booklet_url']); ?>" placeholder="https://nirogbhumi.com/your-booklet.pdf"><p class="description"><?php esc_html_e('Link to the consultation takeaway booklet (PDF or page).', 'nirog-bhumi'); ?></p></td></tr>
+        <tr><th scope="row"><label for="nirog-takeaway-booklet"><?php esc_html_e('Takeaway booklet link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-booklet" name="nirog_bhumi_settings[takeaway_booklet_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_booklet_url']); ?>" placeholder="https://nirogbhumi.com/your-booklet.pdf"><p class="description"><?php esc_html_e('Optional. A direct link to a booklet PDF or page. If you upload a PDF below, the uploaded file is used instead of this link.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-takeaway-feedback"><?php esc_html_e('Feedback form link', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-feedback" name="nirog_bhumi_settings[takeaway_feedback_url]" type="url" class="regular-text code" value="<?php echo esc_attr($settings['takeaway_feedback_url']); ?>"><p class="description"><?php esc_html_e('Defaults to the hidden feedback form at /consultation-feedback/.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-consultation-duration"><?php esc_html_e('Consultation duration (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-consultation-duration" name="nirog_bhumi_settings[consultation_duration_minutes]" type="number" min="1" class="small-text" value="<?php echo esc_attr($settings['consultation_duration_minutes']); ?>"></td></tr>
         <tr><th scope="row"><label for="nirog-takeaway-delay"><?php esc_html_e('Email delay after end (minutes)', 'nirog-bhumi'); ?></label></th><td><input id="nirog-takeaway-delay" name="nirog_bhumi_settings[takeaway_email_delay_minutes]" type="number" min="0" class="small-text" value="<?php echo esc_attr($settings['takeaway_email_delay_minutes']); ?>"></td></tr>
@@ -153,6 +153,51 @@ function nirog_bhumi_render_settings_page() {
       </table>
       <?php submit_button(); ?>
     </form>
+
+    <hr style="margin:32px 0">
+    <h2><?php esc_html_e('Takeaway booklet file', 'nirog-bhumi'); ?></h2>
+    <p class="description" style="max-width:640px"><?php esc_html_e('Upload the consultation takeaway booklet as a PDF. This file is stored in your media uploads and is linked directly inside the takeaway email. Uploading a new PDF here replaces the current booklet immediately — you do not need to re-install the theme.', 'nirog-bhumi'); ?></p>
+    <?php
+    $booklet_url  = (string) get_option('nirog_bhumi_booklet_url', '');
+    $booklet_file = (string) get_option('nirog_bhumi_booklet_file', '');
+    $booklet_size = ($booklet_file && file_exists($booklet_file)) ? size_format(filesize($booklet_file)) : '';
+    ?>
+    <table class="form-table" role="presentation">
+      <tr>
+        <th scope="row"><?php esc_html_e('Current booklet', 'nirog-bhumi'); ?></th>
+        <td>
+          <?php if ($booklet_url) : ?>
+            <p style="margin:0 0 6px"><span class="dashicons dashicons-media-document" style="color:#2e7d32"></span>
+              <a href="<?php echo esc_url($booklet_url); ?>" target="_blank"><?php esc_html_e('View uploaded booklet (PDF)', 'nirog-bhumi'); ?></a>
+              <?php if ($booklet_size) : ?><span class="description"> &mdash; <?php echo esc_html($booklet_size); ?></span><?php endif; ?>
+            </p>
+            <p class="description"><?php esc_html_e('This uploaded file is currently used in the takeaway email.', 'nirog-bhumi'); ?></p>
+          <?php else : ?>
+            <p class="description"><?php esc_html_e('No PDF uploaded yet. The takeaway email is using the booklet link above, or the booklet bundled with the theme.', 'nirog-bhumi'); ?></p>
+          <?php endif; ?>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row"><label for="nirog-booklet-file"><?php esc_html_e('Upload / replace booklet', 'nirog-bhumi'); ?></label></th>
+        <td>
+          <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="margin-bottom:14px">
+            <input type="hidden" name="action" value="nirog_upload_booklet">
+            <?php wp_nonce_field('nirog_upload_booklet'); ?>
+            <input id="nirog-booklet-file" type="file" name="nirog_booklet_file" accept="application/pdf,.pdf" required>
+            <?php submit_button(__('Upload booklet', 'nirog-bhumi'), 'primary', 'submit', false); ?>
+            <p class="description"><?php esc_html_e('Select a PDF file, then click Upload booklet. Large PDFs are fine as long as your server upload limit allows them.', 'nirog-bhumi'); ?></p>
+          </form>
+          <?php if ($booklet_url) : ?>
+          <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" onsubmit="return confirm('<?php echo esc_js(__('Remove the uploaded booklet? The email will fall back to the link above or the theme default.', 'nirog-bhumi')); ?>');">
+            <input type="hidden" name="action" value="nirog_upload_booklet">
+            <input type="hidden" name="nirog_remove_booklet" value="1">
+            <?php wp_nonce_field('nirog_upload_booklet'); ?>
+            <?php submit_button(__('Remove uploaded booklet', 'nirog-bhumi'), 'delete', 'submit', false); ?>
+          </form>
+          <?php endif; ?>
+        </td>
+      </tr>
+    </table>
   </div>
   <?php
 }

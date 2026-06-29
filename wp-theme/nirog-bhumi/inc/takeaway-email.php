@@ -24,15 +24,114 @@ if (!defined('ABSPATH')) {
 /** Editable values, all from Settings -> Nirog Bhumi Setup. */
 function nirog_bhumi_takeaway_settings() {
   $s = function_exists('nirog_bhumi_get_settings') ? nirog_bhumi_get_settings() : [];
-  // Default booklet: the 5 Tiny Switches PDF shipped with the theme.
-  $default_booklet = get_template_directory_uri() . '/assets/booklet-5-tiny-switches.pdf';
+  // Booklet resolution order:
+  //   1. A PDF uploaded via Settings (stored as option, survives theme updates)
+  //   2. A manual URL typed into the settings field
+  //   3. The 5 Tiny Switches PDF shipped with the theme
+  $uploaded = (string) get_option('nirog_bhumi_booklet_url', '');
+  $manual   = (string) ($s['takeaway_booklet_url'] ?? '');
+  $default  = get_template_directory_uri() . '/assets/booklet-5-tiny-switches.pdf';
   return [
-    'booklet_url'  => (string) (($s['takeaway_booklet_url'] ?? '') ?: $default_booklet),
+    'booklet_url'  => $uploaded ?: ($manual ?: $default),
     'feedback_url' => (string) ($s['takeaway_feedback_url'] ?? home_url('/consultation-feedback/')),
     'duration'     => max(1, (int) ($s['consultation_duration_minutes'] ?? 30)),
     'delay'        => max(0, (int) ($s['takeaway_email_delay_minutes'] ?? 10)),
   ];
 }
+
+/**
+ * Handle the booklet PDF upload from the settings page.
+ * Stores the file in wp-content/uploads/nirog-booklet/ and saves its public
+ * URL in the 'nirog_bhumi_booklet_url' option so it survives theme re-installs.
+ */
+function nirog_bhumi_handle_booklet_upload() {
+  if (!current_user_can('manage_options')) {
+    wp_die(esc_html__('You are not allowed to upload the booklet.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_upload_booklet');
+  $redirect = admin_url('options-general.php?page=nirog-bhumi-setup');
+
+  // Allow removing the uploaded booklet (revert to manual URL / theme default).
+  if (!empty($_POST['nirog_remove_booklet'])) {
+    $existing = (string) get_option('nirog_bhumi_booklet_file', '');
+    if ($existing && file_exists($existing)) {
+      @unlink($existing); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+    }
+    delete_option('nirog_bhumi_booklet_url');
+    delete_option('nirog_bhumi_booklet_file');
+    wp_safe_redirect(add_query_arg('nb_booklet', 'removed', $redirect));
+    exit;
+  }
+
+  if (empty($_FILES['nirog_booklet_file']['name'])) {
+    wp_safe_redirect(add_query_arg('nb_booklet', 'nofile', $redirect));
+    exit;
+  }
+
+  $file = $_FILES['nirog_booklet_file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+  $check = wp_check_filetype(sanitize_file_name($file['name']));
+  if (strtolower((string) $check['ext']) !== 'pdf' || $check['type'] !== 'application/pdf') {
+    wp_safe_redirect(add_query_arg('nb_booklet', 'notpdf', $redirect));
+    exit;
+  }
+
+  if (!function_exists('wp_handle_upload')) {
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+  }
+
+  // Place uploads in a dedicated, stable subfolder with a fixed filename so the
+  // public URL never changes between updates.
+  $subdir_filter = function ($dirs) {
+    $dirs['subdir'] = '/nirog-booklet';
+    $dirs['path']   = $dirs['basedir'] . '/nirog-booklet';
+    $dirs['url']    = $dirs['baseurl'] . '/nirog-booklet';
+    return $dirs;
+  };
+  add_filter('upload_dir', $subdir_filter);
+
+  $overrides = [
+    'test_form' => false,
+    'mimes'     => ['pdf' => 'application/pdf'],
+    'unique_filename_callback' => function () {
+      return 'nirog-takeaway-booklet.pdf';
+    },
+  ];
+  $result = wp_handle_upload($file, $overrides);
+
+  remove_filter('upload_dir', $subdir_filter);
+
+  if (!empty($result['error']) || empty($result['url'])) {
+    wp_safe_redirect(add_query_arg('nb_booklet', 'failed', $redirect));
+    exit;
+  }
+
+  update_option('nirog_bhumi_booklet_url', esc_url_raw($result['url']), false);
+  update_option('nirog_bhumi_booklet_file', $result['file'], false);
+  wp_safe_redirect(add_query_arg('nb_booklet', 'uploaded', $redirect));
+  exit;
+}
+add_action('admin_post_nirog_upload_booklet', 'nirog_bhumi_handle_booklet_upload');
+
+/** Admin notice for booklet upload results. */
+function nirog_bhumi_booklet_admin_notice() {
+  if (!current_user_can('manage_options') || !isset($_GET['nb_booklet'])) {
+    return;
+  }
+  $code = sanitize_key(wp_unslash($_GET['nb_booklet']));
+  $map = [
+    'uploaded' => ['success', __('Booklet uploaded. The takeaway email now links to your new PDF.', 'nirog-bhumi')],
+    'removed'  => ['success', __('Uploaded booklet removed. The takeaway email will use the manual link or theme default.', 'nirog-bhumi')],
+    'nofile'   => ['error', __('No file was selected. Choose a PDF and try again.', 'nirog-bhumi')],
+    'notpdf'   => ['error', __('The booklet must be a PDF file.', 'nirog-bhumi')],
+    'failed'   => ['error', __('The upload failed. Check the file size limit on your server and try again.', 'nirog-bhumi')],
+  ];
+  if (!isset($map[$code])) {
+    return;
+  }
+  [$type, $message] = $map[$code];
+  echo '<div class="notice notice-' . esc_attr($type) . ' is-dismissible"><p>' . esc_html($message) . '</p></div>';
+}
+add_action('admin_notices', 'nirog_bhumi_booklet_admin_notice');
 
 /** Most recent WooCommerce order linked to a consultation entry, or null. */
 function nirog_bhumi_order_for_consultation_entry($entry_id) {
