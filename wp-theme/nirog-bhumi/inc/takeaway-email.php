@@ -138,8 +138,7 @@ function nirog_bhumi_takeaway_email_send($to, $name, $context_id = '') {
     <!-- Header -->
     <tr><td style="background:#1a3a1e;border-radius:12px 12px 0 0;padding:32px 40px 28px;text-align:center">
       <p style="margin:0 0 6px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#a8c5a8;font-weight:600">Nirog Bhumi</p>
-      <h1 style="margin:0;font-size:26px;font-weight:700;color:#ffffff;line-height:1.25">Your Consultation Summary</h1>
-      <p style="margin:10px 0 0;font-size:14px;color:#c8ddc8;line-height:1.5">Everything from today&rsquo;s session, in one place.</p>
+      <h1 style="margin:0;font-size:26px;font-weight:700;color:#ffffff;line-height:1.25">Thank You for Your Consultation</h1>
     </td></tr>
 
     <!-- Body card -->
