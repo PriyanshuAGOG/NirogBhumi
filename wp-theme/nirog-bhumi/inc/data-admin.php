@@ -247,3 +247,103 @@ function nirog_bhumi_mail_from_name() {
   return 'Nirog Bhumi';
 }
 add_filter('wp_mail_from_name', 'nirog_bhumi_mail_from_name');
+
+// ─── Invoice ZIP bulk download ─────────────────────────────────────────────
+
+/**
+ * Return all consultation post IDs that have a stored invoice PDF.
+ * Optionally filter by invoice date range (uses payment_verified_at meta).
+ */
+function nirog_bhumi_invoice_posts_in_range($date_from = '', $date_to = '') {
+  global $wpdb;
+  $sql = "SELECT p.ID FROM {$wpdb->posts} p
+          JOIN {$wpdb->postmeta} pf ON pf.post_id = p.ID AND pf.meta_key = '_nb_invoice_pdf_file' AND pf.meta_value != ''
+          WHERE p.post_type = 'nb_consultation'
+            AND p.post_status IN ('publish','private','draft')";
+  $args = [];
+  if ($date_from) {
+    $sql .= " AND p.post_date >= %s";
+    $args[] = $date_from . ' 00:00:00';
+  }
+  if ($date_to) {
+    $sql .= " AND p.post_date <= %s";
+    $args[] = $date_to . ' 23:59:59';
+  }
+  $sql .= " ORDER BY p.post_date ASC";
+  if ($args) {
+    $ids = $wpdb->get_col($wpdb->prepare($sql, $args)); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+  } else {
+    $ids = $wpdb->get_col($sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared
+  }
+  return array_map('intval', (array) $ids);
+}
+
+/** Stream a ZIP of all invoice PDFs for a date range to the browser. */
+function nirog_bhumi_handle_invoice_zip_download() {
+  if (!current_user_can('manage_options')) {
+    wp_die(esc_html__('You are not allowed to export invoices.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_download_invoices_zip');
+
+  if (!class_exists('ZipArchive')) {
+    wp_die(esc_html__('ZipArchive is not available on this server. Ask your host to enable the PHP zip extension.', 'nirog-bhumi'));
+  }
+
+  $date_from = isset($_GET['from']) ? sanitize_text_field(wp_unslash($_GET['from'])) : '';
+  $date_to   = isset($_GET['to'])   ? sanitize_text_field(wp_unslash($_GET['to']))   : '';
+  $from_clean = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from) ? $date_from : '';
+  $to_clean   = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)   ? $date_to   : '';
+
+  $uploads   = wp_upload_dir();
+  $inv_dir   = trailingslashit($uploads['basedir']) . 'nirog-private-invoices';
+
+  $post_ids = nirog_bhumi_invoice_posts_in_range($from_clean, $to_clean);
+  if (!$post_ids) {
+    wp_die(esc_html__('No invoices found for the selected period.', 'nirog-bhumi'));
+  }
+
+  $tmp = tempnam(sys_get_temp_dir(), 'nb_inv_');
+  $zip = new ZipArchive();
+  if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
+    wp_die(esc_html__('Could not create ZIP file.', 'nirog-bhumi'));
+  }
+
+  $added = 0;
+  foreach ($post_ids as $post_id) {
+    $pdf_file = (string) get_post_meta($post_id, '_nb_invoice_pdf_file', true);
+    $pdf_path = trailingslashit($inv_dir) . $pdf_file;
+    if (!$pdf_file || !is_readable($pdf_path)) {
+      // Attempt to regenerate if the file is missing.
+      if (function_exists('nirog_bhumi_create_consultation_invoice_pdf')) {
+        $pdf_path = nirog_bhumi_create_consultation_invoice_pdf($post_id);
+      }
+    }
+    if (!$pdf_path || !is_readable($pdf_path)) {
+      continue;
+    }
+    $inv_num = (string) get_post_meta($post_id, 'invoice_number', true);
+    $zip_name = $inv_num ? 'NB-Invoice-' . sanitize_file_name($inv_num) . '.pdf'
+                         : 'NB-Invoice-entry-' . $post_id . '.pdf';
+    $zip->addFile($pdf_path, $zip_name);
+    $added++;
+  }
+  $zip->close();
+
+  if (!$added) {
+    @unlink($tmp); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+    wp_die(esc_html__('No invoice PDF files could be found or generated for the selected period.', 'nirog-bhumi'));
+  }
+
+  $label = ($from_clean || $to_clean)
+    ? 'NirogBhumi-Invoices-' . ($from_clean ?: 'start') . '-to-' . ($to_clean ?: 'today') . '.zip'
+    : 'NirogBhumi-Invoices-All.zip';
+
+  nocache_headers();
+  header('Content-Type: application/zip');
+  header('Content-Disposition: attachment; filename="' . $label . '"');
+  header('Content-Length: ' . filesize($tmp));
+  readfile($tmp);
+  @unlink($tmp); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+  exit;
+}
+add_action('admin_post_nirog_download_invoices_zip', 'nirog_bhumi_handle_invoice_zip_download');

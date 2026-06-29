@@ -295,6 +295,79 @@ function nirog_bhumi_render_dashboard() {
     <a href="<?php echo esc_url(home_url('/book-consultation/')); ?>" target="_blank"><span class="dashicons dashicons-external"></span> Consultation Page</a>
   </div>
 
+  <!-- ── Invoice ZIP download ── -->
+  <div class="nb-section-head"><h2>Download Invoices</h2></div>
+  <div style="background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <div>
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#5f6368;margin-bottom:5px">From date</label>
+      <input type="date" id="nb-inv-from" name="from" style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;color:#1d2327">
+    </div>
+    <div>
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#5f6368;margin-bottom:5px">To date</label>
+      <input type="date" id="nb-inv-to" name="to" style="padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;color:#1d2327">
+    </div>
+    <div>
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#5f6368;margin-bottom:5px">Quick select</label>
+      <select id="nb-inv-quick" style="padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;color:#1d2327">
+        <option value="">Custom range</option>
+        <option value="this_month">This month</option>
+        <option value="last_month">Last month</option>
+        <option value="this_year">This year</option>
+        <option value="all">All time</option>
+      </select>
+    </div>
+    <div>
+      <a id="nb-inv-download-btn" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#2e7d32;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">
+        <span class="dashicons dashicons-download" style="font-size:15px;width:15px;height:15px;line-height:1"></span> Download ZIP
+      </a>
+      <p style="font-size:11px;color:#80868b;margin:5px 0 0">Leave dates blank to download all invoices.</p>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var base = <?php echo wp_json_encode(wp_nonce_url(admin_url('admin-post.php?action=nirog_download_invoices_zip'), 'nirog_download_invoices_zip')); ?>;
+    var fromEl = document.getElementById('nb-inv-from');
+    var toEl   = document.getElementById('nb-inv-to');
+    var quick  = document.getElementById('nb-inv-quick');
+    var btn    = document.getElementById('nb-inv-download-btn');
+
+    function updateUrl() {
+      var url = base;
+      if (fromEl.value) url += '&from=' + encodeURIComponent(fromEl.value);
+      if (toEl.value)   url += '&to='   + encodeURIComponent(toEl.value);
+      btn.href = url;
+    }
+
+    function applyQuick(v) {
+      var now = new Date();
+      var y = now.getFullYear(), m = now.getMonth();
+      if (v === 'this_month') {
+        fromEl.value = y + '-' + String(m+1).padStart(2,'0') + '-01';
+        var last = new Date(y, m+1, 0);
+        toEl.value = y + '-' + String(m+1).padStart(2,'0') + '-' + String(last.getDate()).padStart(2,'0');
+      } else if (v === 'last_month') {
+        var lm = m === 0 ? 11 : m-1;
+        var ly = m === 0 ? y-1 : y;
+        var lastDay = new Date(ly, lm+1, 0);
+        fromEl.value = ly + '-' + String(lm+1).padStart(2,'0') + '-01';
+        toEl.value   = ly + '-' + String(lm+1).padStart(2,'0') + '-' + String(lastDay.getDate()).padStart(2,'0');
+      } else if (v === 'this_year') {
+        fromEl.value = y + '-01-01';
+        toEl.value   = y + '-12-31';
+      } else if (v === 'all') {
+        fromEl.value = '';
+        toEl.value   = '';
+      }
+      updateUrl();
+    }
+
+    quick.addEventListener('change', function(){ applyQuick(this.value); });
+    fromEl.addEventListener('change', function(){ quick.value = ''; updateUrl(); });
+    toEl.addEventListener('change',   function(){ quick.value = ''; updateUrl(); });
+    updateUrl();
+  })();
+  </script>
+
   <!-- ── Stat cards row 1: Consultations ── -->
   <div class="nb-section-head">
     <h2>Consultations</h2>
