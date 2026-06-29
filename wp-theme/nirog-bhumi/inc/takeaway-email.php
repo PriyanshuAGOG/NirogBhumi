@@ -24,8 +24,10 @@ if (!defined('ABSPATH')) {
 /** Editable values, all from Settings -> Nirog Bhumi Setup. */
 function nirog_bhumi_takeaway_settings() {
   $s = function_exists('nirog_bhumi_get_settings') ? nirog_bhumi_get_settings() : [];
+  // Default booklet: the 5 Tiny Switches PDF shipped with the theme.
+  $default_booklet = get_template_directory_uri() . '/assets/booklet-5-tiny-switches.pdf';
   return [
-    'booklet_url'  => (string) ($s['takeaway_booklet_url'] ?? ''),
+    'booklet_url'  => (string) (($s['takeaway_booklet_url'] ?? '') ?: $default_booklet),
     'feedback_url' => (string) ($s['takeaway_feedback_url'] ?? home_url('/consultation-feedback/')),
     'duration'     => max(1, (int) ($s['consultation_duration_minutes'] ?? 30)),
     'delay'        => max(0, (int) ($s['takeaway_email_delay_minutes'] ?? 10)),
@@ -116,23 +118,99 @@ function nirog_bhumi_takeaway_email_send($to, $name, $context_id = '') {
   if (!$to) {
     return false;
   }
-  $cfg = nirog_bhumi_takeaway_settings();
-  $name = trim((string) $name) ?: 'there';
-  $booklet  = $cfg['booklet_url'] ?: home_url('/');
-  $feedback = add_query_arg('o', rawurlencode((string) $context_id), $cfg['feedback_url'] ?: home_url('/consultation-feedback/'));
+  $cfg      = nirog_bhumi_takeaway_settings();
+  $name     = trim((string) $name) ?: 'there';
+  $first    = explode(' ', $name)[0];
+  $booklet  = esc_url($cfg['booklet_url']);
+  $feedback = esc_url(add_query_arg('o', rawurlencode((string) $context_id), $cfg['feedback_url'] ?: home_url('/consultation-feedback/')));
+  $site_url = esc_url(home_url('/'));
 
-  $subject = 'Your Nirog Bhumi Consultation Takeaway Kit';
-  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126;line-height:1.6">'
-    . '<p>Hi ' . esc_html($name) . ',</p>'
-    . '<p>Thank you for attending your consultation with Nirog Bhumi.</p>'
-    . '<p>Here is your free consultation takeaway booklet:<br>'
-    . '<a href="' . esc_url($booklet) . '">' . esc_html($booklet) . '</a></p>'
-    . '<p>It includes simple lifestyle actions you can start using from today.</p>'
-    . '<p>Please also take 1 minute to share your feedback:<br>'
-    . '<a href="' . esc_url($feedback) . '">' . esc_html($feedback) . '</a></p>'
-    . '<p>Your feedback helps us improve the consultation experience and serve you better.</p>'
-    . '<p>Warmly,<br>Team Nirog Bhumi</p>'
-    . '</div>';
+  $subject = 'Your Nirog Bhumi Consultation Summary & Free Booklet';
+
+  $body = '<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Nirog Bhumi Consultation Summary</title></head>
+<body style="margin:0;padding:0;background:#f4f1eb;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1eb;padding:32px 16px">
+  <tr><td align="center">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px">
+
+    <!-- Header -->
+    <tr><td style="background:#1a3a1e;border-radius:12px 12px 0 0;padding:32px 40px 28px;text-align:center">
+      <p style="margin:0 0 6px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#a8c5a8;font-weight:600">Nirog Bhumi</p>
+      <h1 style="margin:0;font-size:26px;font-weight:700;color:#ffffff;line-height:1.25">Your Consultation Summary</h1>
+      <p style="margin:10px 0 0;font-size:14px;color:#c8ddc8;line-height:1.5">Everything from today&rsquo;s session, in one place.</p>
+    </td></tr>
+
+    <!-- Body card -->
+    <tr><td style="background:#ffffff;padding:36px 40px 8px">
+
+      <p style="margin:0 0 20px;font-size:16px;color:#1a2e1c;line-height:1.7">Dear ' . esc_html($first) . ',</p>
+      <p style="margin:0 0 20px;font-size:15px;color:#2f3e30;line-height:1.75">Thank you for attending your consultation with Gautam Khandelwal at Nirog Bhumi. It was a privilege to understand your health journey, and we hope the session gave you the clarity and direction you were looking for.</p>
+      <p style="margin:0 0 28px;font-size:15px;color:#2f3e30;line-height:1.75">As promised, here are two things to help you move forward right away.</p>
+
+      <!-- Divider -->
+      <hr style="border:none;border-top:1px solid #e8e4da;margin:0 0 28px">
+
+      <!-- Booklet section -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0f7f0;border:1px solid #c3dcc3;border-radius:10px;margin-bottom:28px">
+        <tr><td style="padding:28px 28px 24px">
+          <p style="margin:0 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#2e6b35">Free Booklet</p>
+          <h2 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#1a3a1e;line-height:1.3">5 Tiny Switches to Start Your Reversal</h2>
+          <p style="margin:0 0 18px;font-size:14px;color:#2f3e30;line-height:1.7">This is Gautam&rsquo;s hand-picked starting guide &mdash; five small, science-backed lifestyle changes that people with diabetes can implement today, without any equipment or major disruption to their routine.</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#2f3e30;line-height:1.7">Each switch is simple. Each one compounds. Start with whichever feels easiest and build from there.</p>
+          <table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#2e6b35;border-radius:7px">
+            <a href="' . $booklet . '" target="_blank" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:.02em">&#8595;&nbsp; Download Free Booklet (PDF)</a>
+          </td></tr></table>
+        </td></tr>
+      </table>
+
+      <!-- Feedback section -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fdf9f3;border:1px solid #e8dfc8;border-radius:10px;margin-bottom:28px">
+        <tr><td style="padding:28px 28px 24px">
+          <p style="margin:0 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#7a5c1e">Takes 60 Seconds</p>
+          <h2 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#3a2e10;line-height:1.3">Share Your Feedback</h2>
+          <p style="margin:0 0 18px;font-size:14px;color:#3a3020;line-height:1.7">Every consultation at Nirog Bhumi is a learning experience for us as much as for you. Your honest feedback &mdash; what worked, what didn&rsquo;t, what you needed more of &mdash; directly shapes how we serve the next person who walks through our door.</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#3a3020;line-height:1.7">It takes less than a minute. We read every response personally.</p>
+          <table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#7a5c1e;border-radius:7px">
+            <a href="' . $feedback . '" target="_blank" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:.02em">&#9998;&nbsp; Give Feedback (1 min)</a>
+          </td></tr></table>
+        </td></tr>
+      </table>
+
+      <!-- Divider -->
+      <hr style="border:none;border-top:1px solid #e8e4da;margin:0 0 28px">
+
+      <!-- What next -->
+      <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1a2e1c">What Happens Next?</h3>
+      <p style="margin:0 0 12px;font-size:14px;color:#2f3e30;line-height:1.75">Gautam will review the details you shared and, where applicable, follow up with specific observations or recommendations for your next step &mdash; whether that is a program, a product, or simply a change in approach.</p>
+      <p style="margin:0 0 28px;font-size:14px;color:#2f3e30;line-height:1.75">In the meantime, start with the booklet. Even one switch, applied consistently, can shift your numbers meaningfully over 30&ndash;90 days.</p>
+
+      <!-- Reminder -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f7f5f0;border-left:3px solid #2e6b35;border-radius:0 8px 8px 0;margin-bottom:32px">
+        <tr><td style="padding:16px 18px">
+          <p style="margin:0;font-size:13px;color:#2f3e30;line-height:1.7"><strong>Important reminder:</strong> Please do not start, stop, or alter any medication or insulin based on what was discussed in this session. All medication decisions must be made in consultation with your treating physician. This consultation was for educational and lifestyle guidance only.</p>
+        </td></tr>
+      </table>
+
+    </td></tr>
+
+    <!-- Signature -->
+    <tr><td style="background:#ffffff;padding:0 40px 36px">
+      <p style="margin:0 0 4px;font-size:15px;color:#1a2e1c;line-height:1.6">With care,</p>
+      <p style="margin:0 0 2px;font-size:15px;font-weight:700;color:#1a2e1c">Gautam Khandelwal &amp; Team Nirog Bhumi</p>
+      <p style="margin:0;font-size:13px;color:#5a6e5c"><a href="' . $site_url . '" style="color:#2e6b35;text-decoration:none">nirogbhumi.com</a></p>
+    </td></tr>
+
+    <!-- Footer -->
+    <tr><td style="background:#1a3a1e;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center">
+      <p style="margin:0;font-size:11px;color:#8aaa8a;line-height:1.6">You received this email because you attended a consultation with Nirog Bhumi.<br>Nirog Bhumi Pvt. Ltd. &bull; 18 Keshev Vihar, Gopalpura Bypass, Durgapura, Jaipur &ndash; 302018, Rajasthan, India</p>
+    </td></tr>
+
+  </table>
+  </td></tr>
+</table>
+</body></html>';
 
   return (bool) wp_mail($to, $subject, $body, ['Content-Type: text/html; charset=UTF-8']);
 }
