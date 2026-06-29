@@ -3,6 +3,7 @@ require_once get_template_directory() . '/inc/invoice-pdf.php';
 require_once get_template_directory() . '/inc/data-admin.php';
 require_once get_template_directory() . '/inc/takeaway-email.php';
 require_once get_template_directory() . '/inc/cal-integration.php';
+require_once get_template_directory() . '/inc/dashboard.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
