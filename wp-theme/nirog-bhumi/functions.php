@@ -50,6 +50,16 @@ function nirog_bhumi_get_settings() {
   return wp_parse_args(is_array($saved) ? $saved : [], nirog_bhumi_settings_defaults());
 }
 
+/**
+ * Email addresses notified immediately whenever any website form is submitted.
+ * Edit the list here (or via the filter) to change who receives lead alerts.
+ */
+function nirog_bhumi_lead_notification_recipients() {
+  $recipients = ['priyanshu@nirogbhumi.com', 'gk@nirogbhumi.com'];
+  $recipients = apply_filters('nirog_bhumi_lead_recipients', $recipients);
+  return array_values(array_unique(array_filter(array_map('sanitize_email', (array) $recipients))));
+}
+
 function nirog_bhumi_sanitize_settings($input) {
   return [
     'consultation_product_id' => isset($input['consultation_product_id']) ? absint($input['consultation_product_id']) : 0,
@@ -740,10 +750,10 @@ function nirog_bhumi_handle_consultation_form() {
     }
   }
 
-  $admin_email = get_option('admin_email');
-  if ($admin_email) {
+  $lead_recipients = nirog_bhumi_lead_notification_recipients();
+  if ($lead_recipients) {
     $subject = $is_update ? __('Updated consultation response - %s', 'nirog-bhumi') : __('New consultation request - %s', 'nirog-bhumi');
-    wp_mail($admin_email, sprintf($subject, $name), sprintf("Name: %s
+    wp_mail($lead_recipients, sprintf($subject, $name), sprintf("Name: %s
 Email: %s
 Phone: %s %s
 Concern: %s
@@ -1395,9 +1405,9 @@ function nirog_bhumi_handle_form_entry() {
     }
   }
 
-  $admin_email = get_option('admin_email');
-  if ($admin_email) {
-    wp_mail($admin_email, sprintf(__('New %s entry - %s', 'nirog-bhumi'), $form_type, $title_name), sprintf("Form: %s
+  $lead_recipients = nirog_bhumi_lead_notification_recipients();
+  if ($lead_recipients) {
+    wp_mail($lead_recipients, sprintf(__('New %s entry - %s', 'nirog-bhumi'), $form_type, $title_name), sprintf("Form: %s
 Name: %s
 Email: %s
 Phone: %s %s
