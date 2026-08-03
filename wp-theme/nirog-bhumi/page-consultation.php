@@ -5,7 +5,7 @@
 get_header(); ?>
 <main>
 <section class="hero consultation-simple-hero">
-  <div class="hero-copy consultation-hero-copy"><h1>Book Consultation</h1><p class="consultation-price"><span class="consultation-price-amount">&#8377;590</span> <span class="consultation-price-note">for a 30-minute founder-led session &middot; &#8377;500 + 18% GST</span></p><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
+  <div class="hero-copy consultation-hero-copy"><h1>Book Consultation</h1><div class="hero-actions"><a class="pill primary" href="#consultation-form">Book Consultation</a></div></div>
   <div class="consultation-hero-media"><figure class="hero-visual consultation-hero-visual consultation-photo-visual consultation-room-visual"><img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/consultation-hero-generated.jpg'); ?>" alt="Nirog Bhumi consultation session" width="1536" height="1024"></figure></div>
 </section>
 <section class="consultation-founder-strip">
