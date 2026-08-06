@@ -52,6 +52,31 @@ function nirog_bhumi_get_settings() {
 }
 
 /**
+ * Pages temporarily hidden from the whole website. They are not linked in the
+ * UI and are also unreachable by direct URL (visitors are redirected home).
+ * Remove a slug from this list to bring a page back.
+ */
+function nirog_bhumi_hidden_pages() {
+  return apply_filters('nirog_bhumi_hidden_pages', ['store', 'branding', 'shipping-delivery-policy']);
+}
+
+function nirog_bhumi_block_hidden_pages() {
+  if (is_admin()) {
+    return;
+  }
+  $hidden = nirog_bhumi_hidden_pages();
+  $blocked = is_page($hidden);
+  if (!$blocked && function_exists('is_shop') && is_shop() && in_array('store', $hidden, true)) {
+    $blocked = true;
+  }
+  if ($blocked) {
+    wp_safe_redirect(home_url('/'), 302);
+    exit;
+  }
+}
+add_action('template_redirect', 'nirog_bhumi_block_hidden_pages');
+
+/**
  * Email addresses notified immediately whenever any website form is submitted.
  * Edit the list here (or via the filter) to change who receives lead alerts.
  */

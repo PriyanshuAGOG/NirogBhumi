@@ -16,7 +16,6 @@ get_header(); ?>
         <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>">Privacy Policy</a> &middot;
         <a href="<?php echo esc_url(home_url('/cancellation-refund-policy/')); ?>">Cancellation &amp; Refund Policy</a> &middot;
         <a href="<?php echo esc_url(home_url('/return-policy/')); ?>">Return Policy</a> &middot;
-        <a href="<?php echo esc_url(home_url('/shipping-delivery-policy/')); ?>">Shipping &amp; Delivery Policy</a> &middot;
         <a href="<?php echo esc_url(home_url('/medical-disclaimer/')); ?>">Medical Disclaimer</a>
       </p>
     </div>
