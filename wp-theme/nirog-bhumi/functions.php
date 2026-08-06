@@ -502,7 +502,7 @@ function nirog_bhumi_policy_contact_block() {
       <h2><?php esc_html_e('Reach the Nirog Bhumi team', 'nirog-bhumi'); ?></h2>
       <p><?php esc_html_e('For questions, complaints, grievances, refund or return requests, privacy requests or support, please contact our Grievance Officer.', 'nirog-bhumi'); ?></p>
       <p>
-        <strong><?php esc_html_e('Grievance Officer:', 'nirog-bhumi'); ?></strong> Priyanshu Agarwal (Chief Operations Officer)<br>
+        <strong><?php esc_html_e('Grievance Officer:', 'nirog-bhumi'); ?></strong> Priyanshu Agarwal<br>
         <strong><?php esc_html_e('Legal Entity:', 'nirog-bhumi'); ?></strong> Nirog Bhumi Private Limited<br>
         <strong><?php esc_html_e('Registered Office:', 'nirog-bhumi'); ?></strong> 18 Keshev Vihar, Gopalpura Bypass, Durgapura, Jaipur - 302018, Rajasthan, India<br>
         <strong>GSTIN:</strong> 08AALCN5409N1ZW<br>
