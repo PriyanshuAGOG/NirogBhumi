@@ -62,3 +62,84 @@
 .consultation-price-inline{margin-top:16px;padding:12px 16px;background:#f0f5ef;border:1px solid #d6e2d3;border-radius:8px;font-size:14px;color:#2f3e30;line-height:1.5}
 .consultation-price-inline strong{color:var(--ink)}
 .consultation-price-inline span{color:#4a5a4c}
+
+
+/* Expedition announcement strip — forest/mountain aesthetic matching expedition.nirogbhumi.com */
+.nb-strip{--xp-ink:#06110c;--xp-forest:#0b1e15;--xp-forest-2:#132c20;--xp-leaf:#d7f6a8;--xp-moss:#a9c98c;--xp-cream:#f3f0e7;position:relative;overflow:hidden;isolation:isolate;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"badge content btn close";align-items:center;column-gap:18px;padding:12px clamp(16px,4vw,34px);background:linear-gradient(100deg,var(--xp-ink) 0%,var(--xp-forest) 45%,var(--xp-forest-2) 100%);color:var(--xp-cream)}
+
+.nb-strip::before{content:"";position:absolute;inset:0;background-image:url(../img/expedition/strip-bg.webp);background-size:cover;background-position:center 65%;opacity:.32;mix-blend-mode:screen;z-index:-2}
+
+.nb-strip::after{content:"";position:absolute;top:0;bottom:0;left:-30%;width:30%;background:linear-gradient(100deg,transparent,rgba(215,246,168,.2),transparent);transform:skewX(-18deg);animation:nb-strip-sheen 6s ease-in-out infinite;z-index:-1}
+
+@keyframes nb-strip-sheen{0%,20%{left:-30%}70%,100%{left:120%}}
+
+.nb-strip-badge{grid-area:badge;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:rgba(215,246,168,.14);border:1px solid rgba(215,246,168,.4);color:var(--xp-leaf);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+
+.nb-strip-badge i{width:6px;height:6px;border-radius:999px;background:var(--xp-leaf);animation:nb-strip-pulse 1.8s ease-out infinite}
+
+@keyframes nb-strip-pulse{0%{box-shadow:0 0 0 0 rgba(215,246,168,.55)}70%{box-shadow:0 0 0 7px rgba(215,246,168,0)}100%{box-shadow:0 0 0 0 rgba(215,246,168,0)}}
+
+.nb-strip-content{grid-area:content;min-width:0;display:flex;flex-direction:column;gap:1px}
+
+.nb-strip-headline{margin:0;font-size:13.5px;font-weight:700;color:var(--xp-cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.nb-strip-meta{margin:0;font-size:11px;color:var(--xp-moss);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.nb-strip-btn{grid-area:btn;display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 18px;border-radius:999px;background:linear-gradient(120deg,var(--xp-moss),var(--xp-leaf));color:var(--xp-ink);font-size:12.5px;font-weight:700;white-space:nowrap;animation:nb-strip-glow 2.6s ease-in-out infinite;transition:transform .18s ease}
+
+.nb-strip-btn:hover{transform:translateY(-1px) scale(1.03)}
+
+.nb-strip-btn span{display:inline-block;transition:transform .18s ease}
+
+.nb-strip-btn:hover span{transform:translateX(3px)}
+
+@keyframes nb-strip-glow{0%,100%{box-shadow:0 0 0 0 rgba(215,246,168,.45)}50%{box-shadow:0 0 14px 2px rgba(215,246,168,.4)}}
+
+.nb-strip-close{grid-area:close;width:24px;height:24px;border:1px solid rgba(243,240,231,.3);border-radius:999px;background:transparent;color:var(--xp-cream);font-size:14px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;opacity:.7}
+
+.nb-strip-close:hover{opacity:1}
+
+@media (max-width:760px){
+.nb-strip{grid-template-columns:1fr auto;grid-template-areas:"badge close" "content content" "btn btn";row-gap:10px;column-gap:10px;padding:14px 16px}
+.nb-strip-meta{display:none}
+.nb-strip-headline{white-space:normal;font-size:13px}
+.nb-strip-btn{width:100%;justify-content:center}
+}
+
+@media (prefers-reduced-motion:reduce){.nb-strip::after,.nb-strip-badge i,.nb-strip-btn,.nb-popup-eyebrow i{animation:none}}
+
+
+/* Expedition popup — forest/mountain aesthetic matching expedition.nirogbhumi.com */
+.nb-popup-overlay{position:fixed;inset:0;background:rgba(6,17,12,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
+
+.nb-popup-overlay.open{opacity:1;visibility:visible}
+
+.nb-popup{--xp-ink:#06110c;--xp-forest:#0b1e15;--xp-forest-2:#132c20;--xp-leaf:#d7f6a8;--xp-moss:#a9c98c;--xp-cream:#f3f0e7;position:relative;max-width:420px;width:100%;background:linear-gradient(165deg,var(--xp-forest) 0%,var(--xp-forest-2) 100%);border:1px solid rgba(215,246,168,.18);border-radius:18px;overflow:hidden;box-shadow:0 30px 70px rgba(2,8,5,.5);transform:translateY(18px) scale(.97);transition:transform .35s cubic-bezier(.2,.9,.3,1.3)}
+
+.nb-popup-overlay.open .nb-popup{transform:translateY(0) scale(1)}
+
+.nb-popup-hero{position:relative;height:150px;background-image:url(../img/expedition/popup-hero.webp);background-size:cover;background-position:center}
+
+.nb-popup-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,17,12,0) 40%,var(--xp-forest) 100%)}
+
+.nb-popup-body{position:relative;padding:20px 26px 26px}
+
+.nb-popup-body::after{content:"";position:absolute;right:-10px;bottom:-6px;width:120px;height:90px;background-image:url(../img/expedition/moss-corner.webp);background-size:contain;background-repeat:no-repeat;background-position:bottom right;opacity:.85;pointer-events:none}
+
+.nb-popup-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:999px;border:1px solid rgba(243,240,231,.35);background:rgba(6,17,12,.45);color:var(--xp-cream);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;z-index:2}
+
+.nb-popup-eyebrow{position:relative;display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--xp-leaf);font-weight:650;margin:0 0 10px}
+
+.nb-popup-eyebrow i{width:6px;height:6px;border-radius:999px;background:var(--xp-leaf);animation:nb-strip-pulse 1.8s ease-out infinite}
+
+.nb-popup h3{position:relative;margin:0 0 10px;font-size:22px;line-height:1.22;color:var(--xp-cream)}
+
+.nb-popup p.nb-popup-copy{position:relative;margin:0 0 20px;font-size:13.5px;line-height:1.55;color:rgba(243,240,231,.72)}
+
+.nb-popup-actions{position:relative;display:flex;gap:10px;flex-wrap:wrap}
+
+.nb-popup-actions .pill.primary{min-height:44px;background:linear-gradient(120deg,var(--xp-moss),var(--xp-leaf));border-color:var(--xp-leaf);color:var(--xp-ink);font-weight:700}
+
+.nb-popup-actions .pill.primary:hover{filter:brightness(1.05)}
+
+.nb-popup-actions .pill:not(.primary){min-height:44px;background:transparent;border-color:rgba(243,240,231,.35);color:var(--xp-cream)}
