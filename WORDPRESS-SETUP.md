@@ -89,8 +89,8 @@ Required:
 
 1. `WooCommerce`
    - Products, cart, checkout, orders, customer accounts.
-2. `Razorpay for WooCommerce`
-   - Recommended for India payments.
+2. A WooCommerce PhonePe payment gateway plugin
+   - This is the primary payment method for the consultation and store checkout. `Razorpay for WooCommerce` also works as a backup/alternate gateway since the automation below reacts to any WooCommerce gateway, not specifically to PhonePe.
 3. `FluentSMTP`
    - For reliable WordPress and WooCommerce emails.
 4. `Rank Math SEO` or `Yoast SEO`
@@ -124,21 +124,12 @@ Note: `Cal.com` does not need a WordPress plugin. It can be embedded directly in
    - My Account
    - Shop
 6. Go to `WooCommerce > Settings > Payments`.
-7. Enable Razorpay.
-8. Add Razorpay test keys.
-9. Run one test payment.
-10. Switch to live keys only after successful testing.
+7. Enable the PhonePe gateway.
+8. Add PhonePe test/UAT keys (merchant ID, salt key, salt index) and confirm the plugin's callback/webhook URL is reachable over HTTPS.
+9. Run one test payment and confirm the order status moves to `Processing` or `Completed` automatically.
+10. Switch to live PhonePe keys only after a successful end-to-end test payment.
 
-If Razorpay reports `Authentication failed` or `Order creation failed`:
-
-1. Open the Razorpay Dashboard and generate a fresh API key pair under `Account & Settings > API Keys`.
-2. For testing, use a matching `rzp_test_...` Key ID and its Key Secret, and enable Test Mode in the WooCommerce Razorpay settings.
-3. For real payments, use a matching `rzp_live_...` Key ID and its Key Secret, and disable Test Mode.
-4. Do not enter the webhook secret in the API Key Secret field.
-5. Remove accidental spaces before or after both values and save the payment settings.
-6. Clear the site cache and begin a new consultation checkout. Do not reuse an order created with rejected credentials.
-
-Never share the Razorpay Key Secret in screenshots, support messages or source code.
+Never share PhonePe API keys, salt keys or Razorpay Key Secrets in screenshots, support messages or source code.
 
 ## 8. Products To Create
 
@@ -162,72 +153,70 @@ Consultation product settings:
 
 Important: do not use the slug `consultation`, because that conflicts with the consultation page.
 
-## 9. Recommended Consultation Workflow
+## 9. Automated Consultation Workflow
 
-Use this exact flow:
+This is now a fully automated flow. Nobody on the team needs to send payment details, verify a payment, type an appointment time into WordPress, or send an invoice by hand.
 
 1. User fills the custom consultation form on `/consultation/`
 2. The form is stored inside WordPress under `Consultations`
-3. User lands on `/consultation-payment/`
-4. User can use `Edit response` to reopen the saved form; submitting it updates the same consultation entry
-5. User selects `Continue on WhatsApp`
-6. WhatsApp opens a message to `+91 7357542882` containing the customer's name and consultation reference
-7. The team shares payment details and verifies the `Rs 500` payment manually
-8. The team opens the consultation entry in WordPress and records the payment reference, date, time and meeting details
-9. Changing Payment Status to `Verified` and saving automatically emails the invoice and private status link
-10. The customer can use the private status link to see payment confirmation and appointment details
-11. The team can also share the calendar or meeting link directly on WhatsApp
+3. User lands on `/consultation-payment/` and clicks `Pay Rs. 590 securely`, which sends them into a normal WooCommerce checkout carrying only the consultation product, prefilled with their name, email and phone
+4. User pays with PhonePe (or whichever gateway is enabled) inside that checkout
+5. As soon as WooCommerce marks the order paid, the theme automatically:
+   - marks the matching consultation entry as `Verified`
+   - records the transaction reference and payment time
+   - generates the sequential tax invoice number and PDF
+   - emails the invoice to the customer with a link to their private status page
+   - redirects the customer straight to `/consultation-calendar/`
+6. On the calendar page, the customer books their own 30-minute slot directly in an embedded Cal.com widget (no plugin, no manual page content) that is already prefilled with their name and email
+7. As soon as the booking is confirmed in Cal.com, a webhook automatically writes the date, time and meeting link back into the consultation entry and onto the customer's private status page - no admin step required
+8. The customer can return to their private status link at any time to see payment confirmation, appointment details, the meeting link and the invoice PDF
 
-This flow is already supported by the theme.
+A `Need help? Message us on WhatsApp` link stays on the payment and status pages as a fallback for anyone who runs into trouble, but it is no longer part of the primary flow. If the consultation product or a payment gateway is not configured yet, the payment page automatically falls back to the old `Continue on WhatsApp` button so the site never breaks.
 
 ## 10. Consultation Setup In WordPress
 
-After a customer submits the form:
+There is no manual verification step for a normal payment. `WordPress Dashboard > Consultations` is where you review what happened automatically:
 
 1. Open `WordPress Dashboard > Consultations`
 2. Open the matching entry using the consultation reference or customer name
-3. Find the `Payment and Appointment` panel
-4. Enter the payment reference received on WhatsApp
-5. Enter the consultation date and time when confirmed
-6. Add joining instructions and an optional meeting link
-7. Change `Payment status` from `Pending` to `Verified`
-8. Click `Update`
-
-The first verification generates an invoice number and sends an HTML invoice email automatically. Enable and configure FluentSMTP so WordPress email delivery is reliable. Use `Resend invoice email` in the same panel if another copy is needed.
+3. The `Payment and Appointment` panel shows the payment status, transaction reference, invoice number, and (once Cal.com confirms it) the booked date, time and meeting link - all filled in automatically
+4. Use `Resend invoice email` in the same panel only if a copy needs to be sent again
+5. The `Payment status` dropdown and manual `Verified` save are still there as a manual override for edge cases (a payment confirmed outside WooCommerce, a support fix), but they are no longer needed for the normal PhonePe flow
 
 Invoice numbers use one global financial-year sequence for all Nirog Bhumi products and services: `2026-27/001`, `2026-27/002`, `2026-27/003`, and so on. The sequence resets to `001` when the new Indian financial year begins on 1 April. Issued invoice numbers are permanent and cannot be deleted or reused.
 
-Before issuing the first live invoice, open `Settings > Nirog Bhumi Setup` and complete the Invoice Identity fields using details confirmed by your accountant: legal business name, address, GSTIN if applicable, SAC if applicable, email and phone.
+Before the first live invoice goes out, open `Settings > Nirog Bhumi Setup` and complete the Invoice Identity fields using details confirmed by your accountant: legal business name, address, GSTIN if applicable, SAC if applicable, email and phone.
 
 The invoice email contains a private invoice link. `View or print invoice` opens a dedicated A4 invoice page; the customer can print it or choose `Save as PDF` in the browser print dialog.
 
 The theme automatically creates the private `/consultation-status/` page. Do not add it to menus. Customers should access it only through their secure status link.
 
-## 11. Payment Gateway Setup
+## 11. Payment Gateway Setup (PhonePe)
 
-For India, the easiest free practical route is `Razorpay for WooCommerce`.
+1. Install and activate a WooCommerce-compatible PhonePe gateway plugin.
+2. Create or log in to your PhonePe Business account and generate the merchant ID, salt key and salt index for the gateway.
+3. Put those keys into `WooCommerce > Settings > Payments > PhonePe`, using UAT/test credentials first.
+4. Confirm the plugin's payment callback URL is publicly reachable over HTTPS - PhonePe calls it to confirm payment status, and that callback is what makes automatic verification below possible.
+5. Test a full consultation order end to end and confirm the WooCommerce order moves to `Processing` or `Completed` on its own, then confirm the matching entry under `Consultations` flips to `Verified` and the invoice email arrives, without touching wp-admin.
+6. Switch to live PhonePe keys only after that test succeeds.
 
-1. Install and activate the plugin
-2. Create or log in to Razorpay
-3. Put test keys into `WooCommerce > Settings > Payments > Razorpay`
-4. Test a full order
-5. Switch to live keys
+The automation in `functions.php` (`nirog_bhumi_auto_verify_consultation_payment`) listens for the standard WooCommerce `payment_complete` / `processing` / `completed` events, so it works with PhonePe, Razorpay, or any other properly-behaved WooCommerce gateway without any gateway-specific code. If a payment never reaches one of those statuses (e.g. the gateway plugin only marks orders `On hold`), the consultation entry will stay `Pending` until it does.
 
 After payment, the customer will receive:
 
 - WooCommerce order email
-- payment confirmation email
+- the automatic Nirog Bhumi invoice email with the PDF invoice attached
 - your admin order notification
 
-## 12. Calendar Booking Setup With Cal.com + Google Calendar
+## 12. Calendar Booking Setup With Cal.com + Google Calendar (Automated)
 
-This is the recommended free workflow.
+Slot booking is now a live embed with no manual page-content editing, and confirmed bookings write themselves back into WordPress.
 
 ### A. Cal.com setup
 
 1. Create a free Cal.com account
 2. Connect your Google Calendar
-3. Create one consultation event type
+3. Create one consultation event type and note its booking link, e.g. `cal.com/gautam-khandelwal/consultation`
 4. Set duration to `30 minutes`
 5. Add pre and post buffers if needed
 6. Enable confirmation emails
@@ -239,13 +228,16 @@ Recommended reminders:
 2. 24 hours before
 3. 2 hours before
 
-### B. Embed Cal.com into WordPress
+### B. Turn on the embed and webhook in WordPress
 
-1. Open the `Consultation Calendar` page
-2. Paste your Cal.com embed code into the page content
-3. Update the page
+1. Open `Settings > Nirog Bhumi Setup` and find `Automated booking (Cal.com)`
+2. In `Cal.com event link`, enter the part of your booking URL after `cal.com/`, e.g. `gautam-khandelwal/consultation`
+3. In Cal.com, go to `Settings > Developer > Webhooks`, add an endpoint, and paste in the URL shown under the webhook secret field on the same settings page (it looks like `https://yoursite.com/wp-json/nirogbhumi/v1/calcom-webhook`)
+4. Subscribe that webhook to `Booking Created`, `Booking Rescheduled` and `Booking Cancelled`
+5. Set a webhook secret in Cal.com and paste the exact same value into `Cal.com webhook secret` in WordPress, then save
+6. Save the WordPress settings page
 
-The theme already renders page content inside the calendar slot on that page.
+Once both fields are filled in, `/consultation-calendar/` automatically shows the live Cal.com widget instead of the placeholder, and every booking made there writes its date, time and meeting link straight into the matching consultation entry. Leaving the event link blank keeps the old behaviour (manually pasted page content, or the placeholder message).
 
 ### C. How Google Calendar fits in
 
@@ -254,7 +246,7 @@ With Cal.com connected to Google Calendar:
 - Google Calendar controls availability
 - blocked Google Calendar time stays unavailable
 - confirmed bookings are written back to Google Calendar
-- customer gets booking confirmation and reminders from Cal.com
+- customer gets booking confirmation and reminders from Cal.com, and their Nirog Bhumi status page updates automatically via the webhook
 
 ## 13. SMTP Email Setup
 
@@ -284,11 +276,13 @@ The theme already supports:
 
 1. custom consultation form saved in WordPress
 2. consultation entries in admin
-3. payment handoff from `/consultation-payment/` into WooCommerce checkout
-4. automatic redirect from successful paid consultation order to the calendar page
-5. a setup screen in `Settings > Nirog Bhumi Setup`
-6. checkout prefill for name, email and phone from the consultation form
-7. consultation entry ID attached to the WooCommerce order
+3. payment handoff from `/consultation-payment/` into WooCommerce checkout, working with PhonePe or any WooCommerce gateway
+4. automatic payment verification, invoice generation and invoice email as soon as WooCommerce marks the order paid - no admin step
+5. automatic redirect from a successful paid consultation order to the calendar page
+6. an automatic Cal.com booking widget on the calendar page once you set the event link in `Settings > Nirog Bhumi Setup`
+7. a Cal.com webhook that writes the confirmed date, time and meeting link back into the consultation entry automatically
+8. checkout prefill for name, email and phone from the consultation form
+9. consultation entry ID attached to the WooCommerce order and to the Cal.com booking
 
 ## 15. Forms Setup
 

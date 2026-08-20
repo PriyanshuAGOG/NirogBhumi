@@ -4,8 +4,8 @@ Use `wp-theme/nirog-bhumi` as the starting custom theme.
 
 Recommended plugins:
 - WooCommerce: products, cart, checkout, customer accounts.
-- WooCommerce Payments or Razorpay for WooCommerce: India-ready payments.
-- WooCommerce Bookings, Amelia, FluentBooking or Calendly embed: consultation slots.
+- A WooCommerce PhonePe gateway plugin (or Razorpay for WooCommerce as a backup): India-ready payments. Order status changes drive automatic invoice generation and consultation verification, so no gateway-specific code is needed.
+- Cal.com: consultation slots. The theme embeds it automatically and writes confirmed bookings back via a webhook - no separate booking plugin needed.
 - Fluent Forms, Gravity Forms or WPForms: programme interest form and consultation intake.
 - Advanced Custom Fields: programme sections, practitioner content, page modules.
 - Rank Math or Yoast SEO: page metadata and schema.
