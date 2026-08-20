@@ -326,6 +326,49 @@ function nirog_bhumi_consultation_is_virtual($needs_shipping, $product) {
 }
 add_filter('woocommerce_product_needs_shipping', 'nirog_bhumi_consultation_is_virtual', 10, 2);
 
+/**
+ * The consultation fee is Rs. 500 + 18% GST = Rs. 590, exactly as already
+ * shown on the consultation page, the payment page and the invoice PDF.
+ * Force the cart line total to Rs. 590 regardless of whatever price is set
+ * on the WooCommerce product itself, so the amount charged at the gateway
+ * (PhonePe, etc.) can never drift out of sync with what the site promises
+ * and what the invoice states. WooCommerce's own tax engine is left off for
+ * this line (no separate tax line added on top) since the invoice PDF
+ * already computes and prints the CGST/SGST/IGST breakdown independently.
+ */
+function nirog_bhumi_force_consultation_price($cart) {
+  if (is_admin() && !defined('DOING_AJAX')) {
+    return;
+  }
+  if (did_action('woocommerce_before_calculate_totals') >= 2) {
+    return;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if (!$product_id || !$cart) {
+    return;
+  }
+  foreach ($cart->get_cart() as $cart_item) {
+    if (!empty($cart_item['product_id']) && (int) $cart_item['product_id'] === $product_id && isset($cart_item['data'])) {
+      $cart_item['data']->set_price(590);
+    }
+  }
+}
+add_action('woocommerce_before_calculate_totals', 'nirog_bhumi_force_consultation_price', 20, 1);
+
+/**
+ * Only PhonePe is a live, configured payment gateway on this site. Hide any
+ * other gateway (e.g. Razorpay, if its plugin is installed/enabled but not
+ * actually set up) so customers are never shown a choice and are taken
+ * straight to the one working payment option at checkout.
+ */
+function nirog_bhumi_hide_unused_gateways($gateways) {
+  foreach (['razorpay', 'woo-razorpay', 'razorpaycheckout'] as $gateway_id) {
+    unset($gateways[$gateway_id]);
+  }
+  return $gateways;
+}
+add_filter('woocommerce_available_payment_gateways', 'nirog_bhumi_hide_unused_gateways', 20);
+
 function nirog_bhumi_consultation_calendar_url() {
   return home_url('/consultation-calendar/');
 }
