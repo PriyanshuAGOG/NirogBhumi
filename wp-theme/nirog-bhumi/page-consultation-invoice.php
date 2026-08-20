@@ -16,7 +16,7 @@ $email = (string) get_post_meta($entry_id, 'email', true);
 $phone = (string) get_post_meta($entry_id, 'phone', true);
 $payment_reference = (string) get_post_meta($entry_id, 'payment_reference', true);
 $verified_at = (string) get_post_meta($entry_id, 'payment_verified_at', true);
-$invoice_date = $verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'));
+$invoice_date = $verified_at ? nirog_bhumi_local_date(get_option('date_format'), $verified_at) : wp_date(get_option('date_format'));
 get_header(); ?>
 <main class="invoice-page-shell">
   <div class="invoice-toolbar"><a href="<?php echo esc_url(nirog_bhumi_consultation_status_url($entry_id)); ?>">Back to consultation status</a><button class="pill primary" type="button" onclick="window.print()">Print or save PDF</button></div>

@@ -607,7 +607,7 @@ function nirog_bhumi_render_dashboard() {
               <a href="<?php echo esc_url(get_edit_post_link($c->ID)); ?>" style="font-weight:600;color:#1d2327;text-decoration:none"><?php echo esc_html($name ?: '—'); ?></a>
             <?php endif; ?>
           </td>
-          <td style="color:#5f6368;font-size:11px"><?php echo esc_html(gmdate('d M Y', strtotime($c->post_date))); ?></td>
+          <td style="color:#5f6368;font-size:11px"><?php echo esc_html(nirog_bhumi_local_date('d M Y', $c->post_date)); ?></td>
           <td>
             <?php if ($pay === 'verified') : ?>
               <span class="nb-badge nb-badge-green">Verified</span>
@@ -679,7 +679,7 @@ function nirog_bhumi_render_dashboard() {
             <?php endif; ?>
           </td>
           <td style="font-size:11px;color:#5f6368"><?php echo esc_html(ucwords(str_replace(['-','_'], ' ', $fsource))); ?></td>
-          <td style="font-size:11px;color:#5f6368"><?php echo esc_html(gmdate('d M Y, g:i a', strtotime($f->post_date))); ?></td>
+          <td style="font-size:11px;color:#5f6368"><?php echo esc_html(nirog_bhumi_local_date('d M Y, g:i a', $f->post_date)); ?></td>
           <td style="font-size:11px;color:#5f6368"><?php echo $anon ? '—' : esc_html($femail ?: '—'); ?></td>
           <td><a href="<?php echo esc_url(get_edit_post_link($f->ID)); ?>" style="font-size:11px;color:#2e7d32">View</a></td>
         </tr>

@@ -484,10 +484,16 @@ function nirog_bhumi_handle_calcom_webhook($request) {
 
   if (in_array($trigger, ['BOOKING_CREATED', 'BOOKING_RESCHEDULED'], true)) {
     $start = sanitize_text_field($booking['startTime'] ?? '');
+    // Cal.com sends startTime as a full ISO 8601 UTC timestamp, so strtotime()
+    // here is safe (the offset is explicit in the string itself). Both the
+    // date and time are then derived from it in the SAME timezone
+    // (wp_timezone(), i.e. the site's configured local time), so a booking
+    // near midnight can never end up with a date from one timezone paired
+    // against a time from another.
     $timestamp = $start ? strtotime($start) : false;
     if ($timestamp) {
-      update_post_meta($entry_id, 'slot_date', gmdate('Y-m-d', $timestamp));
-      update_post_meta($entry_id, 'slot_time', wp_date('H:i', $timestamp));
+      update_post_meta($entry_id, 'slot_date', wp_date('Y-m-d', $timestamp, wp_timezone()));
+      update_post_meta($entry_id, 'slot_time', wp_date('H:i', $timestamp, wp_timezone()));
     }
     $meeting_url = '';
     if (!empty($booking['videoCallData']['url'])) {
@@ -591,6 +597,22 @@ function nirog_bhumi_clean_field($key) {
 
 function nirog_bhumi_clean_textarea($key) {
   return isset($_POST[$key]) ? sanitize_textarea_field(wp_unslash($_POST[$key])) : '';
+}
+
+/**
+ * Normalise a country calling code into "+<digits>" form. Some mobile
+ * browsers' "tel-country-code" autofill (and some keyboards on
+ * inputmode="tel" fields) submit only the digits, without the leading "+" -
+ * the old strict regex (must already start with "+") silently discarded any
+ * value that didn't already have the plus sign and fell back to +91,
+ * quietly overwriting a real non-Indian country code. This instead keeps
+ * whatever digits were actually typed and reattaches the "+", only falling
+ * back to +91 when nothing usable was submitted at all.
+ */
+function nirog_bhumi_normalize_country_code($raw) {
+  $digits = preg_replace('/\D/', '', (string) $raw);
+  $digits = substr($digits, 0, 4);
+  return $digits !== '' ? '+' . $digits : '+91';
 }
 
 function nirog_bhumi_consultation_edit_entry() {
@@ -803,6 +825,27 @@ function nirog_bhumi_reset_invoice_numbering_for_rollout() {
 }
 add_action('init', 'nirog_bhumi_reset_invoice_numbering_for_rollout', 37);
 
+/**
+ * Second one-time rollout step. A handful of test invoices were issued after
+ * 001 while wiring up the automated payment flow. Void that gap once: set
+ * the counter for the current financial year back to 1, so the next invoice
+ * actually issued to a real customer is 002. Runs once (versioned option
+ * guard), same pattern as the reset above.
+ */
+function nirog_bhumi_reset_invoice_numbering_to_002() {
+  if (get_option('nirog_bhumi_invoice_rollout_v3') === '1') {
+    return;
+  }
+  if (nirog_bhumi_invoice_sequence_table_exists()) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'nb_invoice_sequences';
+    $financial_year = nirog_bhumi_invoice_financial_year();
+    $wpdb->query($wpdb->prepare("UPDATE {$table} SET last_number = 1 WHERE financial_year = %s", $financial_year));
+  }
+  update_option('nirog_bhumi_invoice_rollout_v3', '1');
+}
+add_action('init', 'nirog_bhumi_reset_invoice_numbering_to_002', 38);
+
 function nirog_bhumi_next_sequential_invoice_number() {
   global $wpdb;
   if (!nirog_bhumi_maybe_install_invoice_sequence_table()) {
@@ -877,9 +920,17 @@ function nirog_bhumi_assign_woocommerce_order_invoice($order_id) {
   $order->update_meta_data('_nb_invoice_sequence', $invoice['sequence']);
   $order->save();
 }
+/*
+ * Only woocommerce_payment_complete - fired exactly once, exactly when
+ * WC_Order::payment_complete() confirms the gateway has actually received
+ * payment. The order_status_processing/completed hooks were also wired to
+ * this earlier, but some gateway integrations move an order to "processing"
+ * status before payment is truly confirmed (or an admin can set that status
+ * manually), which was generating and emailing invoices for unpaid or later-
+ * cancelled orders. is_paid() alone, checked inside the function below, is
+ * the reliable signal.
+ */
 add_action('woocommerce_payment_complete', 'nirog_bhumi_assign_woocommerce_order_invoice');
-add_action('woocommerce_order_status_processing', 'nirog_bhumi_assign_woocommerce_order_invoice');
-add_action('woocommerce_order_status_completed', 'nirog_bhumi_assign_woocommerce_order_invoice');
 
 /**
  * Fully automate the consultation payment step. As soon as WooCommerce marks
@@ -895,7 +946,7 @@ function nirog_bhumi_auto_verify_consultation_payment($order_id) {
   if (!$order || !nirog_bhumi_order_has_consultation_product($order)) {
     return;
   }
-  if (!$order->is_paid() && !in_array($order->get_status(), ['processing', 'completed'], true)) {
+  if (!$order->is_paid()) {
     return;
   }
   $entry_id = absint($order->get_meta('_nb_consultation_entry_id'));
@@ -919,8 +970,6 @@ function nirog_bhumi_auto_verify_consultation_payment($order_id) {
   }
 }
 add_action('woocommerce_payment_complete', 'nirog_bhumi_auto_verify_consultation_payment', 20);
-add_action('woocommerce_order_status_processing', 'nirog_bhumi_auto_verify_consultation_payment', 20);
-add_action('woocommerce_order_status_completed', 'nirog_bhumi_auto_verify_consultation_payment', 20);
 
 function nirog_bhumi_woocommerce_invoice_email_field($fields, $sent_to_admin, $order) {
   $invoice_number = $order ? $order->get_meta('_nb_invoice_number') : '';
@@ -947,10 +996,9 @@ function nirog_bhumi_render_consultation_payment_actions($entry_id) {
   }
   $checkout_url = nirog_bhumi_consultation_checkout_url();
   if ($checkout_url) {
-    return '<a class="pill primary" href="' . esc_url($checkout_url) . '">' . esc_html__('Pay Rs. 590 securely', 'nirog-bhumi') . '</a>'
-      . '<p class="payment-help"><a target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Need help? Message us on WhatsApp', 'nirog-bhumi') . '</a></p>';
+    return '<a class="pill primary" href="' . esc_url($checkout_url) . '">' . esc_html__('Pay Rs. 590 securely', 'nirog-bhumi') . '</a>';
   }
-  return '<a class="pill primary" target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Continue on WhatsApp', 'nirog-bhumi') . '</a>';
+  return '<p>' . esc_html__('Payment is not available right now. Please contact us at priyanshu@nirogbhumi.com.', 'nirog-bhumi') . '</p>';
 }
 
 function nirog_bhumi_consultation_edit_url() {
@@ -993,7 +1041,7 @@ function nirog_bhumi_handle_consultation_form() {
   $name = nirog_bhumi_clean_field('name');
   $email = sanitize_email(nirog_bhumi_clean_field('email'));
   $country_code = nirog_bhumi_clean_field('country_code');
-  $country_code = preg_match('/^\+[0-9]{1,4}$/', $country_code) ? $country_code : '+91';
+  $country_code = nirog_bhumi_normalize_country_code($country_code);
   $phone = nirog_bhumi_clean_field('phone');
 
   if (!$name || !$email || !$phone) {
@@ -1149,11 +1197,11 @@ function nirog_bhumi_prefill_checkout_value($value, $input) {
     return $prefill['phone'];
   }
   if ($input === 'billing_first_name' && !empty($prefill['name'])) {
-    $parts = preg_split('/s+/', trim($prefill['name']));
+    $parts = preg_split('/\s+/', trim($prefill['name']));
     return $parts ? $parts[0] : $value;
   }
   if ($input === 'billing_last_name' && !empty($prefill['name'])) {
-    $parts = preg_split('/s+/', trim($prefill['name']));
+    $parts = preg_split('/\s+/', trim($prefill['name']));
     if (count($parts) > 1) {
       array_shift($parts);
       return implode(' ', $parts);
@@ -1226,7 +1274,7 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
   }
   $prefill = nirog_bhumi_get_consultation_prefill();
   if (WC()->customer && $prefill) {
-    $parts = preg_split('/s+/', trim($prefill['name'] ?? ''));
+    $parts = preg_split('/\s+/', trim($prefill['name'] ?? ''));
     $first_name = $parts ? array_shift($parts) : '';
     WC()->customer->set_billing_first_name($first_name);
     WC()->customer->set_billing_last_name($parts ? implode(' ', $parts) : '');
@@ -1258,7 +1306,7 @@ function nirog_bhumi_paid_consultation_order_from_request() {
   if (!$order || !hash_equals((string) $order->get_order_key(), $key)) {
     return false;
   }
-  if (!$order->is_paid() && !in_array($order->get_status(), ['processing', 'completed'], true)) {
+  if (!$order->is_paid()) {
     return false;
   }
   return nirog_bhumi_order_has_consultation_product($order) ? $order : false;
@@ -1443,8 +1491,11 @@ function nirog_bhumi_send_consultation_invoice($post_id) {
     return false;
   }
   update_post_meta($post_id, 'invoice_pdf_generated_at', current_time('mysql'));
-  $slot_line = $slot_date ? '<p><strong>Consultation:</strong> ' . esc_html(wp_date(get_option('date_format'), strtotime($slot_date))) . ($slot_time ? ' at ' . esc_html(wp_date(get_option('time_format'), strtotime($slot_time))) : '') . ' (Asia/Kolkata)</p>' : '<p>Your consultation time will be confirmed personally by the Nirog Bhumi team.</p>';
-  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. ' . esc_html(number_format((float) $invoice_data['total'], 2)) . '</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? wp_date(get_option('date_format'), strtotime($verified_at)) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">Download invoice PDF</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
+  $calendar_url = function_exists('nirog_bhumi_consultation_calendar_url') ? nirog_bhumi_consultation_calendar_url() : home_url('/consultation-calendar/');
+  $slot_line = $slot_date
+    ? '<p><strong>Consultation:</strong> ' . esc_html(nirog_bhumi_local_date(get_option('date_format'), $slot_date)) . ($slot_time ? ' at ' . esc_html(nirog_bhumi_local_date(get_option('time_format'), $slot_date . ' ' . $slot_time)) : '') . ' IST</p>'
+    : '<p><strong>Next step:</strong> <a href="' . esc_url($calendar_url) . '">Choose your consultation slot</a>.</p>';
+  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. ' . esc_html(number_format((float) $invoice_data['total'], 2)) . '</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? nirog_bhumi_local_date(get_option('date_format'), $verified_at) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">Download invoice PDF</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
   $attachments = [$pdf_path];
   $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8'], $attachments);
   if ($sent) {
@@ -1678,7 +1729,7 @@ function nirog_bhumi_handle_form_entry() {
   $name = nirog_bhumi_clean_field('name');
   $email = sanitize_email(nirog_bhumi_clean_field('email'));
   $country_code = nirog_bhumi_clean_field('country_code');
-  $country_code = preg_match('/^\+[0-9]{1,4}$/', $country_code) ? $country_code : '+91';
+  $country_code = nirog_bhumi_normalize_country_code($country_code);
   $phone = nirog_bhumi_clean_field('phone');
   $title_name = $name ?: ($email ?: __('Website entry', 'nirog-bhumi'));
 

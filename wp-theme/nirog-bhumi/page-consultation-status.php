@@ -15,7 +15,6 @@ $meeting_details = (string) get_post_meta($entry_id, 'meeting_details', true);
 $meeting_url = (string) get_post_meta($entry_id, 'meeting_url', true);
 $invoice_number = (string) get_post_meta($entry_id, 'invoice_number', true);
 $reference = nirog_bhumi_consultation_reference($entry_id);
-$whatsapp_url = nirog_bhumi_consultation_whatsapp_url($entry_id);
 $invoice_url = nirog_bhumi_consultation_invoice_url($entry_id);
 $checkout_url = function_exists('nirog_bhumi_consultation_checkout_url') ? nirog_bhumi_consultation_checkout_url() : '';
 $calendar_url = function_exists('nirog_bhumi_consultation_calendar_url') ? nirog_bhumi_consultation_calendar_url() : home_url('/consultation-calendar/');
@@ -41,14 +40,13 @@ get_header(); ?>
       <div><dt>Consultant</dt><dd>Gautam Khandelwal</dd></div>
       <div><dt>Duration</dt><dd>30 minutes</dd></div>
       <div><dt>Amount</dt><dd>Rs. 590</dd></div>
-      <?php if ($payment_status === 'verified' && $slot_date) : ?><div><dt>Date</dt><dd><?php echo esc_html(wp_date(get_option('date_format'), strtotime($slot_date))); ?></dd></div><?php endif; ?>
-      <?php if ($payment_status === 'verified' && $slot_time) : ?><div><dt>Time</dt><dd><?php echo esc_html(wp_date(get_option('time_format'), strtotime($slot_time))); ?> IST</dd></div><?php endif; ?>
+      <?php if ($payment_status === 'verified' && $slot_date) : ?><div><dt>Date</dt><dd><?php echo esc_html(nirog_bhumi_local_date(get_option('date_format'), $slot_date)); ?></dd></div><?php endif; ?>
+      <?php if ($payment_status === 'verified' && $slot_time) : ?><div><dt>Time</dt><dd><?php echo esc_html(nirog_bhumi_local_date(get_option('time_format'), $slot_date . ' ' . $slot_time)); ?> IST</dd></div><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_details) : ?><div><dt>Joining details</dt><dd><?php echo nl2br(esc_html($meeting_details)); ?></dd></div><?php endif; ?>
       <?php if ($payment_status === 'verified' && $invoice_number) : ?><div><dt>Invoice</dt><dd><?php echo esc_html($invoice_number); ?></dd></div><?php endif; ?>
     </dl>
     <div class="status-actions">
       <?php if ($payment_status !== 'verified' && $checkout_url) : ?><a class="pill primary" href="<?php echo esc_url($checkout_url); ?>">Pay Rs. 590 securely</a><?php endif; ?>
-      <?php if ($payment_status !== 'verified') : ?><a class="pill ghost" target="_blank" rel="noopener" href="<?php echo esc_url($whatsapp_url); ?>"><?php echo $checkout_url ? 'Need help? Message us on WhatsApp' : 'Continue on WhatsApp'; ?></a><?php endif; ?>
       <?php if ($payment_status === 'verified' && !$slot_date) : ?><a class="pill primary" href="<?php echo esc_url($calendar_url); ?>">Choose your consultation slot</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_url) : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($meeting_url); ?>">Open meeting link</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $invoice_number) : ?><a class="pill ghost" href="<?php echo esc_url($invoice_url); ?>">Download invoice PDF</a><?php endif; ?>

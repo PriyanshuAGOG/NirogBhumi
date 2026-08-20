@@ -7,6 +7,33 @@ if (!defined('ABSPATH')) {
   exit;
 }
 
+/**
+ * Format a date/time string that is already stored as a local wall-clock
+ * value in the site's own timezone (e.g. slot_date, slot_time, or anything
+ * written with current_time('mysql')) for display, in that same timezone.
+ *
+ * The bug this avoids: strtotime($string) parses using PHP's SERVER default
+ * timezone (often UTC on most hosts), while wp_date() then formats using the
+ * WordPress site timezone. If those two differ, the combination silently
+ * shifts the displayed time - a stored "14:30" (meant as 2:30 PM local time)
+ * can render as a completely different hour. Parsing with wp_timezone() from
+ * the start, the same timezone used everywhere else this data is written and
+ * read, keeps the round trip correct regardless of the PHP server's default
+ * timezone. Defined here because inc/invoice-pdf.php is the first file
+ * required by functions.php, so this helper is available everywhere.
+ */
+function nirog_bhumi_local_date($format, $date_string) {
+  $date_string = trim((string) $date_string);
+  if ($date_string === '') {
+    return '';
+  }
+  $dt = date_create($date_string, wp_timezone());
+  if (!$dt) {
+    return '';
+  }
+  return wp_date($format, $dt->getTimestamp(), wp_timezone());
+}
+
 function nirog_bhumi_invoice_ascii($value) {
   $value = html_entity_decode(wp_strip_all_tags((string) $value), ENT_QUOTES, 'UTF-8');
   $value = str_replace(['₹', '–', '—', '•', '·'], ['Rs.', '-', '-', '-', '-'], $value);
@@ -101,7 +128,7 @@ function nirog_bhumi_consultation_invoice_data($post_id) {
   $sgst = $intra ? $tax - $cgst : 0;
   $igst = $intra ? 0 : $tax;
   $verified = get_post_meta($post_id, 'payment_verified_at', true);
-  $invoice_date = $verified ? wp_date('d M Y', strtotime($verified)) : wp_date('d M Y');
+  $invoice_date = $verified ? nirog_bhumi_local_date('d M Y', $verified) : wp_date('d M Y');
   return [
     'invoice_number' => get_post_meta($post_id, 'invoice_number', true),
     'invoice_date' => $invoice_date,
