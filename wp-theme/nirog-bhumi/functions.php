@@ -43,6 +43,8 @@ function nirog_bhumi_settings_defaults() {
     'takeaway_email_delay_minutes' => 10,
     'cal_webhook_secret' => '',
     'cal_autosend' => 'yes',
+    'calcom_event_slug' => '',
+    'calcom_webhook_secret' => '',
   ];
 }
 
@@ -107,6 +109,8 @@ function nirog_bhumi_sanitize_settings($input) {
     'takeaway_email_delay_minutes' => isset($input['takeaway_email_delay_minutes']) ? max(0, absint($input['takeaway_email_delay_minutes'])) : 10,
     'cal_webhook_secret' => isset($input['cal_webhook_secret']) ? sanitize_text_field($input['cal_webhook_secret']) : '',
     'cal_autosend' => !empty($input['cal_autosend']) ? 'yes' : 'no',
+    'calcom_event_slug' => isset($input['calcom_event_slug']) ? trim(sanitize_text_field($input['calcom_event_slug']), " \t\n\r\0\x0B/") : '',
+    'calcom_webhook_secret' => isset($input['calcom_webhook_secret']) ? trim(sanitize_text_field($input['calcom_webhook_secret'])) : '',
   ];
 }
 
@@ -175,6 +179,29 @@ function nirog_bhumi_render_settings_page() {
         <tr><th scope="row"><?php esc_html_e('Webhook subscriber URL', 'nirog-bhumi'); ?></th><td><input type="text" class="large-text code" readonly onclick="this.select()" value="<?php echo esc_attr(nirog_bhumi_cal_webhook_url()); ?>"><p class="description"><?php esc_html_e('Paste this into the Cal.com webhook "Subscriber URL" field.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><label for="nirog-cal-secret"><?php esc_html_e('Cal.com webhook secret', 'nirog-bhumi'); ?></label></th><td><input id="nirog-cal-secret" name="nirog_bhumi_settings[cal_webhook_secret]" type="text" class="regular-text code" value="<?php echo esc_attr($settings['cal_webhook_secret']); ?>"><p class="description"><?php esc_html_e('Use the same secret you set on the Cal.com webhook. Recommended for security.', 'nirog-bhumi'); ?></p></td></tr>
         <tr><th scope="row"><?php esc_html_e('Auto-send for Cal.com bookings', 'nirog-bhumi'); ?></th><td><label><input name="nirog_bhumi_settings[cal_autosend]" type="checkbox" value="yes" <?php checked($settings['cal_autosend'], 'yes'); ?>> <?php esc_html_e('Send the takeaway email for Cal.com bookings automatically, without waiting for manual payment verification.', 'nirog-bhumi'); ?></label></td></tr>
+        <tr><th colspan="2"><h2><?php esc_html_e('Automated booking widget (optional upgrade)', 'nirog-bhumi'); ?></h2><p class="description"><?php esc_html_e('Fill this in and the calendar page automatically embeds a Cal.com widget pre-filled with the customer\'s name and email, tagged to their exact consultation entry - no manual embed code needed on the Calendar page, and no admin action needed to record the slot. Leave blank to keep using the "Cal.com calendar integration" section above with a manually embedded calendar.', 'nirog-bhumi'); ?></p></th></tr>
+        <tr>
+          <th scope="row"><label for="nirog-calcom-slug"><?php esc_html_e('Cal.com event link', 'nirog-bhumi'); ?></label></th>
+          <td>
+            <input id="nirog-calcom-slug" name="nirog_bhumi_settings[calcom_event_slug]" type="text" class="regular-text code" placeholder="your-username/consultation" value="<?php echo esc_attr($settings['calcom_event_slug']); ?>">
+            <p class="description"><?php esc_html_e('The part of your Cal.com booking URL after cal.com/, e.g. gautam-khandelwal/consultation.', 'nirog-bhumi'); ?></p>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row"><label for="nirog-calcom-secret"><?php esc_html_e('Automated widget webhook secret', 'nirog-bhumi'); ?></label></th>
+          <td>
+            <input id="nirog-calcom-secret" name="nirog_bhumi_settings[calcom_webhook_secret]" type="text" class="regular-text code" value="<?php echo esc_attr($settings['calcom_webhook_secret']); ?>">
+            <p class="description">
+              <?php
+              printf(
+                /* translators: %s: webhook endpoint URL */
+                esc_html__('This is a separate webhook from the one above. In Cal.com go to Settings > Developer > Webhooks, add a second endpoint pointing to %s, choose Booking Created/Rescheduled/Cancelled, set a secret, and paste the same secret here.', 'nirog-bhumi'),
+                '<code>' . esc_html(rest_url('nirogbhumi/v1/calcom-webhook')) . '</code>'
+              );
+              ?>
+            </p>
+          </td>
+        </tr>
       </table>
       <?php submit_button(); ?>
     </form>
@@ -301,6 +328,152 @@ add_filter('woocommerce_product_needs_shipping', 'nirog_bhumi_consultation_is_vi
 
 function nirog_bhumi_consultation_calendar_url() {
   return home_url('/consultation-calendar/');
+}
+
+/**
+ * Render an automatic Cal.com inline booking widget, prefilled with the
+ * customer's saved name and email and tagged with the consultation entry ID
+ * so the Cal.com webhook can write the confirmed slot straight back into
+ * WordPress. Returns an empty string when no Cal.com event link is
+ * configured, so the calendar page can fall back to manual page content.
+ */
+function nirog_bhumi_render_calcom_embed($entry_id) {
+  $settings = nirog_bhumi_get_settings();
+  $cal_link = (string) ($settings['calcom_event_slug'] ?? '');
+  if (!$cal_link) {
+    return '';
+  }
+  $entry_id = absint($entry_id);
+  $name = $entry_id ? (string) get_post_meta($entry_id, 'name', true) : '';
+  $email = $entry_id ? (string) get_post_meta($entry_id, 'email', true) : '';
+  $reference = $entry_id ? nirog_bhumi_consultation_reference($entry_id) : '';
+  ob_start();
+  ?>
+  <div id="nb-calcom-inline" class="nb-calcom-inline" style="width:100%;min-height:640px;overflow:auto"></div>
+  <script type="text/javascript">
+  (function (C, A, L) {
+    let p = function (a, ar) { a.q.push(ar); };
+    let d = C.document;
+    C.Cal = C.Cal || function () {
+      let cal = C.Cal;
+      let ar = arguments;
+      if (!cal.loaded) {
+        cal.ns = {};
+        cal.q = cal.q || [];
+        d.head.appendChild(d.createElement("script")).src = A;
+        cal.loaded = true;
+      }
+      if (ar[0] === L) {
+        const api = function () { p(api, arguments); };
+        const namespace = ar[1];
+        api.q = api.q || [];
+        if (typeof namespace === "string") {
+          cal.ns[namespace] = cal.ns[namespace] || api;
+          p(cal.ns[namespace], ar);
+          p(cal, ["initNamespace", namespace]);
+        } else {
+          p(cal, ar);
+        }
+        return;
+      }
+      p(cal, ar);
+    };
+  })(window, "https://app.cal.com/embed/embed.js", "init");
+  Cal("init", { origin: "https://cal.com" });
+  Cal("inline", {
+    elementOrSelector: "#nb-calcom-inline",
+    calLink: <?php echo wp_json_encode($cal_link); ?>,
+    config: {
+      name: <?php echo wp_json_encode($name); ?>,
+      email: <?php echo wp_json_encode($email); ?>,
+      "metadata[nbEntryId]": <?php echo wp_json_encode((string) $entry_id); ?>,
+      "metadata[nbReference]": <?php echo wp_json_encode($reference); ?>
+    }
+  });
+  Cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
+  </script>
+  <?php
+  return (string) ob_get_clean();
+}
+
+/**
+ * Receive Cal.com booking webhooks from the automated inline widget above and
+ * write the confirmed slot, meeting link and joining details straight into
+ * the matching consultation entry - removing the need for anyone to type the
+ * appointment time into WordPress by hand. Cal.com is told which entry a
+ * booking belongs to via the metadata[nbEntryId] field passed into the embed.
+ *
+ * This is a separate, more precise webhook than nirog_bhumi_cal_webhook() in
+ * inc/cal-integration.php (which matches by attendee email for a manually
+ * embedded calendar). Once the slot is written here, the existing
+ * post-consultation takeaway-email schedule is armed the same way it would
+ * be for a manually recorded booking, so the 5-minute sweep in
+ * inc/takeaway-email.php still finds and sends it on time.
+ */
+function nirog_bhumi_register_calcom_webhook_route() {
+  register_rest_route('nirogbhumi/v1', '/calcom-webhook', [
+    'methods' => 'POST',
+    'callback' => 'nirog_bhumi_handle_calcom_webhook',
+    'permission_callback' => '__return_true',
+  ]);
+}
+add_action('rest_api_init', 'nirog_bhumi_register_calcom_webhook_route');
+
+function nirog_bhumi_handle_calcom_webhook($request) {
+  $settings = nirog_bhumi_get_settings();
+  $secret = (string) ($settings['calcom_webhook_secret'] ?? '');
+  $raw_body = $request->get_body();
+  $signature = (string) $request->get_header('x-cal-signature-256');
+  if (!$secret || !$signature || !hash_equals(hash_hmac('sha256', $raw_body, $secret), $signature)) {
+    return new WP_REST_Response(['message' => 'Invalid signature'], 401);
+  }
+  $payload = json_decode($raw_body, true);
+  if (!is_array($payload)) {
+    return new WP_REST_Response(['message' => 'Invalid payload'], 400);
+  }
+  $trigger = sanitize_text_field($payload['triggerEvent'] ?? '');
+  $booking = is_array($payload['payload'] ?? null) ? $payload['payload'] : [];
+  $metadata = is_array($booking['metadata'] ?? null) ? $booking['metadata'] : [];
+  $entry_id = absint($metadata['nbEntryId'] ?? 0);
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation') {
+    return new WP_REST_Response(['message' => 'No matching consultation entry'], 200);
+  }
+
+  if (in_array($trigger, ['BOOKING_CREATED', 'BOOKING_RESCHEDULED'], true)) {
+    $start = sanitize_text_field($booking['startTime'] ?? '');
+    $timestamp = $start ? strtotime($start) : false;
+    if ($timestamp) {
+      update_post_meta($entry_id, 'slot_date', gmdate('Y-m-d', $timestamp));
+      update_post_meta($entry_id, 'slot_time', wp_date('H:i', $timestamp));
+    }
+    $meeting_url = '';
+    if (!empty($booking['videoCallData']['url'])) {
+      $meeting_url = esc_url_raw($booking['videoCallData']['url']);
+    } elseif (!empty($booking['location']) && filter_var($booking['location'], FILTER_VALIDATE_URL)) {
+      $meeting_url = esc_url_raw($booking['location']);
+    }
+    if ($meeting_url) {
+      update_post_meta($entry_id, 'meeting_url', $meeting_url);
+    }
+    update_post_meta($entry_id, 'meeting_details', sanitize_textarea_field(__('Confirmed via Cal.com. Check your email for the calendar invite and joining link.', 'nirog-bhumi')));
+    update_post_meta($entry_id, '_nb_calcom_booking_uid', sanitize_text_field($booking['uid'] ?? ''));
+    // Bridge into the existing takeaway-email automation so the 10-minutes-
+    // after-session-ends email still fires for bookings made through this
+    // automated widget, exactly as it does for the manual-embed Cal.com flow.
+    if ($timestamp && function_exists('nirog_bhumi_sync_takeaway_schedule_for_entry')) {
+      nirog_bhumi_sync_takeaway_schedule_for_entry($entry_id);
+    }
+  } elseif ($trigger === 'BOOKING_CANCELLED') {
+    update_post_meta($entry_id, 'slot_date', '');
+    update_post_meta($entry_id, 'slot_time', '');
+    update_post_meta($entry_id, 'meeting_url', '');
+    update_post_meta($entry_id, 'meeting_details', __('The consultation slot was cancelled. Please book a new time.', 'nirog-bhumi'));
+    if (get_post_meta($entry_id, 'takeaway_email_sent_status', true) !== 'sent') {
+      update_post_meta($entry_id, 'takeaway_email_sent_status', 'skipped');
+    }
+  }
+
+  return new WP_REST_Response(['message' => 'ok'], 200);
 }
 
 function nirog_bhumi_consultation_checkout_url() {
@@ -665,6 +838,47 @@ add_action('woocommerce_payment_complete', 'nirog_bhumi_assign_woocommerce_order
 add_action('woocommerce_order_status_processing', 'nirog_bhumi_assign_woocommerce_order_invoice');
 add_action('woocommerce_order_status_completed', 'nirog_bhumi_assign_woocommerce_order_invoice');
 
+/**
+ * Fully automate the consultation payment step. As soon as WooCommerce marks
+ * the order paid - regardless of which gateway processed it (PhonePe,
+ * Razorpay, etc.) - verify the linked consultation entry, record the
+ * transaction reference and send the invoice email, with no admin action.
+ */
+function nirog_bhumi_auto_verify_consultation_payment($order_id) {
+  if (!function_exists('wc_get_order')) {
+    return;
+  }
+  $order = wc_get_order($order_id);
+  if (!$order || !nirog_bhumi_order_has_consultation_product($order)) {
+    return;
+  }
+  if (!$order->is_paid() && !in_array($order->get_status(), ['processing', 'completed'], true)) {
+    return;
+  }
+  $entry_id = absint($order->get_meta('_nb_consultation_entry_id'));
+  if (!$entry_id || get_post_type($entry_id) !== 'nb_consultation') {
+    return;
+  }
+  if (get_post_meta($entry_id, 'payment_status', true) === 'verified') {
+    return;
+  }
+  $reference = $order->get_transaction_id();
+  if (!$reference) {
+    $reference = sprintf('Order #%s via %s', $order->get_order_number(), $order->get_payment_method_title() ?: __('online payment', 'nirog-bhumi'));
+  }
+  update_post_meta($entry_id, 'payment_status', 'verified');
+  update_post_meta($entry_id, 'status', 'verified');
+  update_post_meta($entry_id, 'payment_reference', sanitize_text_field($reference));
+  update_post_meta($entry_id, 'payment_verified_at', current_time('mysql'));
+  update_post_meta($entry_id, '_nb_wc_order_id', $order->get_id());
+  if (function_exists('nirog_bhumi_send_consultation_invoice')) {
+    nirog_bhumi_send_consultation_invoice($entry_id);
+  }
+}
+add_action('woocommerce_payment_complete', 'nirog_bhumi_auto_verify_consultation_payment', 20);
+add_action('woocommerce_order_status_processing', 'nirog_bhumi_auto_verify_consultation_payment', 20);
+add_action('woocommerce_order_status_completed', 'nirog_bhumi_auto_verify_consultation_payment', 20);
+
 function nirog_bhumi_woocommerce_invoice_email_field($fields, $sent_to_admin, $order) {
   $invoice_number = $order ? $order->get_meta('_nb_invoice_number') : '';
   if ($invoice_number) {
@@ -687,6 +901,11 @@ function nirog_bhumi_render_consultation_payment_actions($entry_id) {
   $status_url = nirog_bhumi_consultation_status_url($entry_id);
   if ($status === 'verified') {
     return '<a class="pill primary" href="' . esc_url($status_url) . '">' . esc_html__('View consultation status', 'nirog-bhumi') . '</a>';
+  }
+  $checkout_url = nirog_bhumi_consultation_checkout_url();
+  if ($checkout_url) {
+    return '<a class="pill primary" href="' . esc_url($checkout_url) . '">' . esc_html__('Pay Rs. 590 securely', 'nirog-bhumi') . '</a>'
+      . '<p class="payment-help"><a target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Need help? Message us on WhatsApp', 'nirog-bhumi') . '</a></p>';
   }
   return '<a class="pill primary" target="_blank" rel="noopener" href="' . esc_url(nirog_bhumi_consultation_whatsapp_url($entry_id)) . '">' . esc_html__('Continue on WhatsApp', 'nirog-bhumi') . '</a>';
 }
@@ -1015,11 +1234,14 @@ function nirog_bhumi_protect_consultation_flow() {
     wp_safe_redirect(add_query_arg('consultation_step', 'form-required', home_url('/consultation/#consultation-form')));
     exit;
   }
-  if (is_page('consultation-calendar') && !nirog_bhumi_paid_consultation_order_from_request()) {
-    wp_safe_redirect(add_query_arg('consultation_step', 'payment-required', home_url('/consultation/')));
-    exit;
-  }
   if (is_page('consultation-calendar')) {
+    $has_paid_order = (bool) nirog_bhumi_paid_consultation_order_from_request();
+    $cookie_entry = nirog_bhumi_consultation_cookie_entry();
+    $entry_verified = $cookie_entry && get_post_meta($cookie_entry, 'payment_status', true) === 'verified';
+    if (!$has_paid_order && !$entry_verified) {
+      wp_safe_redirect(add_query_arg('consultation_step', 'payment-required', home_url('/consultation/')));
+      exit;
+    }
     nocache_headers();
   }
 }

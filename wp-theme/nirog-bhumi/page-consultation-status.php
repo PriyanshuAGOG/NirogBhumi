@@ -17,6 +17,8 @@ $invoice_number = (string) get_post_meta($entry_id, 'invoice_number', true);
 $reference = nirog_bhumi_consultation_reference($entry_id);
 $whatsapp_url = nirog_bhumi_consultation_whatsapp_url($entry_id);
 $invoice_url = nirog_bhumi_consultation_invoice_url($entry_id);
+$checkout_url = function_exists('nirog_bhumi_consultation_checkout_url') ? nirog_bhumi_consultation_checkout_url() : '';
+$calendar_url = function_exists('nirog_bhumi_consultation_calendar_url') ? nirog_bhumi_consultation_calendar_url() : home_url('/consultation-calendar/');
 get_header(); ?>
 <main class="consultation-status-page">
   <section class="consultation-status-intro">
@@ -26,10 +28,10 @@ get_header(); ?>
       <p>Your session details are available below.</p>
     <?php elseif ($payment_status === 'verified') : ?>
       <h1>Your payment is confirmed.</h1>
-      <p>The Nirog Bhumi team is arranging your consultation time.</p>
+      <p>Choose your consultation slot to finish booking.</p>
     <?php else : ?>
       <h1>Payment confirmation is pending.</h1>
-      <p>Share your payment confirmation on WhatsApp and the team will update your booking.</p>
+      <p>Complete your payment to confirm your booking. Your invoice and consultation slot are sent automatically once payment is received.</p>
     <?php endif; ?>
   </section>
   <section class="consultation-status-card">
@@ -45,7 +47,9 @@ get_header(); ?>
       <?php if ($payment_status === 'verified' && $invoice_number) : ?><div><dt>Invoice</dt><dd><?php echo esc_html($invoice_number); ?></dd></div><?php endif; ?>
     </dl>
     <div class="status-actions">
-      <?php if ($payment_status !== 'verified') : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($whatsapp_url); ?>">Continue on WhatsApp</a><?php endif; ?>
+      <?php if ($payment_status !== 'verified' && $checkout_url) : ?><a class="pill primary" href="<?php echo esc_url($checkout_url); ?>">Pay Rs. 590 securely</a><?php endif; ?>
+      <?php if ($payment_status !== 'verified') : ?><a class="pill ghost" target="_blank" rel="noopener" href="<?php echo esc_url($whatsapp_url); ?>"><?php echo $checkout_url ? 'Need help? Message us on WhatsApp' : 'Continue on WhatsApp'; ?></a><?php endif; ?>
+      <?php if ($payment_status === 'verified' && !$slot_date) : ?><a class="pill primary" href="<?php echo esc_url($calendar_url); ?>">Choose your consultation slot</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $meeting_url) : ?><a class="pill primary" target="_blank" rel="noopener" href="<?php echo esc_url($meeting_url); ?>">Open meeting link</a><?php endif; ?>
       <?php if ($payment_status === 'verified' && $invoice_number) : ?><a class="pill ghost" href="<?php echo esc_url($invoice_url); ?>">Download invoice PDF</a><?php endif; ?>
     </div>
