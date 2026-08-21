@@ -248,6 +248,29 @@ function nirog_bhumi_mail_from_name() {
 }
 add_filter('wp_mail_from_name', 'nirog_bhumi_mail_from_name');
 
+/**
+ * Force the single, current contact/reply-to address everywhere an outgoing
+ * email needs one - the site-wide "from" address, and WooCommerce's own
+ * email "from" setting - regardless of whatever address is saved in
+ * WordPress General Settings, WooCommerce > Settings > Emails, or an old
+ * placeholder used when the site was first built. This is the one place to
+ * change it in the future: edit the email string below.
+ *
+ * Note: if an SMTP plugin (e.g. FluentSMTP) is configured with its own
+ * "From email" on the outgoing connection, that plugin's setting is what
+ * actually reaches the mail server and will override this filter - check
+ * Settings -> FluentSMTP -> your connection there too if emails still show
+ * an old address after this update.
+ */
+function nirog_bhumi_contact_email() {
+  return 'priyanshu@nirogbhumi.com';
+}
+function nirog_bhumi_mail_from_address() {
+  return nirog_bhumi_contact_email();
+}
+add_filter('wp_mail_from', 'nirog_bhumi_mail_from_address');
+add_filter('woocommerce_email_from_address', 'nirog_bhumi_mail_from_address');
+
 // ─── Invoice ZIP bulk download ─────────────────────────────────────────────
 
 /**

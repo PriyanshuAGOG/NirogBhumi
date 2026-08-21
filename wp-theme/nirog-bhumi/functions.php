@@ -4,6 +4,7 @@ require_once get_template_directory() . '/inc/data-admin.php';
 require_once get_template_directory() . '/inc/takeaway-email.php';
 require_once get_template_directory() . '/inc/cal-integration.php';
 require_once get_template_directory() . '/inc/dashboard.php';
+require_once get_template_directory() . '/inc/email-templates.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -1495,9 +1496,23 @@ function nirog_bhumi_send_consultation_invoice($post_id) {
   $slot_line = $slot_date
     ? '<p><strong>Consultation:</strong> ' . esc_html(nirog_bhumi_local_date(get_option('date_format'), $slot_date)) . ($slot_time ? ' at ' . esc_html(nirog_bhumi_local_date(get_option('time_format'), $slot_date . ' ' . $slot_time)) : '') . ' IST</p>'
     : '<p><strong>Next step:</strong> <a href="' . esc_url($calendar_url) . '">Choose your consultation slot</a>.</p>';
-  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126"><h1 style="color:#314936">Payment confirmed</h1><p>Hello ' . esc_html($name) . ',</p><p>We have verified your payment for the 30-minute consultation with Gautam Khandelwal.</p><div style="border:1px solid #d8d0c0;padding:20px;margin:24px 0"><p><strong>Invoice:</strong> ' . esc_html($invoice_number) . '</p><p><strong>Consultation reference:</strong> ' . esc_html(nirog_bhumi_consultation_reference($post_id)) . '</p><p><strong>Amount received:</strong> Rs. ' . esc_html(number_format((float) $invoice_data['total'], 2)) . '</p><p><strong>Payment date:</strong> ' . esc_html($verified_at ? nirog_bhumi_local_date(get_option('date_format'), $verified_at) : wp_date(get_option('date_format'))) . '</p><p><strong>Service:</strong> 30-minute consultation</p></div>' . $slot_line . '<p><a href="' . esc_url($invoice_url) . '" style="display:inline-block;background:#314936;color:#fff;padding:12px 20px;text-decoration:none;border-radius:24px">Download invoice PDF</a></p><p><a href="' . esc_url($status_url) . '">View consultation status</a></p><p>Regards,<br>Nirog Bhumi</p></div>';
+  $templates = function_exists('nirog_bhumi_get_email_templates') ? nirog_bhumi_get_email_templates() : [];
+  $tokens = [
+    'name' => esc_html($name),
+    'invoice_number' => esc_html($invoice_number),
+    'reference' => esc_html(nirog_bhumi_consultation_reference($post_id)),
+    'amount' => esc_html(number_format((float) $invoice_data['total'], 2)),
+    'payment_date' => esc_html($verified_at ? nirog_bhumi_local_date(get_option('date_format'), $verified_at) : wp_date(get_option('date_format'))),
+    'slot_line' => $slot_line,
+    'invoice_url' => esc_url($invoice_url),
+    'status_url' => esc_url($status_url),
+  ];
+  $subject_template = $templates['consultation_subject'] ?? 'Payment confirmed - {{invoice_number}}';
+  $body_template = $templates['consultation_body'] ?? '';
+  $subject = function_exists('nirog_bhumi_render_email_template') ? nirog_bhumi_render_email_template($subject_template, $tokens) : sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number);
+  $body = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#263126">' . (function_exists('nirog_bhumi_render_email_template') ? nirog_bhumi_render_email_template($body_template, $tokens) : '') . '</div>';
   $attachments = [$pdf_path];
-  $sent = wp_mail($email, sprintf(__('Payment confirmed - %s', 'nirog-bhumi'), $invoice_number), $body, ['Content-Type: text/html; charset=UTF-8'], $attachments);
+  $sent = wp_mail($email, $subject, $body, ['Content-Type: text/html; charset=UTF-8'], $attachments);
   if ($sent) {
     update_post_meta($post_id, 'invoice_sent_at', current_time('mysql'));
     delete_post_meta($post_id, 'invoice_error');
