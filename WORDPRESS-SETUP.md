@@ -63,6 +63,10 @@ Create these pages in `Pages > Add New`. The title can be readable, but the slug
 | Consultation Calendar | `consultation-calendar` |
 | Store | `store` |
 
+WooCommerce creates its own Cart, Checkout, My Account and Shop pages during
+its setup wizard. Do not create those by hand. `/store/` is the designed
+landing page and sits in front of the WooCommerce shop archive.
+
 ## 4. Set The Home Page
 
 1. Go to `Settings > Reading`.
@@ -128,6 +132,8 @@ Note: `Cal.com` does not need a WordPress plugin. It can be embedded directly in
 8. Add Razorpay test keys.
 9. Run one test payment.
 10. Switch to live keys only after successful testing.
+11. Open `WooCommerce > Nirog Bhumi Store` and leave the store status on
+    `Coming soon` until the checklist in section 8 is complete.
 
 If Razorpay reports `Authentication failed` or `Order creation failed`:
 
@@ -142,25 +148,92 @@ Never share the Razorpay Key Secret in screenshots, support messages or source c
 
 ## 8. Products To Create
 
-Go to `Products > Add New`.
+The theme can create the whole launch catalogue for you.
 
-Recommended product structure:
+1. Go to `WooCommerce > Nirog Bhumi Store`.
+2. Review the catalogue table. It lists every product the store design was
+   built around, its shelf, its launch state and its price.
+3. Click `Create missing products`.
 
-1. `Diabetes Reversal Kit`
-2. Food products
-3. Individual cure kit items
-4. Combos
-5. `Consultation Booking Amount`
+This creates five shelves (Cure Kit, Diabetes Friendly Foods, Cure Kit
+Essentials, Combos, Consultations) and fifteen products, importing the product
+images from the theme.
 
-Consultation product settings:
+The seeder matches on SKU. You can run it again at any time: it only adds what
+is missing and never overwrites anything you have edited.
 
+### Store status
+
+The same screen carries the store status, which decides what visitors can see
+and do:
+
+- `Coming soon` (the default) - visitors see only the Coming soon page. You and
+  other shop managers still see the full catalogue, so it can be built and
+  checked before launch.
+- `Preview` - everyone can browse the catalogue, but nothing can be bought.
+  Products that are not on sale show a `Notify me` form.
+- `Open` - products marked `On sale` that carry a price can be bought.
+
+Consultation booking is not affected by this setting and keeps working in all
+three states.
+
+### Launch state per product
+
+Open any product and use the `Nirog Bhumi` tab in the Product data panel:
+
+- `On sale` - buyable once the store status is Open.
+- `Coming soon` - visible, waitlist only. Shows "Coming soon" in place of a
+  price.
+- `Enquiry only` - visible, links to a consultation or programme page. Shows
+  "Consult first" in place of a price. Use this for the 6-month and 99-day
+  programmes, which are joined after a consultation rather than bought.
+
+The same tab holds the shelf label, the suggested ritual and the important
+note shown on the product page, and the HSN code and GST rate for the item.
+
+### HSN codes and GST on goods
+
+Consultations are a service, invoiced under SAC 999319 at one rate. Goods are
+not: each item is invoiced against an HSN code, and the rate depends on the
+goods category, so a wooden tumbler, a steel pot and a packaged food are not
+necessarily the same.
+
+Nothing is pre-filled. Ask your accountant to confirm the HSN code and rate for
+each product, then enter them per product, or set a store-wide default under
+`Tax defaults for goods`. Left blank, nothing is printed rather than something
+wrong.
+
+### Consultation product
+
+The consultation product is part of the seeded catalogue:
+
+- Name: `Consultation Booking Amount`
 - Price: `Rs 500`
-- Product type: `Virtual`
-- Mark `Sold individually`
-- Recommended slug: `founder-consultation`
-- Recommended SKU: `CONSULT-500`
+- Product type: `Virtual`, `Sold individually`
+- Slug: `founder-consultation`
+- SKU: `CONSULT-500`
+- Hidden from the shop catalogue, so it is reached only through the
+  consultation flow
 
-Important: do not use the slug `consultation`, because that conflicts with the consultation page.
+After seeding, copy its product ID into `Settings > Nirog Bhumi Setup >
+Consultation product ID`.
+
+Important: do not use the slug `consultation`, because that conflicts with the
+consultation page.
+
+### Before you switch the store to Open
+
+1. Confirm HSN codes and GST rates per product with your accountant.
+2. Have a regulatory adviser review product names, packaging and page copy
+   against FSSAI rules for packaged food, AYUSH rules for herbal products, and
+   the Drugs and Magic Remedies (Objectionable Advertisements) Act, which
+   restricts advertising that claims to cure or treat diabetes.
+3. Set up shipping zones, rates and a courier under
+   `WooCommerce > Settings > Shipping`.
+4. Complete Razorpay live keys and run one real low-value order end to end.
+5. Publish shipping, returns, refunds and cancellation terms. Indian payment
+   gateways require these before going live.
+6. Set stock quantities on each product so the store cannot oversell.
 
 ## 9. Recommended Consultation Workflow
 
@@ -289,6 +362,17 @@ The theme already supports:
 5. a setup screen in `Settings > Nirog Bhumi Setup`
 6. checkout prefill for name, email and phone from the consultation form
 7. consultation entry ID attached to the WooCommerce order
+8. the full WooCommerce store: shelves, product cards, product pages, cart,
+   checkout and account screens, all drawn in the site's own design
+9. a store launch gate, so the catalogue can be built and reviewed while
+   visitors still see the Coming soon page
+10. a one-click catalogue seeder in `WooCommerce > Nirog Bhumi Store`
+11. a `Notify me` waitlist for products that are not on sale yet, stored with
+    the other form entries
+12. per-product HSN code and GST rate, recorded against each order line at
+    checkout
+13. a wellness acknowledgement required at checkout for product orders as well
+    as consultations
 
 ## 15. Forms Setup
 

@@ -1,0 +1,582 @@
+/*
+ * Store styles for Nirog Bhumi.
+ *
+ * styles.css covers the theme's own wrappers (.store-tile, .product-page,
+ * .commerce-checkout, .account-portal). It has no rules at all for the markup
+ * WooCommerce generates inside those wrappers: order review tables, payment
+ * method boxes, quantity inputs, add-to-cart buttons and notices. This file
+ * fills those gaps and adds the launch-state, waitlist and shelf UI, using the
+ * palette variables already declared in styles.css.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Shelf navigation and store banners
+ * ------------------------------------------------------------------------ */
+
+.store-shelf-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 clamp(20px, 5vw, 58px) 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.store-shelf-nav a {
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #3b4a3d;
+  background: #fff;
+}
+
+.store-shelf-nav a:hover,
+.store-shelf-nav a:focus-visible {
+  border-color: var(--dark);
+}
+
+.store-shelf-nav a.is-current {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff;
+}
+
+.store-status-banner {
+  margin: 0;
+  padding: 14px clamp(20px, 5vw, 58px);
+  background: var(--soft);
+  border-bottom: 1px solid var(--line);
+  color: #4a4028;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+
+.store-status-banner.inline {
+  margin: 18px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 18px;
+}
+
+.store-dispatch-note {
+  margin: 12px 0 0;
+  color: #4c5a4e;
+  font-size: 12px;
+}
+
+.store-dispatch-strip {
+  margin: 0;
+  padding: 14px clamp(20px, 5vw, 58px);
+  border-bottom: 1px solid var(--line);
+}
+
+.store-archive-intro {
+  max-width: 640px;
+  margin-top: 14px;
+}
+
+.store-coming-soon-note {
+  margin: 18px auto 0;
+  max-width: 520px;
+  color: #47543f;
+}
+
+.store-coming-soon .hero-buttons {
+  margin-top: 26px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.store-legal-note {
+  padding: clamp(28px, 4vw, 44px) clamp(20px, 5vw, 58px);
+  border-top: 1px solid var(--line);
+}
+
+.store-legal-note p {
+  max-width: 780px;
+  font-size: 12px;
+  color: #55624f;
+}
+
+.store-empty-shelf {
+  padding: clamp(40px, 6vw, 72px) 0;
+  text-align: center;
+}
+
+.store-empty-shelf .pill {
+  margin-top: 22px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Product cards
+ *
+ * styles.css sizes .store-tile img against its parent. The card now wraps the
+ * image and the title in links, so the anchor has to fill the figure or the
+ * image collapses.
+ * ------------------------------------------------------------------------ */
+
+.store-tile figure a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.store-tile h3 a {
+  display: inline-block;
+}
+
+/* ---------------------------------------------------------------------------
+ * Launch state: coming soon, enquiry, waitlist
+ * ------------------------------------------------------------------------ */
+
+.nb-launch-label {
+  color: #6c5f3c;
+  font-weight: 700;
+}
+
+.store-tile .price-row .nb-launch-action {
+  font-size: 13px;
+  border-bottom: 1px solid currentColor;
+}
+
+.product-launch-action {
+  margin-top: 24px;
+}
+
+.nb-waitlist {
+  margin-top: 26px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.nb-waitlist strong {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.nb-waitlist p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.nb-waitlist-fields {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+}
+
+.nb-waitlist input {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: #263126;
+}
+
+.nb-waitlist input:focus-visible {
+  outline: 2px solid var(--dark);
+  outline-offset: 1px;
+}
+
+.nb-waitlist-status {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.nb-waitlist-status.is-good { color: #2f6b33; }
+.nb-waitlist-status.is-bad  { color: #99351f; }
+
+@media (max-width: 720px) {
+  .nb-waitlist-fields { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Header cart link
+ * ------------------------------------------------------------------------ */
+
+.nb-cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.nb-cart-link b {
+  min-width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--dark);
+  color: #fff;
+  font-size: 11px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Product page
+ * ------------------------------------------------------------------------ */
+
+.product-detail .product-summary p,
+.product-detail .product-longform p {
+  margin-top: 14px;
+}
+
+.product-detail .product-longform ul {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.product-detail .product-longform li {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  color: #314936;
+}
+
+.product-detail .price {
+  display: block;
+  margin: 16px 0 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.product-detail .price del {
+  opacity: .5;
+  margin-right: 8px;
+}
+
+.product-buy {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.product-meta-line {
+  margin-top: 20px;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #6b7568;
+}
+
+.product-meta-line span {
+  font-weight: 800;
+}
+
+.ritual.caution {
+  border-color: #d9c48f;
+  background: #fdf8ea;
+}
+
+.ritual.disclaimer {
+  background: var(--soft);
+}
+
+.ritual strong {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.related-shelf {
+  border-top: 1px solid var(--line);
+}
+
+/* ---------------------------------------------------------------------------
+ * Add to cart form and quantity input
+ * ------------------------------------------------------------------------ */
+
+form.cart {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.quantity {
+  display: inline-flex;
+  align-items: center;
+}
+
+.quantity input.qty {
+  width: 76px;
+  min-height: 46px;
+  padding: 0 12px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: #263126;
+}
+
+.quantity input.qty::-webkit-outer-spin-button,
+.quantity input.qty::-webkit-inner-spin-button {
+  opacity: 1;
+}
+
+button.single_add_to_cart_button,
+.woocommerce a.button,
+.woocommerce button.button,
+.woocommerce input.button,
+a.added_to_cart {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--dark);
+  border-radius: 999px;
+  padding: 0 21px;
+  background: var(--dark);
+  color: #fff;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.woocommerce a.button:hover,
+.woocommerce button.button:hover,
+button.single_add_to_cart_button:hover {
+  background: #263a2b;
+}
+
+.woocommerce a.button.alt,
+.woocommerce button.button.alt {
+  background: var(--dark);
+  color: #fff;
+}
+
+button.single_add_to_cart_button[disabled],
+.woocommerce button.button[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.stock.out-of-stock {
+  margin-top: 12px;
+  color: #99351f;
+  font-weight: 650;
+}
+
+/* ---------------------------------------------------------------------------
+ * Notices
+ * ------------------------------------------------------------------------ */
+
+.woocommerce-notices-wrapper:empty {
+  display: none;
+}
+
+.woocommerce-message,
+.woocommerce-info,
+.woocommerce-error {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  list-style: none;
+  font-size: 13px;
+  color: #2f3b32;
+}
+
+.woocommerce-message { border-color: #b6cf9d; background: #f3f8ec; }
+.woocommerce-info    { border-color: #a9cfd1; background: #eef7f7; }
+.woocommerce-error   { border-color: #dcae9f; background: #fbf0ec; }
+
+.woocommerce-error li + li,
+.woocommerce-message li + li {
+  margin-top: 6px;
+}
+
+.woocommerce-message .button,
+.woocommerce-info .button {
+  margin-left: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Cart totals, checkout review and account tables
+ * ------------------------------------------------------------------------ */
+
+table.shop_table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.shop_table th,
+table.shop_table td {
+  padding: 12px 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  color: #2f3b32;
+}
+
+table.shop_table th {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #47543f;
+}
+
+table.shop_table td:last-child,
+table.shop_table th:last-child {
+  text-align: right;
+}
+
+table.shop_table tfoot th,
+table.shop_table tfoot td {
+  font-weight: 700;
+}
+
+table.shop_table .order-total th,
+table.shop_table .order-total td {
+  border-bottom: 0;
+  padding-top: 16px;
+  font-size: 16px;
+}
+
+.cart_totals h2 {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+.wc-proceed-to-checkout {
+  margin-top: 18px;
+}
+
+.wc-proceed-to-checkout .checkout-button {
+  width: 100%;
+}
+
+.woocommerce-checkout-review-order-table .product-name {
+  padding-right: 16px;
+}
+
+.woocommerce-orders-table td,
+.woocommerce-orders-table th {
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Payment methods
+ * ------------------------------------------------------------------------ */
+
+#payment {
+  margin-top: 20px;
+}
+
+#payment ul.wc_payment_methods {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+#payment ul.wc_payment_methods li {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+#payment ul.wc_payment_methods label {
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#payment .payment_box {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--soft);
+  font-size: 12px;
+}
+
+#payment .payment_box p:last-child {
+  margin-bottom: 0;
+}
+
+#payment .woocommerce-privacy-policy-text {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #55624f;
+}
+
+#payment .form-row.place-order {
+  margin-top: 18px;
+}
+
+#place_order {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pagination
+ * ------------------------------------------------------------------------ */
+
+.woocommerce-pagination ul.page-numbers {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.woocommerce-pagination a.page-numbers,
+.woocommerce-pagination span.page-numbers {
+  min-width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.woocommerce-pagination span.current {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff;
+}
+
+/* ---------------------------------------------------------------------------
+ * Accessibility helper used by the waitlist labels
+ * ------------------------------------------------------------------------ */
+
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
