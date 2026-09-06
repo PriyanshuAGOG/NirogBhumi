@@ -44,55 +44,96 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
   <?php endif; ?>
 
   <?php
-  $featured = wc_get_products([
-    'status' => 'publish',
-    'featured' => true,
-    'limit' => 1,
+  // One hero slide per product category, so the carousel automatically
+  // grows as new categories (acupressure, nutrition, etc.) are created and
+  // stocked - nothing here is hardcoded to today's three categories. Each
+  // slide's product is that category's featured product if it has one,
+  // otherwise its first product by menu order.
+  $nb_carousel_terms = get_terms([
+    'taxonomy' => 'product_cat',
+    'hide_empty' => true,
+    'exclude' => [(int) get_option('default_product_cat')],
     'orderby' => 'menu_order',
     'order' => 'ASC',
   ]);
-  $kit = $featured ? $featured[0] : null;
-  // The hero above already shows the star product in full. If its category
-  // holds nothing else, showing that same category again as a near-empty
-  // shelf right underneath would just duplicate the hero.
-  $nb_hero_only_category = 0;
-  if ($kit) {
-    $kit_terms = get_the_terms($kit->get_id(), 'product_cat');
-    if ($kit_terms && !is_wp_error($kit_terms)) {
-      $kit_term = reset($kit_terms);
-      if ((int) $kit_term->count <= 1) {
-        $nb_hero_only_category = (int) $kit_term->term_id;
+  $nb_carousel_slides = [];
+  if (!is_wp_error($nb_carousel_terms)) {
+    foreach ($nb_carousel_terms as $nb_term) {
+      $nb_term_products = wc_get_products([
+        'status' => 'publish',
+        'featured' => true,
+        'limit' => 1,
+        'category' => [$nb_term->slug],
+        'orderby' => 'menu_order',
+        'order' => 'ASC',
+      ]);
+      if (!$nb_term_products) {
+        $nb_term_products = wc_get_products([
+          'status' => 'publish',
+          'limit' => 1,
+          'category' => [$nb_term->slug],
+          'orderby' => 'menu_order',
+          'order' => 'ASC',
+        ]);
       }
+      if ($nb_term_products) {
+        $nb_carousel_slides[] = ['product' => $nb_term_products[0], 'term' => $nb_term];
+      }
+    }
+  }
+  // A shelf below that would show only the same single product already on
+  // full display in its carousel slide is not a shelf worth browsing -
+  // skip any category with one product only when building the shelves.
+  $nb_single_product_categories = [];
+  foreach ($nb_carousel_slides as $nb_slide) {
+    if ((int) $nb_slide['term']->count <= 1) {
+      $nb_single_product_categories[] = (int) $nb_slide['term']->term_id;
     }
   }
   ?>
 
-  <?php if ($kit) :
-    $kit_includes = [];
-    if (preg_match_all('/<li>(.*?)<\/li>/s', $kit->get_description(), $kit_matches)) {
-      $kit_includes = array_map('wp_strip_all_tags', $kit_matches[1]);
-    }
-    ?>
-    <section class="store-hero">
-      <figure class="store-hero-media">
-        <?php echo $kit->get_image('woocommerce_single'); ?>
-        <span class="store-hero-badge"><?php esc_html_e('Star product', 'nirog-bhumi'); ?></span>
-      </figure>
-      <div class="store-hero-copy">
-        <p class="eyebrow"><?php echo esc_html(get_post_meta($kit->get_id(), '_nb_eyebrow', true) ?: __('Nirog Bhumi Cure Kit', 'nirog-bhumi')); ?></p>
-        <h1><?php echo esc_html($kit->get_name()); ?></h1>
-        <p class="store-hero-summary"><?php echo esc_html(wp_strip_all_tags($kit->get_short_description())); ?></p>
-        <div class="store-hero-price"><?php echo wp_kses_post($kit->get_price_html()); ?></div>
-        <a class="pill primary" href="<?php echo esc_url(get_permalink($kit->get_id())); ?>">
-          <?php echo nirog_bhumi_product_is_buyable($kit) ? esc_html__('Buy Now', 'nirog-bhumi') : esc_html__('View the kit', 'nirog-bhumi'); ?>
-        </a>
-        <?php if ($kit_includes) : ?>
-          <ul class="store-hero-includes">
-            <?php foreach (array_slice($kit_includes, 0, 5) as $kit_item) : ?>
-              <li><?php echo esc_html($kit_item); ?></li>
-            <?php endforeach; ?>
-          </ul>
-        <?php endif; ?>
+  <?php if ($nb_carousel_slides) : ?>
+    <section class="store-hero-carousel" data-nb-carousel>
+      <div class="store-hero-track" data-nb-carousel-track>
+        <?php foreach ($nb_carousel_slides as $nb_slide) :
+          $nb_slide_product = $nb_slide['product'];
+          $nb_slide_term = $nb_slide['term'];
+          $nb_slide_includes = [];
+          if (preg_match_all('/<li>(.*?)<\/li>/s', $nb_slide_product->get_description(), $nb_slide_matches)) {
+            $nb_slide_includes = array_map('wp_strip_all_tags', $nb_slide_matches[1]);
+          }
+          $nb_slide_buyable = nirog_bhumi_product_is_buyable($nb_slide_product);
+          ?>
+          <div class="store-hero-slide" data-nb-carousel-slide>
+            <figure class="store-hero-media">
+              <?php echo $nb_slide_product->get_image('woocommerce_single'); ?>
+              <span class="store-hero-badge"><?php echo $nb_slide_product->is_featured() ? esc_html__('Star product', 'nirog-bhumi') : esc_html($nb_slide_term->name); ?></span>
+            </figure>
+            <div class="store-hero-copy">
+              <p class="eyebrow"><?php echo esc_html(get_post_meta($nb_slide_product->get_id(), '_nb_eyebrow', true) ?: $nb_slide_term->name); ?></p>
+              <h1><?php echo esc_html($nb_slide_product->get_name()); ?></h1>
+              <p class="store-hero-summary"><?php echo esc_html(wp_strip_all_tags($nb_slide_product->get_short_description())); ?></p>
+              <div class="store-hero-price"><?php echo wp_kses_post($nb_slide_product->get_price_html()); ?></div>
+              <a class="pill primary" href="<?php echo esc_url(get_permalink($nb_slide_product->get_id())); ?>">
+                <?php echo $nb_slide_buyable ? esc_html__('Buy Now', 'nirog-bhumi') : esc_html__('View Product', 'nirog-bhumi'); ?>
+              </a>
+              <?php if ($nb_slide_includes) : ?>
+                <ul class="store-hero-includes">
+                  <?php foreach (array_slice($nb_slide_includes, 0, 5) as $nb_slide_item) : ?>
+                    <li><?php echo esc_html($nb_slide_item); ?></li>
+                  <?php endforeach; ?>
+                </ul>
+              <?php endif; ?>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="store-hero-arrow prev" data-nb-carousel-prev aria-label="<?php esc_attr_e('Previous', 'nirog-bhumi'); ?>">&larr;</button>
+      <button type="button" class="store-hero-arrow next" data-nb-carousel-next aria-label="<?php esc_attr_e('Next', 'nirog-bhumi'); ?>">&rarr;</button>
+      <div class="store-hero-dots" data-nb-carousel-dots>
+        <?php foreach ($nb_carousel_slides as $nb_dot_index => $nb_slide) : ?>
+          <button type="button" class="<?php echo 0 === $nb_dot_index ? 'is-active' : ''; ?>" data-nb-carousel-dot aria-label="<?php echo esc_attr(sprintf(__('Slide %d', 'nirog-bhumi'), $nb_dot_index + 1)); ?>"></button>
+        <?php endforeach; ?>
       </div>
     </section>
   <?php endif; ?>
@@ -112,10 +153,11 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
     'order' => 'ASC',
   ]);
 
+  $nb_promo_variants = ['consultation', 'yoga_programme'];
   if (!is_wp_error($shelves)) :
     $nb_shelf_index = 0;
     foreach ($shelves as $shelf) :
-      if ($nb_hero_only_category && (int) $shelf->term_id === $nb_hero_only_category) {
+      if (in_array((int) $shelf->term_id, $nb_single_product_categories, true)) {
         continue;
       }
       $products = wc_get_products([
@@ -160,8 +202,9 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
         </div>
       </section>
       <?php
-      if (2 === $nb_shelf_index && function_exists('nirog_bhumi_render_store_promo_card')) {
-        nirog_bhumi_render_store_promo_card('consultation');
+      if (function_exists('nirog_bhumi_render_store_promo_card')) {
+        $nb_promo_variant = $nb_promo_variants[($nb_shelf_index - 1) % count($nb_promo_variants)];
+        nirog_bhumi_render_store_promo_card($nb_promo_variant);
       }
     endforeach;
   endif;

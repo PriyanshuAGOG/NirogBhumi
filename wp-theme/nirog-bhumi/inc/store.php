@@ -476,7 +476,14 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.2.0'
+    '0.3.0'
+  );
+  wp_enqueue_script(
+    'nirog-bhumi-store-carousel',
+    get_template_directory_uri() . '/assets/js/store-carousel.js',
+    [],
+    '0.1.0',
+    true
   );
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_store_assets', 20);
@@ -542,31 +549,62 @@ function nirog_bhumi_store_dispatch_note() {
 function nirog_bhumi_render_store_promo_card($variant = 'consultation') {
   $copy = [
     'consultation' => [
-      'eyebrow' => __('Not sure where to start?', 'nirog-bhumi'),
-      'heading' => __('Book a consultation before you shop.', 'nirog-bhumi'),
+      'eyebrow' => __('Still confused?', 'nirog-bhumi'),
+      'heading' => __('Book a consultation and see what\'s right for you.', 'nirog-bhumi'),
       'body' => __('A 30-minute session with Gautam Khandelwal helps match the right tools, food staples and practice routine to your reports, medication and daily rhythm - before you spend on anything.', 'nirog-bhumi'),
       'primary_label' => __('Book Consultation', 'nirog-bhumi'),
       'primary_url' => home_url('/consultation/'),
       'secondary_label' => __('See Programs', 'nirog-bhumi'),
       'secondary_url' => home_url('/programmes/'),
+      'image' => 'yoga-backbend-opt.jpg',
+    ],
+    'yoga_programme' => [
+      'eyebrow' => __('Tools work best with practice', 'nirog-bhumi'),
+      'heading' => __('Pair what you buy with our Yoga for Diabetes program.', 'nirog-bhumi'),
+      'body' => __('A neti pot, a tumbler and a mat go further alongside guided asanas, pranayama and meditation built specifically for diabetes reversal. Most people who see real change do both together.', 'nirog-bhumi'),
+      'primary_label' => __('Explore Yoga Program', 'nirog-bhumi'),
+      'primary_url' => home_url('/yoga-programme/'),
+      'secondary_label' => __('See All Programs', 'nirog-bhumi'),
+      'secondary_url' => home_url('/programmes/'),
+      'image' => 'yoga-twist-opt.jpg',
     ],
   ][$variant] ?? null;
   if (!$copy) {
     return;
   }
+  $image_url = get_template_directory_uri() . '/assets/img/' . $copy['image'];
   ?>
   <section class="store-promo-card">
-    <div>
+    <figure class="store-promo-media">
+      <img src="<?php echo esc_url($image_url); ?>" alt="" loading="lazy">
+    </figure>
+    <div class="store-promo-body-wrap">
       <p class="eyebrow"><?php echo esc_html($copy['eyebrow']); ?></p>
       <h2><?php echo esc_html($copy['heading']); ?></h2>
       <p class="store-promo-body"><?php echo esc_html($copy['body']); ?></p>
-    </div>
-    <div class="store-promo-actions">
-      <a class="pill primary" href="<?php echo esc_url($copy['primary_url']); ?>"><?php echo esc_html($copy['primary_label']); ?></a>
-      <a class="pill ghost" href="<?php echo esc_url($copy['secondary_url']); ?>"><?php echo esc_html($copy['secondary_label']); ?></a>
+      <div class="store-promo-actions">
+        <a class="pill primary" href="<?php echo esc_url($copy['primary_url']); ?>"><?php echo esc_html($copy['primary_label']); ?></a>
+        <a class="pill ghost" href="<?php echo esc_url($copy['secondary_url']); ?>"><?php echo esc_html($copy['secondary_label']); ?></a>
+      </div>
     </div>
   </section>
   <?php
+}
+
+/**
+ * Existing theme photography used as a category tile's image when the
+ * category has no WooCommerce thumbnail set (Products > Categories > edit >
+ * Thumbnail) and no product with its own image yet. Keeps the tiles looking
+ * finished from day one without requiring a wp-admin step first; set a real
+ * thumbnail on the category any time to override this.
+ */
+function nirog_bhumi_store_category_fallback_image($slug) {
+  $map = [
+    'cure-kit' => 'store-products-opt.jpg',
+    'diabetes-friendly-foods' => 'articles-food-opt.jpg',
+    'cure-kit-essentials' => 'jal-neti-pot-opt.jpg',
+  ];
+  return $map[$slug] ?? '';
 }
 
 /**
