@@ -1,6 +1,10 @@
 <?php
 require_once get_template_directory() . '/inc/invoice-pdf.php';
 require_once get_template_directory() . '/inc/data-admin.php';
+require_once get_template_directory() . '/inc/store-settings.php';
+require_once get_template_directory() . '/inc/store-catalogue.php';
+require_once get_template_directory() . '/inc/store-seeder.php';
+require_once get_template_directory() . '/inc/store.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -8,6 +12,7 @@ function nirog_bhumi_setup() {
   add_theme_support('woocommerce');
   add_theme_support('wc-product-gallery-zoom');
   add_theme_support('wc-product-gallery-lightbox');
+  add_theme_support('wc-product-gallery-slider');
   register_nav_menus(['primary' => __('Primary Menu', 'nirog-bhumi')]);
 }
 add_action('after_setup_theme', 'nirog_bhumi_setup');
