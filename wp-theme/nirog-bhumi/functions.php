@@ -5,6 +5,10 @@ require_once get_template_directory() . '/inc/takeaway-email.php';
 require_once get_template_directory() . '/inc/cal-integration.php';
 require_once get_template_directory() . '/inc/dashboard.php';
 require_once get_template_directory() . '/inc/email-templates.php';
+require_once get_template_directory() . '/inc/store-settings.php';
+require_once get_template_directory() . '/inc/store-catalogue.php';
+require_once get_template_directory() . '/inc/store-seeder.php';
+require_once get_template_directory() . '/inc/store.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -12,6 +16,7 @@ function nirog_bhumi_setup() {
   add_theme_support('woocommerce');
   add_theme_support('wc-product-gallery-zoom');
   add_theme_support('wc-product-gallery-lightbox');
+  add_theme_support('wc-product-gallery-slider');
   register_nav_menus(['primary' => __('Primary Menu', 'nirog-bhumi')]);
 }
 add_action('after_setup_theme', 'nirog_bhumi_setup');
@@ -60,7 +65,7 @@ function nirog_bhumi_get_settings() {
  * Remove a slug from this list to bring a page back.
  */
 function nirog_bhumi_hidden_pages() {
-  return apply_filters('nirog_bhumi_hidden_pages', ['store', 'branding', 'shipping-delivery-policy']);
+  return apply_filters('nirog_bhumi_hidden_pages', ['branding', 'shipping-delivery-policy']);
 }
 
 function nirog_bhumi_block_hidden_pages() {
@@ -69,9 +74,6 @@ function nirog_bhumi_block_hidden_pages() {
   }
   $hidden = nirog_bhumi_hidden_pages();
   $blocked = is_page($hidden);
-  if (!$blocked && function_exists('is_shop') && is_shop() && in_array('store', $hidden, true)) {
-    $blocked = true;
-  }
   if ($blocked) {
     wp_safe_redirect(home_url('/'), 302);
     exit;
