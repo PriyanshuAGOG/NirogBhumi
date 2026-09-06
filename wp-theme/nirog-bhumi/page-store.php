@@ -14,7 +14,6 @@ get_header();
 $woo_ready = function_exists('nirog_bhumi_woocommerce_active') && nirog_bhumi_woocommerce_active();
 $show_catalogue = $woo_ready && nirog_bhumi_store_catalogue_is_visible();
 $selling = $woo_ready && nirog_bhumi_store_selling_is_open();
-$dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
 ?>
 <main>
 <?php if (!$show_catalogue) : ?>
@@ -139,10 +138,6 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
   <?php endif; ?>
 
   <?php get_template_part('template-parts/store-category-tiles'); ?>
-
-  <?php if ($dispatch) : ?>
-    <p class="store-dispatch-note store-dispatch-strip"><?php echo esc_html($dispatch); ?></p>
-  <?php endif; ?>
 
   <?php
   $shelves = get_terms([

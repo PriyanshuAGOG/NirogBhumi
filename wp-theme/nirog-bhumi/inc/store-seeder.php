@@ -21,6 +21,15 @@ function nirog_bhumi_seed_product_categories() {
     $term = get_term_by('slug', $slug, 'product_cat');
     if ($term && !is_wp_error($term)) {
       $map[$slug] = (int) $term->term_id;
+      // The catalogue is the source of truth for name/description - keep an
+      // already-created term (e.g. from before a rename in this file) in
+      // sync rather than only creating terms that don't exist yet.
+      if ($term->name !== $category['name'] || $term->description !== $category['description']) {
+        wp_update_term($term->term_id, 'product_cat', [
+          'name' => $category['name'],
+          'description' => $category['description'],
+        ]);
+      }
       continue;
     }
     $created = wp_insert_term($category['name'], 'product_cat', [
@@ -32,6 +41,48 @@ function nirog_bhumi_seed_product_categories() {
     }
   }
   return $map;
+}
+
+/**
+ * SKUs of products that were once part of the launch catalogue and have
+ * since been retired (combos, programmes and consultations sold as
+ * products, and any tool later dropped). Kept here so a site that already
+ * ran "Create missing products" before these were removed from the
+ * catalogue can clean them up with one click, instead of the products
+ * silently staying live forever.
+ */
+function nirog_bhumi_store_retired_skus() {
+  return [
+    'NB-COMBO-01',
+    'NB-COMBO-02',
+    'NB-COMBO-03',
+    'NB-PROG-06M',
+    'NB-PROG-99D',
+    'CONSULT-500',
+    'NB-TOOL-03',
+  ];
+}
+
+/**
+ * Trash (not permanently delete) any live product matching a retired SKU.
+ * Returns a per-outcome tally. Trashing keeps the product recoverable from
+ * WooCommerce > Products > Trash in case a SKU was reused by mistake.
+ */
+function nirog_bhumi_cleanup_retired_products() {
+  $result = ['trashed' => 0, 'not_found' => 0];
+  if (!function_exists('wc_get_product_id_by_sku')) {
+    return $result;
+  }
+  foreach (nirog_bhumi_store_retired_skus() as $sku) {
+    $product_id = wc_get_product_id_by_sku($sku);
+    if (!$product_id) {
+      $result['not_found']++;
+      continue;
+    }
+    wp_trash_post($product_id);
+    $result['trashed']++;
+  }
+  return $result;
 }
 
 /**
@@ -237,6 +288,26 @@ function nirog_bhumi_handle_seed_catalogue() {
 }
 add_action('admin_post_nirog_seed_catalogue', 'nirog_bhumi_handle_seed_catalogue');
 
+function nirog_bhumi_handle_cleanup_retired_products() {
+  if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+    wp_die(esc_html__('You are not allowed to clean up the catalogue.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_cleanup_retired_products');
+
+  if (!nirog_bhumi_woocommerce_active()) {
+    wp_safe_redirect(add_query_arg('nb_seed', 'no-woocommerce', nirog_bhumi_store_admin_url()));
+    exit;
+  }
+
+  $result = nirog_bhumi_cleanup_retired_products();
+  wp_safe_redirect(add_query_arg([
+    'nb_cleanup' => 'done',
+    'nb_trashed' => $result['trashed'],
+  ], nirog_bhumi_store_admin_url()));
+  exit;
+}
+add_action('admin_post_nirog_cleanup_retired_products', 'nirog_bhumi_handle_cleanup_retired_products');
+
 function nirog_bhumi_store_admin_url() {
   return nirog_bhumi_woocommerce_active()
     ? admin_url('admin.php?page=nirog-bhumi-store')
@@ -265,6 +336,16 @@ function nirog_bhumi_render_store_admin_page() {
           (int) ($_GET['nb_created'] ?? 0),
           (int) ($_GET['nb_skipped'] ?? 0),
           (int) ($_GET['nb_failed'] ?? 0)
+        ); ?>
+      </p></div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['nb_cleanup']) && 'done' === $_GET['nb_cleanup']) : ?>
+      <div class="notice notice-success"><p>
+        <?php printf(
+          /* translators: %d: number of retired products trashed */
+          esc_html__('Retired products cleaned up. Moved to trash: %d.', 'nirog-bhumi'),
+          (int) ($_GET['nb_trashed'] ?? 0)
         ); ?>
       </p></div>
     <?php endif; ?>
@@ -367,6 +448,14 @@ function nirog_bhumi_render_store_admin_page() {
       <input type="hidden" name="action" value="nirog_seed_catalogue">
       <?php wp_nonce_field('nirog_seed_catalogue'); ?>
       <?php submit_button(__('Create missing products', 'nirog-bhumi'), 'primary', 'submit', false); ?>
+    </form>
+
+    <h2><?php esc_html_e('Retired products', 'nirog-bhumi'); ?></h2>
+    <p style="max-width:46em"><?php esc_html_e('Combos, programmes and consultations sold as products have been removed from the catalogue above. If "Create missing products" was ever run before that change, those old products can still exist live on the site. This moves any of them to trash (recoverable from Products > Trash) - it never affects a product that is still part of the current catalogue.', 'nirog-bhumi'); ?></p>
+    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:8px">
+      <input type="hidden" name="action" value="nirog_cleanup_retired_products">
+      <?php wp_nonce_field('nirog_cleanup_retired_products'); ?>
+      <?php submit_button(__('Remove retired products', 'nirog-bhumi'), 'secondary', 'submit', false); ?>
     </form>
 
     <hr>

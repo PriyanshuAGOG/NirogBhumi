@@ -476,7 +476,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.3.0'
+    '0.4.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -592,19 +592,20 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation') {
 }
 
 /**
- * Existing theme photography used as a category tile's image when the
- * category has no WooCommerce thumbnail set (Products > Categories > edit >
- * Thumbnail) and no product with its own image yet. Keeps the tiles looking
- * finished from day one without requiring a wp-admin step first; set a real
- * thumbnail on the category any time to override this.
+ * Hand-drawn line icon for a "shop by category" tile, in the style of a
+ * bordered icon card rather than a photo. No photography (real or fetched)
+ * is used here - these are plain inline SVGs so a tile never depends on a
+ * category thumbnail being uploaded first. Falls back to a generic leaf
+ * mark for any category slug not listed (e.g. one added later in wp-admin).
  */
-function nirog_bhumi_store_category_fallback_image($slug) {
-  $map = [
-    'cure-kit' => 'store-products-opt.jpg',
-    'diabetes-friendly-foods' => 'articles-food-opt.jpg',
-    'cure-kit-essentials' => 'jal-neti-pot-opt.jpg',
+function nirog_bhumi_store_category_icon($slug) {
+  $icons = [
+    'cure-kit' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z"/><path d="M4 8 6 4h12l2 4"/><path d="M9 12h6M12 9v6"/></svg>',
+    'diabetes-friendly-foods' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0Z"/><path d="M4 11h16"/><path d="M9 15v2M12 15v3M15 15v2"/><path d="M12 11V5c2 0 3 1.5 3 3"/></svg>',
+    'cure-kit-essentials' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="2.2"/><path d="M12 8v6M8 20l4-6 4 6M8.5 12.5h7"/></svg>',
+    'acupressure' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12c0-3 1.5-8 6-8s6 5 6 8-2 6-6 6-6-3-6-6Z"/><circle cx="9.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13.5" r=".6" fill="currentColor" stroke="none"/></svg>',
   ];
-  return $map[$slug] ?? '';
+  return $icons[$slug] ?? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 3 7 6 7 10a7 7 0 0 1-14 0c0-4 3-7 7-10Z"/></svg>';
 }
 
 /**

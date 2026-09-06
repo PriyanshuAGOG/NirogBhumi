@@ -25,13 +25,21 @@ function nirog_bhumi_store_categories() {
       'name' => __('Cure Kit', 'nirog-bhumi'),
       'description' => __('The complete Nirog Bhumi diabetes reversal kit.', 'nirog-bhumi'),
     ],
+    // Slug kept as diabetes-friendly-foods so a site that already seeded
+    // this term keeps its existing product links; only the display name
+    // and description change.
     'diabetes-friendly-foods' => [
-      'name' => __('Diabetes Friendly Foods', 'nirog-bhumi'),
+      'name' => __('Nutrition', 'nirog-bhumi'),
       'description' => __('Fibre-forward staples and daily rituals built around steady blood sugar.', 'nirog-bhumi'),
     ],
+    // Slug kept as cure-kit-essentials for the same reason.
     'cure-kit-essentials' => [
-      'name' => __('Cure Kit Essentials', 'nirog-bhumi'),
+      'name' => __('Lifestyle', 'nirog-bhumi'),
       'description' => __('Individual naturopathy, cleansing and practice tools.', 'nirog-bhumi'),
+    ],
+    'acupressure' => [
+      'name' => __('Acupressure', 'nirog-bhumi'),
+      'description' => __('Pressure-point tools for daily self-practice.', 'nirog-bhumi'),
     ],
   ];
 }
