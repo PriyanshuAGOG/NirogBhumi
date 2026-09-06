@@ -476,7 +476,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.1.0'
+    '0.2.0'
   );
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_store_assets', 20);
@@ -530,6 +530,43 @@ function nirog_bhumi_store_dispatch_note() {
     );
   }
   return implode(' ', $lines);
+}
+
+/**
+ * A promotional card for the consultation/programmes, shown between shelves
+ * on the store page. This is deliberately NOT a WooCommerce product - the
+ * store sells physical goods only, so a consultation booking or a guided
+ * programme never appears in the catalogue, cart or checkout. This card is
+ * just a signpost pointing at the real, separate consultation flow.
+ */
+function nirog_bhumi_render_store_promo_card($variant = 'consultation') {
+  $copy = [
+    'consultation' => [
+      'eyebrow' => __('Not sure where to start?', 'nirog-bhumi'),
+      'heading' => __('Book a consultation before you shop.', 'nirog-bhumi'),
+      'body' => __('A 30-minute session with Gautam Khandelwal helps match the right tools, food staples and practice routine to your reports, medication and daily rhythm - before you spend on anything.', 'nirog-bhumi'),
+      'primary_label' => __('Book Consultation', 'nirog-bhumi'),
+      'primary_url' => home_url('/consultation/'),
+      'secondary_label' => __('See Programs', 'nirog-bhumi'),
+      'secondary_url' => home_url('/programmes/'),
+    ],
+  ][$variant] ?? null;
+  if (!$copy) {
+    return;
+  }
+  ?>
+  <section class="store-promo-card">
+    <div>
+      <p class="eyebrow"><?php echo esc_html($copy['eyebrow']); ?></p>
+      <h2><?php echo esc_html($copy['heading']); ?></h2>
+      <p class="store-promo-body"><?php echo esc_html($copy['body']); ?></p>
+    </div>
+    <div class="store-promo-actions">
+      <a class="pill primary" href="<?php echo esc_url($copy['primary_url']); ?>"><?php echo esc_html($copy['primary_label']); ?></a>
+      <a class="pill ghost" href="<?php echo esc_url($copy['secondary_url']); ?>"><?php echo esc_html($copy['secondary_label']); ?></a>
+    </div>
+  </section>
+  <?php
 }
 
 /**

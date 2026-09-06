@@ -1,24 +1,237 @@
 /*
  * Store styles for Nirog Bhumi.
  *
- * styles.css covers the theme's own wrappers (.store-tile, .product-page,
- * .commerce-checkout, .account-portal). It has no rules at all for the markup
- * WooCommerce generates inside those wrappers: order review tables, payment
- * method boxes, quantity inputs, add-to-cart buttons and notices. This file
- * fills those gaps and adds the launch-state, waitlist and shelf UI, using the
- * palette variables already declared in styles.css.
+ * styles.css covers only the theme's own page wrappers (.product-page,
+ * .cart-layout, .checkout-layout, .account-grid) and has no rules for the
+ * markup WooCommerce itself generates, or for the store-specific components
+ * below. This file owns all of that, using the palette and type already
+ * declared in styles.css so the store reads as part of the same site rather
+ * than a bolted-on shop.
+ *
+ * Written as flat, single-purpose rules with one deliberate breakpoint per
+ * component (mobile collapse) - no !important, no viewport-locked heights.
+ * The previous hero (.kit-viewport-card) had accumulated dozens of !important
+ * overrides fighting each other across breakpoints; every component here is
+ * built to size itself from its content instead.
  */
 
 /* ---------------------------------------------------------------------------
- * Shelf navigation and store banners
+ * Shared shelf rhythm
+ * ------------------------------------------------------------------------ */
+
+.store-page-minimal {
+  background: var(--paper);
+}
+
+.store-shelf {
+  padding: clamp(34px, 5vw, 56px) clamp(20px, 5vw, 58px);
+  border-bottom: 1px solid var(--line);
+}
+
+.store-shelf-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.store-shelf-title h2 {
+  max-width: 640px;
+  margin-top: 6px;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.store-shelf-title > a {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+}
+
+.store-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 980px) {
+  .store-shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 540px) {
+  .store-shelf-title { display: block; }
+  .store-shelf-title > a { display: inline-block; margin-top: 12px; }
+  .store-shelf-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Store hero: the star product
+ * ------------------------------------------------------------------------ */
+
+.store-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .82fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+  padding: clamp(34px, 5vw, 64px) clamp(20px, 5vw, 58px);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.store-hero-media {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3.1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--soft);
+  order: 2;
+}
+
+.store-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-hero-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--dark);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.store-hero-copy {
+  order: 1;
+}
+
+.store-hero-copy h1 {
+  font-size: clamp(38px, 5vw, 60px);
+  line-height: 1.02;
+  max-width: 15ch;
+}
+
+.store-hero-summary {
+  max-width: 46ch;
+  margin-top: 16px;
+  color: #3c4a3e;
+  line-height: 1.65;
+}
+
+.store-hero-price {
+  margin: 20px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  color: var(--ink);
+}
+
+.store-hero-includes {
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  max-width: 40ch;
+}
+
+.store-hero-includes li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13px;
+  color: #3c4a3e;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.store-hero-includes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--earth);
+}
+
+@media (max-width: 860px) {
+  .store-hero {
+    grid-template-columns: 1fr;
+  }
+  .store-hero-media { order: 1; aspect-ratio: 4 / 2.6; }
+  .store-hero-copy { order: 2; }
+  .store-hero-copy h1 { max-width: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Shop-by-category tiles
+ * ------------------------------------------------------------------------ */
+
+.store-category-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  padding: clamp(26px, 4vw, 40px) clamp(20px, 5vw, 58px);
+  border-bottom: 1px solid var(--line);
+}
+
+.store-category-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.store-category-tile-media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  transition: border-color .15s ease, transform .15s ease;
+}
+
+.store-category-tile-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.store-category-tile:hover .store-category-tile-media,
+.store-category-tile:focus-visible .store-category-tile-media {
+  border-color: var(--dark);
+  transform: translateY(-2px);
+}
+
+.store-category-tile-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------
+ * Shelf filter nav (category archive pages)
  * ------------------------------------------------------------------------ */
 
 .store-shelf-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 0 clamp(20px, 5vw, 58px) 8px;
-  border-bottom: 1px solid var(--line);
+  padding: 0 clamp(20px, 5vw, 58px) 22px;
 }
 
 .store-shelf-nav a {
@@ -29,6 +242,7 @@
   font-weight: 650;
   color: #3b4a3d;
   background: #fff;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
 }
 
 .store-shelf-nav a:hover,
@@ -41,6 +255,10 @@
   border-color: var(--dark);
   color: #fff;
 }
+
+/* ---------------------------------------------------------------------------
+ * Status banners and notes
+ * ------------------------------------------------------------------------ */
 
 .store-status-banner {
   margin: 0;
@@ -58,18 +276,19 @@
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 14px 18px;
+  background: var(--soft);
 }
 
 .store-dispatch-note {
-  margin: 12px 0 0;
+  margin: 0;
   color: #4c5a4e;
   font-size: 12px;
 }
 
 .store-dispatch-strip {
-  margin: 0;
   padding: 14px clamp(20px, 5vw, 58px);
   border-bottom: 1px solid var(--line);
+  text-align: center;
 }
 
 .store-archive-intro {
@@ -93,7 +312,6 @@
 
 .store-legal-note {
   padding: clamp(28px, 4vw, 44px) clamp(20px, 5vw, 58px);
-  border-top: 1px solid var(--line);
 }
 
 .store-legal-note p {
@@ -112,12 +330,82 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Product cards
+ * Consultation / programmes promo card
  *
- * styles.css sizes .store-tile img against its parent. The card now wraps the
- * image and the title in links, so the anchor has to fill the figure or the
- * image collapses.
+ * Deliberately styled unlike a product card - it must never be mistaken for
+ * a catalogue item, since consultations and programmes are not sold here.
  * ------------------------------------------------------------------------ */
+
+.store-promo-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 clamp(20px, 5vw, 58px);
+  padding: clamp(26px, 3.5vw, 40px);
+  background: var(--dark);
+  border-radius: 12px;
+}
+
+.store-promo-card + .store-shelf {
+  margin-top: clamp(34px, 5vw, 56px);
+}
+
+.store-promo-card .eyebrow {
+  color: #b9d0b2;
+  margin-bottom: 8px;
+}
+
+.store-promo-card h2 {
+  color: #fff;
+  font-size: clamp(24px, 2.8vw, 34px);
+  max-width: 20ch;
+}
+
+.store-promo-body {
+  max-width: 48ch;
+  margin-top: 12px;
+  color: #d7e2d2;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.store-promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.store-promo-actions .pill.primary {
+  background: #fff;
+  color: var(--dark);
+  border-color: #fff;
+}
+
+.store-promo-actions .pill.ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Product cards
+ * ------------------------------------------------------------------------ */
+
+.store-tile {
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+
+.store-tile:hover,
+.store-tile:focus-within {
+  box-shadow: 0 14px 30px rgba(49, 73, 54, .1);
+  transform: translateY(-3px);
+}
+
+.store-tile figure {
+  position: relative;
+}
 
 .store-tile figure a {
   display: block;
@@ -127,6 +415,29 @@
 
 .store-tile h3 a {
   display: inline-block;
+}
+
+.store-tile-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--earth);
+  color: #1c2b1e;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.store-tile-cta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+  width: max-content;
 }
 
 /* ---------------------------------------------------------------------------
@@ -139,8 +450,10 @@
 }
 
 .store-tile .price-row .nb-launch-action {
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 700;
   border-bottom: 1px solid currentColor;
+  width: max-content;
 }
 
 .product-launch-action {
@@ -151,7 +464,7 @@
   margin-top: 26px;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 20px;
 }
 
@@ -226,31 +539,42 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Product page
+ * Single product page
  * ------------------------------------------------------------------------ */
 
-.product-detail .product-summary p,
-.product-detail .product-longform p {
-  margin-top: 14px;
+.store-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 20px clamp(24px, 6vw, 58px) 0;
+  font-size: 11.5px;
+  color: #6b7568;
 }
 
-.product-detail .product-longform ul {
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 10px;
+.store-breadcrumb a {
+  color: #6b7568;
+  border-bottom: 1px solid transparent;
 }
 
-.product-detail .product-longform li {
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-  color: #314936;
+.store-breadcrumb a:hover {
+  color: var(--dark);
+  border-color: currentColor;
+}
+
+.store-breadcrumb span[aria-current] {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.product-detail .product-summary p {
+  margin-top: 0;
+  color: #47543f;
 }
 
 .product-detail .price {
   display: block;
-  margin: 16px 0 4px;
+  margin: 4px 0 20px;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 30px;
   font-weight: 400;
@@ -263,41 +587,97 @@
 }
 
 .product-buy {
-  margin-top: 22px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.product-meta-line {
-  margin-top: 20px;
+.product-view-cart-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.product-trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
   font-size: 11px;
-  letter-spacing: .1em;
+  letter-spacing: .06em;
   text-transform: uppercase;
   color: #6b7568;
+  font-weight: 700;
 }
 
-.product-meta-line span {
-  font-weight: 800;
+.product-accordion {
+  margin-top: 26px;
+  display: grid;
+  gap: 10px;
 }
 
-.ritual.caution {
+.product-accordion details {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: #fff;
+}
+
+.product-accordion details[open] {
+  background: var(--paper);
+}
+
+.product-accordion details.is-caution {
   border-color: #d9c48f;
   background: #fdf8ea;
 }
 
-.ritual.disclaimer {
-  background: var(--soft);
+.product-accordion summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .02em;
+  color: var(--ink);
+  list-style: none;
 }
 
-.ritual strong {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+.product-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.product-accordion summary::after {
+  content: "+";
+  float: right;
+  font-weight: 400;
+  color: #6b7568;
+}
+
+.product-accordion details[open] summary::after {
+  content: "\2212";
+}
+
+.product-accordion details p,
+.product-accordion .product-longform {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #3c4a3e;
+}
+
+.product-accordion .product-longform ul {
+  margin: 14px 0 0;
+  padding-left: 20px;
+}
+
+.product-accordion .product-longform li {
+  margin-top: 6px;
 }
 
 .related-shelf {

@@ -30,6 +30,7 @@ if ($product->is_featured()) {
     <a href="<?php echo esc_url(get_permalink($product->get_id())); ?>" aria-label="<?php echo esc_attr($product->get_name()); ?>">
       <?php echo $product->get_image('woocommerce_thumbnail'); ?>
     </a>
+    <?php if ($product->is_featured()) : ?><span class="store-tile-badge"><?php esc_html_e('Bestseller', 'nirog-bhumi'); ?></span><?php endif; ?>
   </figure>
   <div>
     <span><?php echo esc_html($eyebrow ?: wp_strip_all_tags(wc_get_product_category_list($product->get_id(), ', ', '', ''))); ?></span>
@@ -37,10 +38,8 @@ if ($product->is_featured()) {
     <p><?php echo esc_html(wp_strip_all_tags($product->get_short_description())); ?></p>
     <div class="price-row">
       <strong><?php echo wp_kses_post($product->get_price_html()); ?></strong>
-      <?php if ($buyable) : ?>
-        <a href="<?php echo esc_url(get_permalink($product->get_id())); ?>"><?php esc_html_e('View product', 'nirog-bhumi'); ?></a>
-      <?php elseif ('sale' === $status) : ?>
-        <a href="<?php echo esc_url(get_permalink($product->get_id())); ?>"><?php esc_html_e('View product', 'nirog-bhumi'); ?></a>
+      <?php if ($buyable || 'sale' === $status) : ?>
+        <a class="store-tile-cta" href="<?php echo esc_url(get_permalink($product->get_id())); ?>"><?php esc_html_e('View product', 'nirog-bhumi'); ?></a>
       <?php else : ?>
         <?php nirog_bhumi_render_launch_action($product, 'loop'); ?>
       <?php endif; ?>

@@ -46,18 +46,25 @@ data panel:
 - **On sale** — buyable once the store status is Open.
 - **Coming soon** — visible, not buyable, shows the waitlist. The price area
   reads "Coming soon".
-- **Enquiry only** — visible, not buyable, shows a button to a consultation or
-  programme page. The price area reads "Consult first". Used for the 6-month
-  and 99-day programmes, which are joined after a consultation rather than
-  bought from a shelf.
+- **Enquiry only** — visible, not buyable, shows a button to another page
+  instead of a price. Not currently used by any seeded product (see note
+  below), but available for a future physical product that should point
+  somewhere else instead of selling directly.
 
 A product with no launch state set falls back to *On sale* if it has a price
 and *Coming soon* if it does not.
 
+**Programmes and consultations are not sold here.** The 6-month and 99-day
+programmes and the consultation booking amount were removed from the
+catalogue - the store sells physical goods only. A `nirog_bhumi_render_store_promo_card()`
+banner (in `inc/store.php`, placed between shelves in `page-store.php`) points
+shoppers at `/consultation/` and `/programmes/` instead, without ever
+appearing as a catalogue product, cart line or order.
+
 ## Seeding the catalogue
 
-`WooCommerce > Nirog Bhumi Store > Create missing products` creates the five
-shelves and the fifteen launch products defined in `store-catalogue.php`,
+`WooCommerce > Nirog Bhumi Store > Create missing products` creates the four
+shelves and physical-goods products defined in `store-catalogue.php`,
 importing the product images from the theme.
 
 The seeder matches on SKU. Running it again only adds what is missing and never
@@ -95,8 +102,9 @@ per-line HSN and rate needed to build one are already being captured.
 ## Required plugins
 
 - **WooCommerce** — products, cart, checkout, accounts.
-- **Razorpay for WooCommerce** — India-ready payments. See section 11 of
-  `WORDPRESS-SETUP.md`.
+- Your active **PhonePe payment gateway plugin** — the same one already
+  wired up for consultation checkout. Store orders share the same
+  WooCommerce cart and checkout, so no separate gateway setup is needed.
 - **FluentSMTP** or similar — reliable order and invoice email.
 
 The theme removes WooCommerce's own stylesheets and draws the whole store
@@ -112,7 +120,8 @@ templates.
    advertising that claims to cure or treat diabetes. Have a regulatory adviser
    read the wording before launch.
 3. Set up shipping zones, rates and a courier.
-4. Complete Razorpay live keys and run one real low-value order end to end.
+4. Confirm the PhonePe gateway is in live (not test) mode and run one real
+   low-value order end to end.
 5. Publish shipping, returns, refunds and cancellation terms. Indian payment
    gateways require these before going live.
 6. Set stock quantities so the store cannot oversell.

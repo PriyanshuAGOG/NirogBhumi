@@ -2,10 +2,11 @@
 /**
  * Store landing page.
  *
- * Previously a hard-coded "Coming soon" panel with the real shelves hidden
- * behind aria-hidden markup. It now reads the live WooCommerce catalogue and
- * honours the store status set in WooCommerce > Nirog Bhumi Store, so the same
- * page carries the site from pre-launch through to a working shop.
+ * Reads the live WooCommerce catalogue and honours the store status set in
+ * WooCommerce > Nirog Bhumi Store, so the same page carries the site from
+ * pre-launch through to a working shop. Only physical goods are sold here -
+ * consultations and programmes are promoted with a plain signpost card
+ * between shelves, never as catalogue products.
  */
 
 get_header();
@@ -51,47 +52,52 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
     'order' => 'ASC',
   ]);
   $kit = $featured ? $featured[0] : null;
+  // The hero above already shows the star product in full. If its category
+  // holds nothing else, showing that same category again as a near-empty
+  // shelf right underneath would just duplicate the hero.
+  $nb_hero_only_category = 0;
+  if ($kit) {
+    $kit_terms = get_the_terms($kit->get_id(), 'product_cat');
+    if ($kit_terms && !is_wp_error($kit_terms)) {
+      $kit_term = reset($kit_terms);
+      if ((int) $kit_term->count <= 1) {
+        $nb_hero_only_category = (int) $kit_term->term_id;
+      }
+    }
+  }
   ?>
 
-  <?php if ($kit) : ?>
-    <section class="cure-kit-section">
-      <div class="kit-viewport-card">
-        <div class="cure-kit-copy">
-          <p class="eyebrow"><?php echo esc_html(get_post_meta($kit->get_id(), '_nb_eyebrow', true) ?: __('Nirog Bhumi Cure Kit', 'nirog-bhumi')); ?></p>
-          <h1><?php
-          // .cure-kit-copy h1 span is styled as a stacked line, so the name is
-          // split after its first word, matching the original hero markup.
-          $kit_name_parts = explode(' ', $kit->get_name(), 2);
-          foreach ($kit_name_parts as $kit_name_part) {
-            echo '<span>' . esc_html($kit_name_part) . '</span>';
-          }
-          ?></h1>
-          <a class="pill primary" href="<?php echo esc_url(get_permalink($kit->get_id())); ?>">
-            <?php echo nirog_bhumi_product_is_buyable($kit) ? esc_html__('Buy Now', 'nirog-bhumi') : esc_html__('View the kit', 'nirog-bhumi'); ?>
-          </a>
-        </div>
-        <figure><?php echo $kit->get_image('woocommerce_single'); ?></figure>
-        <div class="kit-panel">
-          <span><?php esc_html_e('Complete bundle', 'nirog-bhumi'); ?></span>
-          <h2><?php esc_html_e('Daily rhythm essentials', 'nirog-bhumi'); ?></h2>
-          <strong><?php echo wp_kses_post($kit->get_price_html()); ?></strong>
-        </div>
-        <?php
-        $includes = [];
-        if (preg_match_all('/<li>(.*?)<\/li>/s', $kit->get_description(), $matches)) {
-          $includes = array_map('wp_strip_all_tags', $matches[1]);
-        }
-        ?>
-        <?php if ($includes) : ?>
-          <ol class="kit-includes">
-            <?php foreach (array_slice($includes, 0, 5) as $index => $item) : ?>
-              <li><b><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></b><span><?php echo esc_html($item); ?></span></li>
+  <?php if ($kit) :
+    $kit_includes = [];
+    if (preg_match_all('/<li>(.*?)<\/li>/s', $kit->get_description(), $kit_matches)) {
+      $kit_includes = array_map('wp_strip_all_tags', $kit_matches[1]);
+    }
+    ?>
+    <section class="store-hero">
+      <figure class="store-hero-media">
+        <?php echo $kit->get_image('woocommerce_single'); ?>
+        <span class="store-hero-badge"><?php esc_html_e('Star product', 'nirog-bhumi'); ?></span>
+      </figure>
+      <div class="store-hero-copy">
+        <p class="eyebrow"><?php echo esc_html(get_post_meta($kit->get_id(), '_nb_eyebrow', true) ?: __('Nirog Bhumi Cure Kit', 'nirog-bhumi')); ?></p>
+        <h1><?php echo esc_html($kit->get_name()); ?></h1>
+        <p class="store-hero-summary"><?php echo esc_html(wp_strip_all_tags($kit->get_short_description())); ?></p>
+        <div class="store-hero-price"><?php echo wp_kses_post($kit->get_price_html()); ?></div>
+        <a class="pill primary" href="<?php echo esc_url(get_permalink($kit->get_id())); ?>">
+          <?php echo nirog_bhumi_product_is_buyable($kit) ? esc_html__('Buy Now', 'nirog-bhumi') : esc_html__('View the kit', 'nirog-bhumi'); ?>
+        </a>
+        <?php if ($kit_includes) : ?>
+          <ul class="store-hero-includes">
+            <?php foreach (array_slice($kit_includes, 0, 5) as $kit_item) : ?>
+              <li><?php echo esc_html($kit_item); ?></li>
             <?php endforeach; ?>
-          </ol>
+          </ul>
         <?php endif; ?>
       </div>
     </section>
   <?php endif; ?>
+
+  <?php get_template_part('template-parts/store-category-tiles'); ?>
 
   <?php if ($dispatch) : ?>
     <p class="store-dispatch-note store-dispatch-strip"><?php echo esc_html($dispatch); ?></p>
@@ -102,10 +108,16 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
     'taxonomy' => 'product_cat',
     'hide_empty' => true,
     'exclude' => [(int) get_option('default_product_cat')],
+    'orderby' => 'menu_order',
+    'order' => 'ASC',
   ]);
 
   if (!is_wp_error($shelves)) :
+    $nb_shelf_index = 0;
     foreach ($shelves as $shelf) :
+      if ($nb_hero_only_category && (int) $shelf->term_id === $nb_hero_only_category) {
+        continue;
+      }
       $products = wc_get_products([
         'status' => 'publish',
         'limit' => 4,
@@ -117,6 +129,7 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
       if (!$products) {
         continue;
       }
+      $nb_shelf_index++;
       ?>
       <section class="store-shelf">
         <div class="store-shelf-title">
@@ -147,6 +160,9 @@ $dispatch = $woo_ready ? nirog_bhumi_store_dispatch_note() : '';
         </div>
       </section>
       <?php
+      if (2 === $nb_shelf_index && function_exists('nirog_bhumi_render_store_promo_card')) {
+        nirog_bhumi_render_store_promo_card('consultation');
+      }
     endforeach;
   endif;
   ?>
