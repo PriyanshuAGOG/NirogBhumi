@@ -199,7 +199,8 @@ $selling = $woo_ready && nirog_bhumi_store_selling_is_open();
       <?php
       if (function_exists('nirog_bhumi_render_store_promo_card')) {
         $nb_promo_variant = $nb_promo_variants[($nb_shelf_index - 1) % count($nb_promo_variants)];
-        nirog_bhumi_render_store_promo_card($nb_promo_variant);
+        $nb_promo_side = 0 === ($nb_shelf_index - 1) % 2 ? 'left' : 'right';
+        nirog_bhumi_render_store_promo_card($nb_promo_variant, $nb_promo_side);
       }
     endforeach;
   endif;

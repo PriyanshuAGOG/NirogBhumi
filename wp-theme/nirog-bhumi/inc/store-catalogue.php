@@ -142,6 +142,7 @@ function nirog_bhumi_store_catalogue() {
       ],
       'ritual' => __('Use only with sterile, distilled or previously boiled and cooled water mixed with the right saline level. Clean and dry the pot after every use.', 'nirog-bhumi'),
       'caution' => __('Do not use plain tap water. Avoid use during severe nasal infection, ear pain, bleeding or after nasal surgery unless cleared by a clinician.', 'nirog-bhumi'),
+      'cross_sell' => ['NB-TOOL-02', 'NB-TOOL-04'],
     ],
     [
       'sku' => 'NB-TOOL-02',
@@ -162,6 +163,7 @@ function nirog_bhumi_store_catalogue() {
       ],
       'ritual' => __('Fill the tumbler at night, let the water stand until morning, and drink it on an empty stomach. Rinse and air-dry the tumbler through the day.', 'nirog-bhumi'),
       'caution' => __('This is a traditional practice, not a substitute for prescribed medication. Do not change or stop any diabetes medication without your doctor. Discontinue and speak to a clinician if you notice any reaction.', 'nirog-bhumi'),
+      'cross_sell' => ['NB-TOOL-01', 'NB-TOOL-04'],
     ],
     [
       'sku' => 'NB-TOOL-04',

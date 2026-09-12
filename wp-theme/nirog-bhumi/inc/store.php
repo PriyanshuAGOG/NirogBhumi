@@ -476,7 +476,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.4.0'
+    '0.5.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -485,6 +485,15 @@ function nirog_bhumi_store_assets() {
     '0.1.0',
     true
   );
+  if (function_exists('is_product') && is_product()) {
+    wp_enqueue_script(
+      'nirog-bhumi-product-gallery',
+      get_template_directory_uri() . '/assets/js/product-gallery.js',
+      [],
+      '0.1.0',
+      true
+    );
+  }
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_store_assets', 20);
 
@@ -546,7 +555,7 @@ function nirog_bhumi_store_dispatch_note() {
  * programme never appears in the catalogue, cart or checkout. This card is
  * just a signpost pointing at the real, separate consultation flow.
  */
-function nirog_bhumi_render_store_promo_card($variant = 'consultation') {
+function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_side = 'left') {
   $copy = [
     'consultation' => [
       'eyebrow' => __('Still confused?', 'nirog-bhumi'),
@@ -573,8 +582,9 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation') {
     return;
   }
   $image_url = get_template_directory_uri() . '/assets/img/' . $copy['image'];
+  $side_class = 'right' === $image_side ? ' image-right' : '';
   ?>
-  <section class="store-promo-card">
+  <section class="store-promo-card<?php echo esc_attr($side_class); ?>">
     <figure class="store-promo-media">
       <img src="<?php echo esc_url($image_url); ?>" alt="" loading="lazy">
     </figure>
@@ -606,6 +616,13 @@ function nirog_bhumi_store_category_icon($slug) {
     'acupressure' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12c0-3 1.5-8 6-8s6 5 6 8-2 6-6 6-6-3-6-6Z"/><circle cx="9.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13.5" r=".6" fill="currentColor" stroke="none"/></svg>',
   ];
   return $icons[$slug] ?? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4 3 7 6 7 10a7 7 0 0 1-14 0c0-4 3-7 7-10Z"/></svg>';
+}
+
+/**
+ * Plain inline "share" icon for the product page share button.
+ */
+function nirog_bhumi_share_icon() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="m8.1 10.7 7.8-4.4M8.1 13.3l7.8 4.4"/></svg>';
 }
 
 /**

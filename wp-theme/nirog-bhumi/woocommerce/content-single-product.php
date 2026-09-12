@@ -20,6 +20,34 @@ $caution = get_post_meta($product_id, '_nb_caution', true);
 $dispatch = nirog_bhumi_store_dispatch_note();
 $categories = wc_get_product_category_list($product_id, ', ', '', '');
 $primary_term = ($terms = get_the_terms($product_id, 'product_cat')) && !is_wp_error($terms) ? reset($terms) : null;
+
+// Main image plus any gallery images, so a shopper can browse the product
+// the way they would on any modern store instead of seeing one photo only.
+$gallery_ids = array_values(array_unique(array_filter(array_merge(
+  [$product->get_image_id()],
+  $product->get_gallery_image_ids()
+))));
+
+// The catalogue description wraps an "includes" list in <ul><li> for the
+// product carousel to read (see page-store.php); split it out here into its
+// own accordion section instead of leaving it buried inside "Description".
+$description_html = $product->get_description();
+$includes = [];
+if (preg_match_all('/<li>(.*?)<\/li>/s', $description_html, $description_matches)) {
+  $includes = array_map('wp_strip_all_tags', $description_matches[1]);
+}
+$description_text = trim(preg_replace('/<ul>.*?<\/ul>/s', '', $description_html));
+
+// "Buy it with": WooCommerce's own Cross-sells field (Product data > Linked
+// Products), set by hand in wp-admin or pre-wired for launch SKUs in
+// inc/store-catalogue.php / nirog_bhumi_seed_cross_sells(). Never invented
+// here - if nothing is set, the section simply does not render.
+$cross_sell_products = array_filter(
+  array_map('wc_get_product', $product->get_cross_sell_ids()),
+  function ($cross_sell_product) {
+    return $cross_sell_product && $cross_sell_product->is_visible();
+  }
+);
 ?>
 <?php do_action('woocommerce_before_single_product'); ?>
 <div id="product-<?php the_ID(); ?>" <?php wc_product_class('', $product); ?>>
@@ -35,8 +63,30 @@ $primary_term = ($terms = get_the_terms($product_id, 'product_cat')) && !is_wp_e
   </nav>
 
   <section class="product-page">
-    <div class="product-photo large">
-      <?php echo $product->get_image('woocommerce_single'); ?>
+    <div class="product-gallery"<?php echo count($gallery_ids) > 1 ? ' data-nb-gallery' : ''; ?>>
+      <div class="product-photo large" data-nb-gallery-main>
+        <?php if ($gallery_ids) : ?>
+          <?php echo wp_get_attachment_image($gallery_ids[0], 'woocommerce_single'); ?>
+        <?php else : ?>
+          <?php echo $product->get_image('woocommerce_single'); ?>
+        <?php endif; ?>
+        <button type="button" class="product-share-btn" data-nb-share data-url="<?php echo esc_url(get_permalink($product_id)); ?>" data-title="<?php echo esc_attr($product->get_name()); ?>" aria-label="<?php esc_attr_e('Share this product', 'nirog-bhumi'); ?>">
+          <?php echo nirog_bhumi_share_icon(); ?>
+        </button>
+        <span class="product-share-status" data-nb-share-status hidden><?php esc_html_e('Link copied', 'nirog-bhumi'); ?></span>
+      </div>
+      <?php if (count($gallery_ids) > 1) : ?>
+        <div class="product-gallery-thumbs">
+          <?php foreach ($gallery_ids as $gallery_index => $gallery_id) :
+            $full_url = wp_get_attachment_image_url($gallery_id, 'woocommerce_single');
+            $alt_text = get_post_meta($gallery_id, '_wp_attachment_image_alt', true);
+            ?>
+            <button type="button" class="product-gallery-thumb<?php echo 0 === $gallery_index ? ' is-active' : ''; ?>" data-nb-gallery-thumb data-full="<?php echo esc_url($full_url); ?>" data-alt="<?php echo esc_attr($alt_text); ?>">
+              <?php echo wp_get_attachment_image($gallery_id, 'woocommerce_gallery_thumbnail'); ?>
+            </button>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
     <div class="product-detail">
       <?php if ($eyebrow || $categories) : ?><p class="eyebrow"><?php echo esc_html($eyebrow ?: wp_strip_all_tags($categories)); ?></p><?php endif; ?>
@@ -70,16 +120,27 @@ $primary_term = ($terms = get_the_terms($product_id, 'product_cat')) && !is_wp_e
       </div>
 
       <div class="product-accordion">
-        <?php if ($product->get_description()) : ?>
+        <?php if ($description_text) : ?>
           <details open>
             <summary><?php esc_html_e('Description', 'nirog-bhumi'); ?></summary>
-            <div class="product-longform"><?php echo wp_kses_post(wpautop($product->get_description())); ?></div>
+            <div class="product-longform"><?php echo wp_kses_post(wpautop($description_text)); ?></div>
+          </details>
+        <?php endif; ?>
+
+        <?php if ($includes) : ?>
+          <details open>
+            <summary><?php esc_html_e("What's included", 'nirog-bhumi'); ?></summary>
+            <ul class="product-includes-list">
+              <?php foreach ($includes as $include_item) : ?>
+                <li><?php echo esc_html($include_item); ?></li>
+              <?php endforeach; ?>
+            </ul>
           </details>
         <?php endif; ?>
 
         <?php if ($ritual) : ?>
           <details>
-            <summary><?php esc_html_e('Suggested ritual', 'nirog-bhumi'); ?></summary>
+            <summary><?php esc_html_e('How to use', 'nirog-bhumi'); ?></summary>
             <p><?php echo esc_html($ritual); ?></p>
           </details>
         <?php endif; ?>
@@ -98,6 +159,43 @@ $primary_term = ($terms = get_the_terms($product_id, 'product_cat')) && !is_wp_e
       </div>
     </div>
   </section>
+
+  <?php if (!empty($cross_sell_products)) : ?>
+    <section class="store-shelf buy-with-shelf">
+      <div class="store-shelf-title">
+        <div>
+          <p class="eyebrow"><?php esc_html_e('Complete the ritual', 'nirog-bhumi'); ?></p>
+          <h2><?php esc_html_e('Buy it with', 'nirog-bhumi'); ?></h2>
+        </div>
+      </div>
+      <div class="buy-with-grid">
+        <?php foreach ($cross_sell_products as $cross_sell_product) :
+          $cross_sell_buyable = nirog_bhumi_product_is_buyable($cross_sell_product);
+          $cross_sell_permalink = get_permalink($cross_sell_product->get_id());
+          ?>
+          <div class="buy-with-card">
+            <a class="buy-with-media" href="<?php echo esc_url($cross_sell_permalink); ?>">
+              <?php echo $cross_sell_product->get_image('woocommerce_thumbnail'); ?>
+            </a>
+            <div class="buy-with-body">
+              <a class="buy-with-name" href="<?php echo esc_url($cross_sell_permalink); ?>"><?php echo esc_html($cross_sell_product->get_name()); ?></a>
+              <strong class="buy-with-price"><?php echo wp_kses_post($cross_sell_product->get_price_html()); ?></strong>
+              <?php if ($cross_sell_buyable) : ?>
+                <a href="<?php echo esc_url(add_query_arg('add-to-cart', $cross_sell_product->get_id(), wc_get_cart_url())); ?>"
+                  data-quantity="1"
+                  data-product_id="<?php echo esc_attr($cross_sell_product->get_id()); ?>"
+                  data-product_sku="<?php echo esc_attr($cross_sell_product->get_sku()); ?>"
+                  class="buy-with-add ajax_add_to_cart add_to_cart_button"
+                  rel="nofollow"><?php esc_html_e('Add', 'nirog-bhumi'); ?></a>
+              <?php else : ?>
+                <a class="buy-with-add" href="<?php echo esc_url($cross_sell_permalink); ?>"><?php esc_html_e('View', 'nirog-bhumi'); ?></a>
+              <?php endif; ?>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <?php
   $related_ids = wc_get_related_products($product_id, 4);

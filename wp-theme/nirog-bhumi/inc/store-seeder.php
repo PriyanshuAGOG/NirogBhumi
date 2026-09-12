@@ -244,7 +244,51 @@ function nirog_bhumi_seed_catalogue() {
     $result[$outcome]++;
   }
 
+  // Cross-sells ("buy it with") are set in a second pass, once every
+  // product in the catalogue is guaranteed to exist, since an entry can
+  // list a SKU that is created later in the same run.
+  nirog_bhumi_seed_cross_sells();
+
   return $result;
+}
+
+/**
+ * Wire up each catalogue entry's 'cross_sell' SKUs as WooCommerce
+ * cross-sells, so the "Buy it with" section on the product page has
+ * something to show without needing it set by hand in wp-admin first.
+ * Re-running this never removes a cross-sell added manually afterwards -
+ * it only adds the catalogue's own list if it isn't already there.
+ */
+function nirog_bhumi_seed_cross_sells() {
+  if (!function_exists('wc_get_product_id_by_sku')) {
+    return;
+  }
+  foreach (nirog_bhumi_store_catalogue() as $entry) {
+    if (empty($entry['cross_sell'])) {
+      continue;
+    }
+    $product_id = wc_get_product_id_by_sku($entry['sku']);
+    if (!$product_id) {
+      continue;
+    }
+    $product = wc_get_product($product_id);
+    if (!$product) {
+      continue;
+    }
+    $cross_sell_ids = $product->get_cross_sell_ids();
+    $changed = false;
+    foreach ($entry['cross_sell'] as $cross_sku) {
+      $cross_id = wc_get_product_id_by_sku($cross_sku);
+      if ($cross_id && !in_array($cross_id, $cross_sell_ids, true)) {
+        $cross_sell_ids[] = $cross_id;
+        $changed = true;
+      }
+    }
+    if ($changed) {
+      $product->set_cross_sell_ids($cross_sell_ids);
+      $product->save();
+    }
+  }
 }
 
 /**
