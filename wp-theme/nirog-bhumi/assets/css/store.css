@@ -409,18 +409,19 @@
 
 /*
  * A short, wide strip rather than a tall banner or a narrow square: image on
- * one side in a fixed-height box, copy on the other, capped height so it
- * reads as a slim promo rather than another full section. image_side
+ * one side, copy on the other. The card sizes to its content instead of a
+ * fixed max-height - a fixed height previously clipped the last line of copy
+ * or the button row on anything but the narrowest viewport. image_side
  * alternates left/right between cards (see nirog_bhumi_render_store_promo_card).
  */
 .store-promo-card {
   display: flex;
   align-items: stretch;
   margin: clamp(28px, 4vw, 48px) clamp(20px, 5vw, 58px) 0;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
   background: var(--dark);
-  max-height: 210px;
+  box-shadow: 0 16px 34px rgba(49, 73, 54, .16);
 }
 
 .store-promo-card.image-right {
@@ -432,7 +433,8 @@
 }
 
 .store-promo-media {
-  flex: 0 0 clamp(140px, 26vw, 260px);
+  flex: 0 0 clamp(150px, 28vw, 280px);
+  min-height: clamp(190px, 22vw, 240px);
   margin: 0;
 }
 
@@ -449,44 +451,54 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 2.4vw, 26px) clamp(20px, 3vw, 32px);
+  gap: 2px;
+  padding: clamp(22px, 3vw, 30px) clamp(24px, 3.4vw, 38px);
 }
 
 .store-promo-card .eyebrow {
-  color: #b9d0b2;
-  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #bcd4b3;
+  margin-bottom: 4px;
+}
+
+.store-promo-card .eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--earth);
+  flex: 0 0 auto;
 }
 
 .store-promo-card h2 {
   color: #fff;
-  font-size: clamp(16px, 1.8vw, 20px);
-  line-height: 1.25;
-  max-width: 30ch;
+  font-size: clamp(17px, 1.9vw, 22px);
+  line-height: 1.3;
+  max-width: 32ch;
 }
 
 .store-promo-body {
-  max-width: 46ch;
-  margin-top: 6px;
+  max-width: 48ch;
+  margin-top: 8px;
   color: #d7e2d2;
-  font-size: 12px;
-  line-height: 1.55;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 
 .store-promo-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .store-promo-actions .pill {
-  min-height: 36px;
-  padding: 0 15px;
+  min-height: 38px;
+  padding: 0 17px;
   font-size: 11.5px;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
 
 .store-promo-actions .pill.primary {
@@ -495,19 +507,29 @@
   border-color: #fff;
 }
 
+.store-promo-actions .pill.primary:hover {
+  background: var(--earth);
+  border-color: var(--earth);
+  color: #1c2b1e;
+}
+
 .store-promo-actions .pill.ghost {
   color: #fff;
   border-color: rgba(255, 255, 255, .5);
+}
+
+.store-promo-actions .pill.ghost:hover {
+  border-color: #fff;
 }
 
 @media (max-width: 640px) {
   .store-promo-card,
   .store-promo-card.image-right {
     flex-direction: column;
-    max-height: none;
   }
   .store-promo-media {
-    flex: 0 0 130px;
+    flex: 0 0 170px;
+    min-height: 0;
     width: 100%;
   }
   .store-promo-body-wrap {

@@ -476,7 +476,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.5.0'
+    '0.6.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
