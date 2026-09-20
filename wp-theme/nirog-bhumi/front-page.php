@@ -176,5 +176,6 @@ get_header(); ?>
   <text class="ts" x="340" y="1302" text-anchor="middle" font-style="italic">No single intervention works alone - the synergy is the antidote.</text>
 </svg></div>
 </section>
+<?php get_template_part('template-parts/store-promo-strip'); ?>
 </main>
 <?php get_footer(); ?>

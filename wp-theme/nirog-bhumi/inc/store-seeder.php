@@ -60,6 +60,15 @@ function nirog_bhumi_store_retired_skus() {
     'NB-PROG-99D',
     'CONSULT-500',
     'NB-TOOL-03',
+    // Retired when the catalogue was replaced with the five products from
+    // the September 2026 website information pack: the placeholder kit
+    // bundle, the food-mix placeholders and the yoga mat placeholder.
+    'NB-KIT-01',
+    'NB-FOOD-01',
+    'NB-FOOD-02',
+    'NB-FOOD-03',
+    'NB-FOOD-04',
+    'NB-TOOL-04',
   ];
 }
 
@@ -139,21 +148,6 @@ function nirog_bhumi_import_theme_image($filename) {
 }
 
 /**
- * Build the long description shown on the product page.
- */
-function nirog_bhumi_catalogue_description($entry) {
-  $html = '<p>' . esc_html($entry['description']) . '</p>';
-  if (!empty($entry['includes'])) {
-    $html .= '<ul>';
-    foreach ($entry['includes'] as $item) {
-      $html .= '<li>' . esc_html($item) . '</li>';
-    }
-    $html .= '</ul>';
-  }
-  return $html;
-}
-
-/**
  * Create one catalogue entry as a WooCommerce product.
  *
  * Returns 'created', 'skipped' or 'failed'. Existing products are never
@@ -178,13 +172,50 @@ function nirog_bhumi_seed_product($entry, $category_map) {
     return 'failed';
   }
 
+  nirog_bhumi_apply_catalogue_meta($product_id, $entry);
+
+  return 'created';
+}
+
+/**
+ * A catalogue list item can hold a single string or an array of lines (one
+ * per bullet/step). Editorial fields on the product itself are always plain
+ * text with one bullet or numbered step per line, so an array is joined
+ * with newlines and a plain string is used as-is.
+ */
+function nirog_bhumi_catalogue_lines($value) {
+  return is_array($value) ? implode("\n", $value) : (string) $value;
+}
+
+/**
+ * Write every editorial and tax field a catalogue entry carries onto the
+ * product's postmeta. Shared by both the create path (nirog_bhumi_seed_product)
+ * and the update path (nirog_bhumi_update_seeded_products), so the two never
+ * drift out of sync on which fields they know about.
+ */
+function nirog_bhumi_apply_catalogue_meta($product_id, $entry) {
   update_post_meta($product_id, '_nb_launch_status', $entry['status']);
   update_post_meta($product_id, '_nb_eyebrow', $entry['eyebrow']);
   if (!empty($entry['ritual'])) {
-    update_post_meta($product_id, '_nb_ritual', $entry['ritual']);
+    update_post_meta($product_id, '_nb_ritual', nirog_bhumi_catalogue_lines($entry['ritual']));
   }
   if (!empty($entry['caution'])) {
-    update_post_meta($product_id, '_nb_caution', $entry['caution']);
+    update_post_meta($product_id, '_nb_caution', nirog_bhumi_catalogue_lines($entry['caution']));
+  }
+  if (!empty($entry['benefits'])) {
+    update_post_meta($product_id, '_nb_benefits', nirog_bhumi_catalogue_lines($entry['benefits']));
+  }
+  if (!empty($entry['diabetes_context'])) {
+    update_post_meta($product_id, '_nb_diabetes_note', $entry['diabetes_context']);
+  }
+  if (!empty($entry['disclosure'])) {
+    update_post_meta($product_id, '_nb_disclosure', $entry['disclosure']);
+  }
+  if (!empty($entry['hsn'])) {
+    update_post_meta($product_id, '_nb_hsn', $entry['hsn']);
+  }
+  if (isset($entry['gst_rate']) && '' !== $entry['gst_rate']) {
+    update_post_meta($product_id, '_nb_gst_rate', (string) $entry['gst_rate']);
   }
   if (!empty($entry['enquiry_url'])) {
     update_post_meta($product_id, '_nb_enquiry_url', $entry['enquiry_url']);
@@ -192,8 +223,6 @@ function nirog_bhumi_seed_product($entry, $category_map) {
   if (!empty($entry['enquiry_label'])) {
     update_post_meta($product_id, '_nb_enquiry_label', $entry['enquiry_label']);
   }
-
-  return 'created';
 }
 
 /**
@@ -292,6 +321,67 @@ function nirog_bhumi_seed_cross_sells() {
 }
 
 /**
+ * Refresh an already-created product's editorial content (name, slug,
+ * descriptions, price, category and every _nb_* field) from the catalogue.
+ * "Create missing products" deliberately skips a SKU that already exists so
+ * a manual dashboard edit is never silently overwritten; this is the
+ * opposite tool, for the moment a SKU's copy in store-catalogue.php changes
+ * on purpose (a rewrite like this one) and the live product needs to catch
+ * up. It never touches stock, images already set on the product, reviews or
+ * order history - only content this file owns.
+ */
+function nirog_bhumi_update_seeded_products() {
+  $result = ['updated' => 0, 'not_found' => 0];
+  if (!function_exists('wc_get_product_id_by_sku')) {
+    return $result;
+  }
+  $category_map = nirog_bhumi_seed_product_categories();
+  foreach (nirog_bhumi_store_catalogue() as $entry) {
+    $product_id = wc_get_product_id_by_sku($entry['sku']);
+    if (!$product_id) {
+      $result['not_found']++;
+      continue;
+    }
+    $product = wc_get_product($product_id);
+    if (!$product) {
+      $result['not_found']++;
+      continue;
+    }
+
+    $product->set_name($entry['name']);
+    $product->set_slug($entry['slug']);
+    $product->set_short_description($entry['short']);
+    $product->set_description(nirog_bhumi_catalogue_description($entry));
+    $product->set_featured(!empty($entry['featured']));
+
+    if ('sale' === $entry['status'] && '' !== $entry['price']) {
+      $product->set_regular_price($entry['price']);
+    }
+
+    if (!empty($entry['category']) && isset($category_map[$entry['category']])) {
+      $product->set_category_ids([$category_map[$entry['category']]]);
+    }
+
+    // Only fill in an image if the product does not already have one - a
+    // photo uploaded by hand in wp-admin is never replaced by this tool.
+    if (!$product->get_image_id() && !empty($entry['image'])) {
+      $attachment_id = nirog_bhumi_import_theme_image($entry['image']);
+      if ($attachment_id) {
+        $product->set_image_id($attachment_id);
+      }
+    }
+
+    $product->save();
+    nirog_bhumi_apply_catalogue_meta($product_id, $entry);
+    $result['updated']++;
+  }
+
+  nirog_bhumi_seed_cross_sells();
+
+  return $result;
+}
+
+/**
  * The store page normally sits under WooCommerce. Before WooCommerce is
  * activated that menu does not exist, so it falls back to Settings and the
  * pre-launch checklist stays reachable.
@@ -352,6 +442,27 @@ function nirog_bhumi_handle_cleanup_retired_products() {
 }
 add_action('admin_post_nirog_cleanup_retired_products', 'nirog_bhumi_handle_cleanup_retired_products');
 
+function nirog_bhumi_handle_update_seeded_products() {
+  if (!current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+    wp_die(esc_html__('You are not allowed to update the catalogue.', 'nirog-bhumi'));
+  }
+  check_admin_referer('nirog_update_seeded_products');
+
+  if (!nirog_bhumi_woocommerce_active()) {
+    wp_safe_redirect(add_query_arg('nb_seed', 'no-woocommerce', nirog_bhumi_store_admin_url()));
+    exit;
+  }
+
+  $result = nirog_bhumi_update_seeded_products();
+  wp_safe_redirect(add_query_arg([
+    'nb_update' => 'done',
+    'nb_updated' => $result['updated'],
+    'nb_update_missing' => $result['not_found'],
+  ], nirog_bhumi_store_admin_url()));
+  exit;
+}
+add_action('admin_post_nirog_update_seeded_products', 'nirog_bhumi_handle_update_seeded_products');
+
 function nirog_bhumi_store_admin_url() {
   return nirog_bhumi_woocommerce_active()
     ? admin_url('admin.php?page=nirog-bhumi-store')
@@ -390,6 +501,17 @@ function nirog_bhumi_render_store_admin_page() {
           /* translators: %d: number of retired products trashed */
           esc_html__('Retired products cleaned up. Moved to trash: %d.', 'nirog-bhumi'),
           (int) ($_GET['nb_trashed'] ?? 0)
+        ); ?>
+      </p></div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['nb_update']) && 'done' === $_GET['nb_update']) : ?>
+      <div class="notice notice-success"><p>
+        <?php printf(
+          /* translators: 1: number of products updated, 2: number not found */
+          esc_html__('Catalogue copy refreshed. Updated: %1$d. Not created yet: %2$d.', 'nirog-bhumi'),
+          (int) ($_GET['nb_updated'] ?? 0),
+          (int) ($_GET['nb_update_missing'] ?? 0)
         ); ?>
       </p></div>
     <?php endif; ?>
@@ -457,13 +579,14 @@ function nirog_bhumi_render_store_admin_page() {
     <h2><?php esc_html_e('Launch catalogue', 'nirog-bhumi'); ?></h2>
     <p><?php esc_html_e('Create the shelves and products that the store design was built around. Products are matched on SKU, so running this again only adds what is missing. Nothing you have already edited is overwritten.', 'nirog-bhumi'); ?></p>
 
-    <table class="widefat striped" style="max-width:1000px">
+    <table class="widefat striped" style="max-width:1100px">
       <thead><tr>
         <th><?php esc_html_e('SKU', 'nirog-bhumi'); ?></th>
         <th><?php esc_html_e('Product', 'nirog-bhumi'); ?></th>
         <th><?php esc_html_e('Shelf', 'nirog-bhumi'); ?></th>
-        <th><?php esc_html_e('Launch state', 'nirog-bhumi'); ?></th>
-        <th><?php esc_html_e('Price', 'nirog-bhumi'); ?></th>
+        <th><?php esc_html_e('HSN', 'nirog-bhumi'); ?></th>
+        <th><?php esc_html_e('GST', 'nirog-bhumi'); ?></th>
+        <th><?php esc_html_e('Price (incl. GST)', 'nirog-bhumi'); ?></th>
         <th><?php esc_html_e('In store', 'nirog-bhumi'); ?></th>
       </tr></thead>
       <tbody>
@@ -476,7 +599,8 @@ function nirog_bhumi_render_store_admin_page() {
           <td><code><?php echo esc_html($entry['sku']); ?></code></td>
           <td><?php echo esc_html($entry['name']); ?></td>
           <td><?php echo esc_html($categories[$entry['category']]['name'] ?? $entry['category']); ?></td>
-          <td><?php echo esc_html($entry['status']); ?></td>
+          <td><?php echo esc_html($entry['hsn'] ?? ''); ?></td>
+          <td><?php echo isset($entry['gst_rate']) && '' !== $entry['gst_rate'] ? esc_html($entry['gst_rate'] . '%') : '&mdash;'; ?></td>
           <td><?php echo '' !== $entry['price'] ? esc_html('Rs. ' . $entry['price']) : '&mdash;'; ?></td>
           <td><?php if ($existing) : ?>
             <a href="<?php echo esc_url(get_edit_post_link($existing)); ?>"><?php esc_html_e('Edit', 'nirog-bhumi'); ?></a>
@@ -488,11 +612,19 @@ function nirog_bhumi_render_store_admin_page() {
       </tbody>
     </table>
 
-    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:16px">
-      <input type="hidden" name="action" value="nirog_seed_catalogue">
-      <?php wp_nonce_field('nirog_seed_catalogue'); ?>
-      <?php submit_button(__('Create missing products', 'nirog-bhumi'), 'primary', 'submit', false); ?>
-    </form>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+        <input type="hidden" name="action" value="nirog_seed_catalogue">
+        <?php wp_nonce_field('nirog_seed_catalogue'); ?>
+        <?php submit_button(__('Create missing products', 'nirog-bhumi'), 'primary', 'submit', false); ?>
+      </form>
+      <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+        <input type="hidden" name="action" value="nirog_update_seeded_products">
+        <?php wp_nonce_field('nirog_update_seeded_products'); ?>
+        <?php submit_button(__('Refresh copy on existing products', 'nirog-bhumi'), 'secondary', 'submit', false); ?>
+      </form>
+    </div>
+    <p class="description" style="max-width:46em;margin-top:6px"><?php esc_html_e('"Create missing products" only adds what is not there yet - it never touches an existing product. "Refresh copy on existing products" overwrites name, descriptions, price, category and the fields on this tab (how to use, benefits, precautions, HSN, GST) for every SKU above that already exists, from what is defined in the catalogue right now. It never changes stock, an already-set product photo, reviews or past orders. Use it after a copy update like this one so an already-created product actually shows the new text.', 'nirog-bhumi'); ?></p>
 
     <h2><?php esc_html_e('Retired products', 'nirog-bhumi'); ?></h2>
     <p style="max-width:46em"><?php esc_html_e('Combos, programmes and consultations sold as products have been removed from the catalogue above. If "Create missing products" was ever run before that change, those old products can still exist live on the site. This moves any of them to trash (recoverable from Products > Trash) - it never affects a product that is still part of the current catalogue.', 'nirog-bhumi'); ?></p>
@@ -509,7 +641,7 @@ function nirog_bhumi_render_store_admin_page() {
       <li><?php esc_html_e('Confirm HSN codes and GST rates per product with your accountant, and enter them on each product.', 'nirog-bhumi'); ?></li>
       <li><?php esc_html_e('Check product names, packaging and page copy against FSSAI rules for packaged food and AYUSH rules for herbal products, and against the Drugs and Magic Remedies (Objectionable Advertisements) Act, which restricts claims to cure or treat diabetes. Have a regulatory advisor review the wording.', 'nirog-bhumi'); ?></li>
       <li><?php esc_html_e('Set up shipping zones, rates and a courier in WooCommerce > Settings > Shipping.', 'nirog-bhumi'); ?></li>
-      <li><?php esc_html_e('Complete the Razorpay live keys and run one real low-value order end to end.', 'nirog-bhumi'); ?></li>
+      <li><?php esc_html_e('Complete the PhonePe live keys and run one real low-value order end to end.', 'nirog-bhumi'); ?></li>
       <li><?php esc_html_e('Publish shipping, returns, refunds and cancellation terms, which Indian payment gateways require before going live.', 'nirog-bhumi'); ?></li>
       <li><?php esc_html_e('Set stock quantities on each product so the store cannot oversell.', 'nirog-bhumi'); ?></li>
     </ol>

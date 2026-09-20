@@ -186,15 +186,33 @@ function nirog_bhumi_product_data_panel() {
       <?php
       woocommerce_wp_textarea_input([
         'id' => '_nb_ritual',
-        'label' => __('Suggested ritual', 'nirog-bhumi'),
+        'label' => __('How to use', 'nirog-bhumi'),
         'desc_tip' => true,
-        'description' => __('How the item is used day to day. Shown in a panel on the product page.', 'nirog-bhumi'),
+        'description' => __('One numbered step per line. Shown as a numbered "How to use" panel on the product page.', 'nirog-bhumi'),
       ]);
       woocommerce_wp_textarea_input([
         'id' => '_nb_caution',
-        'label' => __('Important note', 'nirog-bhumi'),
+        'label' => __('Precautions', 'nirog-bhumi'),
         'desc_tip' => true,
-        'description' => __('Safety note, contraindications and who should avoid the item. Shown in a highlighted panel.', 'nirog-bhumi'),
+        'description' => __('One bullet per line. Safety notes, contraindications and who should avoid the item. Shown in a highlighted "Precautions" panel.', 'nirog-bhumi'),
+      ]);
+      woocommerce_wp_textarea_input([
+        'id' => '_nb_benefits',
+        'label' => __('Benefits', 'nirog-bhumi'),
+        'desc_tip' => true,
+        'description' => __('One bullet per line. Shown as a "Benefits" panel on the product page.', 'nirog-bhumi'),
+      ]);
+      woocommerce_wp_textarea_input([
+        'id' => '_nb_diabetes_note',
+        'label' => __('Diabetes wellness context', 'nirog-bhumi'),
+        'desc_tip' => true,
+        'description' => __('How this product relates (or does not relate) to diabetes care - what the evidence does and does not support. Shown in its own panel.', 'nirog-bhumi'),
+      ]);
+      woocommerce_wp_textarea_input([
+        'id' => '_nb_disclosure',
+        'label' => __('Wellness disclosure', 'nirog-bhumi'),
+        'desc_tip' => true,
+        'description' => __('The product-specific wellness disclosure paragraph, shown above the generic site-wide disclaimer.', 'nirog-bhumi'),
       ]);
       ?>
     </div>
@@ -241,7 +259,7 @@ function nirog_bhumi_save_product_fields($product_id) {
     update_post_meta($product_id, '_nb_enquiry_url', 0 === strpos($url, '/') ? sanitize_text_field($url) : esc_url_raw($url));
   }
 
-  foreach (['_nb_ritual', '_nb_caution'] as $field) {
+  foreach (['_nb_ritual', '_nb_caution', '_nb_benefits', '_nb_diabetes_note', '_nb_disclosure'] as $field) {
     if (isset($_POST[$field])) {
       update_post_meta($product_id, $field, sanitize_textarea_field(wp_unslash($_POST[$field])));
     }
@@ -476,7 +494,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.6.0'
+    '0.7.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -555,34 +573,35 @@ function nirog_bhumi_store_dispatch_note() {
  * programme never appears in the catalogue, cart or checkout. This card is
  * just a signpost pointing at the real, separate consultation flow.
  */
-function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_side = 'left') {
+function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_side = 'right') {
+  // The same portrait used in the homepage hero (assets/img/yoga-meditation-opt.jpg)
+  // so this card reads as the same brand, not a stock photo pulled from
+  // nowhere - deliberately the one image the whole card is designed around.
   $copy = [
     'consultation' => [
-      'eyebrow' => __('Still confused?', 'nirog-bhumi'),
-      'heading' => __('Book a consultation and see what\'s right for you.', 'nirog-bhumi'),
-      'body' => __('A 30-minute session with Gautam Khandelwal helps match the right tools, food staples and practice routine to your reports, medication and daily rhythm - before you spend on anything.', 'nirog-bhumi'),
-      'primary_label' => __('Book Consultation', 'nirog-bhumi'),
+      'eyebrow' => __('Not sure where to start?', 'nirog-bhumi'),
+      'heading' => __('Get a plan built around your body, not a guess.', 'nirog-bhumi'),
+      'body' => __('30 minutes with Gautam Khandelwal, and you walk out with a clear next step - the right tools, food shifts and practice, matched to your reports and your life.', 'nirog-bhumi'),
+      'primary_label' => __('Book Free Consultation', 'nirog-bhumi'),
       'primary_url' => home_url('/consultation/'),
-      'secondary_label' => __('See Programs', 'nirog-bhumi'),
+      'secondary_label' => __('Explore Programs', 'nirog-bhumi'),
       'secondary_url' => home_url('/programmes/'),
-      'image' => 'yoga-backbend-opt.jpg',
     ],
     'yoga_programme' => [
-      'eyebrow' => __('Tools work best with practice', 'nirog-bhumi'),
-      'heading' => __('Pair what you buy with our Yoga for Diabetes program.', 'nirog-bhumi'),
-      'body' => __('A neti pot, a tumbler and a mat go further alongside guided asanas, pranayama and meditation built specifically for diabetes reversal. Most people who see real change do both together.', 'nirog-bhumi'),
+      'eyebrow' => __('Tools alone are not the whole story', 'nirog-bhumi'),
+      'heading' => __('Pair your kit with the Yoga for Diabetes program.', 'nirog-bhumi'),
+      'body' => __('Guided asanas, pranayama and meditation, built specifically for diabetes reversal - the people who see the fastest change do both together.', 'nirog-bhumi'),
       'primary_label' => __('Explore Yoga Program', 'nirog-bhumi'),
       'primary_url' => home_url('/yoga-programme/'),
       'secondary_label' => __('See All Programs', 'nirog-bhumi'),
       'secondary_url' => home_url('/programmes/'),
-      'image' => 'yoga-twist-opt.jpg',
     ],
   ][$variant] ?? null;
   if (!$copy) {
     return;
   }
-  $image_url = get_template_directory_uri() . '/assets/img/' . $copy['image'];
-  $side_class = 'right' === $image_side ? ' image-right' : '';
+  $image_url = get_template_directory_uri() . '/assets/img/yoga-meditation-opt.jpg';
+  $side_class = 'left' === $image_side ? ' image-left' : ' image-right';
   ?>
   <section class="store-promo-card<?php echo esc_attr($side_class); ?>">
     <figure class="store-promo-media">
@@ -610,7 +629,6 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_s
  */
 function nirog_bhumi_store_category_icon($slug) {
   $icons = [
-    'cure-kit' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z"/><path d="M4 8 6 4h12l2 4"/><path d="M9 12h6M12 9v6"/></svg>',
     'diabetes-friendly-foods' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a8 8 0 0 0 16 0Z"/><path d="M4 11h16"/><path d="M9 15v2M12 15v3M15 15v2"/><path d="M12 11V5c2 0 3 1.5 3 3"/></svg>',
     'cure-kit-essentials' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.5" r="2.2"/><path d="M12 8v6M8 20l4-6 4 6M8.5 12.5h7"/></svg>',
     'acupressure' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12c0-3 1.5-8 6-8s6 5 6 8-2 6-6 6-6-3-6-6Z"/><circle cx="9.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="11" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13.5" r=".6" fill="currentColor" stroke="none"/></svg>',

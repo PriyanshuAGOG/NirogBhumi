@@ -173,5 +173,6 @@ get_header(); ?>
     <a href="https://www.medicalnewstoday.com/articles/mindfulness-may-be-as-effective-as-antidepressant-relieving-anxiety-symptoms" target="_blank" rel="noopener">Read article</a>
   </article><?php echo nirog_bhumi_education_cards_html($nb_education_groups[nirog_bhumi_education_topic_key('Recovery, Stress & Tracking')] ?? [], 2); ?></div>
 </section>
+<?php get_template_part('template-parts/store-promo-strip'); ?>
 </main>
 <?php get_footer(); ?>

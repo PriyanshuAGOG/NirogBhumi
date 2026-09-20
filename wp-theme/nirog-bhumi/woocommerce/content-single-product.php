@@ -15,8 +15,14 @@ $product_id = $product->get_id();
 $status = nirog_bhumi_product_launch_status($product);
 $buyable = nirog_bhumi_product_is_buyable($product);
 $eyebrow = get_post_meta($product_id, '_nb_eyebrow', true);
-$ritual = get_post_meta($product_id, '_nb_ritual', true);
-$caution = get_post_meta($product_id, '_nb_caution', true);
+// How to use, Precautions and Benefits are stored as one line per
+// step/bullet (see the product data panel and store-catalogue.php) and
+// rendered as a numbered or bulleted list rather than one run-on paragraph.
+$how_to_use = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_ritual', true)))));
+$precautions = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_caution', true)))));
+$benefits = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_benefits', true)))));
+$diabetes_note = get_post_meta($product_id, '_nb_diabetes_note', true);
+$disclosure = get_post_meta($product_id, '_nb_disclosure', true);
 $dispatch = nirog_bhumi_store_dispatch_note();
 $categories = wc_get_product_category_list($product_id, ', ', '', '');
 $primary_term = ($terms = get_the_terms($product_id, 'product_cat')) && !is_wp_error($terms) ? reset($terms) : null;
@@ -138,17 +144,50 @@ $cross_sell_products = array_filter(
           </details>
         <?php endif; ?>
 
-        <?php if ($ritual) : ?>
+        <?php if ($how_to_use) : ?>
           <details>
             <summary><?php esc_html_e('How to use', 'nirog-bhumi'); ?></summary>
-            <p><?php echo esc_html($ritual); ?></p>
+            <ol class="product-includes-list product-steps-list">
+              <?php foreach ($how_to_use as $step) : ?>
+                <li><?php echo esc_html($step); ?></li>
+              <?php endforeach; ?>
+            </ol>
           </details>
         <?php endif; ?>
 
-        <?php if ($caution) : ?>
+        <?php if ($benefits) : ?>
+          <details>
+            <summary><?php esc_html_e('Benefits', 'nirog-bhumi'); ?></summary>
+            <ul class="product-includes-list">
+              <?php foreach ($benefits as $benefit) : ?>
+                <li><?php echo esc_html($benefit); ?></li>
+              <?php endforeach; ?>
+            </ul>
+          </details>
+        <?php endif; ?>
+
+        <?php if ($diabetes_note) : ?>
+          <details>
+            <summary><?php esc_html_e('Diabetes wellness context', 'nirog-bhumi'); ?></summary>
+            <p><?php echo esc_html($diabetes_note); ?></p>
+          </details>
+        <?php endif; ?>
+
+        <?php if ($precautions) : ?>
           <details class="is-caution">
-            <summary><?php esc_html_e('Important note', 'nirog-bhumi'); ?></summary>
-            <p><?php echo esc_html($caution); ?></p>
+            <summary><?php esc_html_e('Precautions', 'nirog-bhumi'); ?></summary>
+            <ul class="product-includes-list">
+              <?php foreach ($precautions as $precaution) : ?>
+                <li><?php echo esc_html($precaution); ?></li>
+              <?php endforeach; ?>
+            </ul>
+          </details>
+        <?php endif; ?>
+
+        <?php if ($disclosure) : ?>
+          <details>
+            <summary><?php esc_html_e('Wellness disclosure', 'nirog-bhumi'); ?></summary>
+            <p><?php echo esc_html($disclosure); ?></p>
           </details>
         <?php endif; ?>
 
