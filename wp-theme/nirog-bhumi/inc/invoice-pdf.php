@@ -416,12 +416,13 @@ function nirog_bhumi_order_invoice_data($order_id) {
     $add_row($item->get_name(), $hsn, (int) $item->get_quantity(), (float) $item->get_total(), $rate);
   }
 
+  // Shipping is a flat, GST-inclusive charge, not a catalogue product - it
+  // is never listed as a numbered line item alongside the goods, and its
+  // amount is shown as-is rather than backed out into a taxable value and
+  // a tax portion the way each product line is.
   $shipping_total = 0.0;
   foreach ($order->get_fees() as $fee) {
     $shipping_total += (float) $fee->get_total();
-  }
-  if ($shipping_total > 0) {
-    $add_row(__('Shipping', 'nirog-bhumi'), $default_rate > 0 ? '996812' : '', 1, $shipping_total, $default_rate);
   }
 
   $tax_summary = [];
@@ -477,6 +478,7 @@ function nirog_bhumi_order_invoice_data($order_id) {
     'items' => $items,
     'tax_summary' => $tax_summary,
     'tax_total' => round($tax_total, 2),
+    'shipping_total' => round($shipping_total, 2),
     'total' => (float) $order->get_total(),
     'intra' => $intra,
   ];
@@ -606,11 +608,20 @@ function nirog_bhumi_render_order_invoice_pdf($data) {
   $ops .= nirog_bhumi_pdf_text(494, $totals_top, 9, 'Rs. ' . number_format($subtotal, 2), 'F2', $ink);
   $ops .= nirog_bhumi_pdf_text(380, $totals_top + 20, 9, $data['intra'] ? 'CGST + SGST' : 'IGST', 'F1', $ink);
   $ops .= nirog_bhumi_pdf_text(494, $totals_top + 20, 9, 'Rs. ' . number_format($data['tax_total'], 2), 'F2', $ink);
-  $ops .= nirog_bhumi_pdf_rect(368, $totals_top + 44, 189, 38, $green, $green);
-  $ops .= nirog_bhumi_pdf_text(382, $totals_top + 68, 10, 'TOTAL PAID', 'F2', '1 1 1');
-  $ops .= nirog_bhumi_pdf_text(476, $totals_top + 68, 13, 'Rs. ' . number_format($data['total'], 2), 'F2', '1 1 1');
+  // Shipping is a flat, GST-inclusive charge added on top of the goods -
+  // shown here as its own line, not folded into the taxable value or the
+  // GST breakdown above, since it is not a catalogue product.
+  $has_shipping = $data['shipping_total'] > 0;
+  if ($has_shipping) {
+    $ops .= nirog_bhumi_pdf_text(380, $totals_top + 40, 9, 'Shipping (incl. GST)', 'F1', $ink);
+    $ops .= nirog_bhumi_pdf_text(494, $totals_top + 40, 9, 'Rs. ' . number_format($data['shipping_total'], 2), 'F2', $ink);
+  }
+  $total_box_top = $totals_top + ($has_shipping ? 64 : 44);
+  $ops .= nirog_bhumi_pdf_rect(368, $total_box_top, 189, 38, $green, $green);
+  $ops .= nirog_bhumi_pdf_text(382, $total_box_top + 24, 10, 'TOTAL PAID', 'F2', '1 1 1');
+  $ops .= nirog_bhumi_pdf_text(476, $total_box_top + 24, 13, 'Rs. ' . number_format($data['total'], 2), 'F2', '1 1 1');
 
-  $words_top = $totals_top + 94;
+  $words_top = $total_box_top + 50;
   $ops .= nirog_bhumi_pdf_rect(38, $words_top, 519, 34, '0.933 0.91 0.85', '0.933 0.91 0.85');
   $ops .= nirog_bhumi_pdf_text(52, $words_top + 20, 7.5, 'AMOUNT IN WORDS', 'F2', $muted);
   $ops .= nirog_bhumi_pdf_text(150, $words_top + 20, 9, nirog_bhumi_amount_in_words($data['total']), 'F3', $ink);
