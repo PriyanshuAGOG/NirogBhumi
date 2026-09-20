@@ -16,6 +16,19 @@
  */
 
 /* ---------------------------------------------------------------------------
+ * "+ GST" note appended to a base price wherever a taxed price is shown
+ * (see nirog_bhumi_store_price_plus_gst_html in inc/store.php) - inline by
+ * default, moved onto its own smaller line inside the compact product card.
+ * ------------------------------------------------------------------------ */
+
+.nb-price-gst-note {
+  font-size: .55em;
+  font-weight: 650;
+  opacity: .7;
+  margin-left: 5px;
+}
+
+/* ---------------------------------------------------------------------------
  * Shared shelf rhythm
  * ------------------------------------------------------------------------ */
 
@@ -419,29 +432,24 @@
  * ------------------------------------------------------------------------ */
 
 /*
- * A short, wide strip with a circular portrait that overlaps the top edge
- * of the card - half outside, half inside - rather than a plain rectangular
- * photo filling a column. The portrait is positioned absolutely so it never
- * affects the card's own height: the card is sized purely by its copy
- * (min-height is a floor for short copy, never a clip), which is what a
- * fixed max-height got wrong before and cut off the button row.
+ * A short, wide strip: the photo fills a real column at the row's full
+ * height (align-items: stretch, no fixed height on the card itself), sized
+ * by content rather than by a fixed pixel height on either side - so the
+ * image gets as much room as the copy actually leaves it, never a token
+ * sliver next to a mostly-empty column.
  */
 .store-promo-card {
-  position: relative;
+  display: flex;
+  align-items: stretch;
   margin: clamp(28px, 4vw, 48px) clamp(20px, 5vw, 58px) 0;
-  min-height: 168px;
-  padding: 28px clamp(24px, 4vw, 40px);
-  padding-right: clamp(150px, 20vw, 210px);
   border-radius: 22px;
+  overflow: hidden;
   background: var(--dark);
   box-shadow: 0 16px 34px rgba(49, 73, 54, .18);
-  display: flex;
-  align-items: center;
 }
 
-.store-promo-card.image-left {
-  padding-right: clamp(24px, 4vw, 40px);
-  padding-left: clamp(150px, 20vw, 210px);
+.store-promo-card.image-right {
+  flex-direction: row-reverse;
 }
 
 .store-promo-card + .store-shelf {
@@ -449,21 +457,9 @@
 }
 
 .store-promo-media {
-  position: absolute;
-  top: -22px;
-  right: clamp(20px, 4vw, 40px);
-  width: clamp(110px, 15vw, 150px);
-  height: clamp(110px, 15vw, 150px);
+  flex: 1 1 44%;
+  min-width: 200px;
   margin: 0;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 4px solid var(--paper);
-  box-shadow: 0 12px 26px rgba(20, 30, 20, .35);
-}
-
-.store-promo-card.image-left .store-promo-media {
-  right: auto;
-  left: clamp(20px, 4vw, 40px);
 }
 
 .store-promo-media img {
@@ -474,10 +470,13 @@
 }
 
 .store-promo-body-wrap {
+  flex: 1 1 56%;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
+  padding: clamp(24px, 3vw, 34px) clamp(24px, 3.4vw, 38px);
 }
 
 .store-promo-card .eyebrow {
@@ -549,23 +548,17 @@
 
 @media (max-width: 640px) {
   .store-promo-card,
-  .store-promo-card.image-left {
-    padding: 74px 24px 26px;
-    text-align: center;
+  .store-promo-card.image-right {
+    flex-direction: column;
   }
-  .store-promo-media,
-  .store-promo-card.image-left .store-promo-media {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    top: -20px;
+  .store-promo-media {
+    flex: 0 0 170px;
+    min-width: 0;
+    width: 100%;
   }
   .store-promo-card h2,
   .store-promo-body {
     max-width: none;
-  }
-  .store-promo-actions {
-    justify-content: center;
   }
 }
 
@@ -595,6 +588,40 @@
 
 .store-tile h3 a {
   display: inline-block;
+}
+
+/*
+ * The base theme's .store-tile h3 rule (styles.css) sizes the title at
+ * clamp(25px,2.7vw,36px) - built for a much larger card than this compact
+ * 4-up grid, and next to it the price was left at the default body size.
+ * Bring the title down and the price up so the price is the thing that
+ * reads first, the way a shopper actually scans a product card.
+ */
+.store-tile h3 {
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.3;
+  margin: 10px 0 6px;
+}
+
+.store-tile p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.store-tile .price-row strong {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.store-tile .price-row .nb-price-gst-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  font-weight: 650;
+  color: #6b7568;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .store-tile-badge {
