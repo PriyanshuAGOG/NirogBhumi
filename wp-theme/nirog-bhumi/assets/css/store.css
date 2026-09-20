@@ -432,24 +432,28 @@
  * ------------------------------------------------------------------------ */
 
 /*
- * A short, wide strip: the photo fills a real column at the row's full
- * height (align-items: stretch, no fixed height on the card itself), sized
- * by content rather than by a fixed pixel height on either side - so the
- * image gets as much room as the copy actually leaves it, never a token
- * sliver next to a mostly-empty column.
+ * The card itself stays minimal - its height comes only from the copy, not
+ * from the image. The photo is positioned out of flow (absolute) so it
+ * never sets the card's height; instead it is deliberately taller than the
+ * card, overflowing evenly above and below the top/bottom edge, and its own
+ * background matches the card so object-fit: contain (the full photo,
+ * never cropped) never shows a mismatched letterbox colour behind it.
  */
 .store-promo-card {
+  position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   margin: clamp(28px, 4vw, 48px) clamp(20px, 5vw, 58px) 0;
-  border-radius: 22px;
-  overflow: hidden;
+  padding: 20px clamp(20px, 3vw, 30px);
+  padding-right: clamp(140px, 20vw, 190px);
+  border-radius: 20px;
   background: var(--dark);
   box-shadow: 0 16px 34px rgba(49, 73, 54, .18);
 }
 
-.store-promo-card.image-right {
-  flex-direction: row-reverse;
+.store-promo-card.image-left {
+  padding-right: clamp(20px, 3vw, 30px);
+  padding-left: clamp(140px, 20vw, 190px);
 }
 
 .store-promo-card + .store-shelf {
@@ -457,26 +461,35 @@
 }
 
 .store-promo-media {
-  flex: 1 1 44%;
-  min-width: 200px;
+  position: absolute;
+  top: -22px;
+  bottom: -22px;
+  right: clamp(14px, 2.6vw, 24px);
+  width: clamp(110px, 15vw, 150px);
   margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--dark);
+  box-shadow: 0 14px 28px rgba(15, 22, 16, .35);
+}
+
+.store-promo-card.image-left .store-promo-media {
+  right: auto;
+  left: clamp(14px, 2.6vw, 24px);
 }
 
 .store-promo-media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
 .store-promo-body-wrap {
-  flex: 1 1 56%;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 2px;
-  padding: clamp(24px, 3vw, 34px) clamp(24px, 3.4vw, 38px);
 }
 
 .store-promo-card .eyebrow {
@@ -548,13 +561,18 @@
 
 @media (max-width: 640px) {
   .store-promo-card,
-  .store-promo-card.image-right {
-    flex-direction: column;
+  .store-promo-card.image-left {
+    display: block;
+    padding: 130px 22px 22px;
   }
-  .store-promo-media {
-    flex: 0 0 170px;
-    min-width: 0;
-    width: 100%;
+  .store-promo-media,
+  .store-promo-card.image-left .store-promo-media {
+    top: 0;
+    bottom: auto;
+    left: 22px;
+    right: 22px;
+    width: auto;
+    height: 110px;
   }
   .store-promo-card h2,
   .store-promo-body {
