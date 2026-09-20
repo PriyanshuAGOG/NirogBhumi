@@ -331,6 +331,12 @@ add_filter('woocommerce_get_price_html', 'nirog_bhumi_store_price_plus_gst_html'
  */
 function nirog_bhumi_store_order_line_tax_meta($item, $cart_item_key, $values, $order) {
   $product_id = $item->get_variation_id() ?: $item->get_product_id();
+  // The consultation is a service (SAC 999319, taxed at the services rate
+  // in inc/invoice-pdf.php), not a physical good - never stamp a goods
+  // HSN/GST rate onto it.
+  if (function_exists('nirog_bhumi_consultation_product_id') && $product_id === nirog_bhumi_consultation_product_id()) {
+    return;
+  }
   $details = nirog_bhumi_product_tax_details($product_id);
   if ('' !== $details['hsn']) {
     $item->add_meta_data('_nb_hsn', $details['hsn'], true);
@@ -526,7 +532,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.10.1'
+    '0.11.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -597,6 +603,38 @@ function nirog_bhumi_store_dispatch_note() {
   }
   return implode(' ', $lines);
 }
+
+/**
+ * Every order ships something physical, so a shipping fee is mandatory
+ * rather than something the admin has to configure a WooCommerce shipping
+ * zone for. Added as a cart fee (not a WC shipping rate) so it works the
+ * moment the store opens, with no zones/methods setup required. Waived
+ * once the cart subtotal reaches the free-shipping threshold.
+ */
+function nirog_bhumi_store_add_shipping_fee($cart) {
+  if (is_admin() && !defined('DOING_AJAX')) {
+    return;
+  }
+  if (!nirog_bhumi_store_selling_is_open() || $cart->is_empty()) {
+    return;
+  }
+  // Consultations are booked through this same WooCommerce cart as a
+  // virtual product - nothing to ship, so never charge shipping on a cart
+  // that needs no shipping at all (a pure consultation booking).
+  if (!$cart->needs_shipping()) {
+    return;
+  }
+  $fee = nirog_bhumi_store_shipping_fee();
+  if ($fee <= 0) {
+    return;
+  }
+  $threshold = nirog_bhumi_store_free_shipping_threshold();
+  if ($threshold > 0 && (float) $cart->get_subtotal() >= $threshold) {
+    return;
+  }
+  $cart->add_fee(__('Shipping', 'nirog-bhumi'), $fee, false);
+}
+add_action('woocommerce_cart_calculate_fees', 'nirog_bhumi_store_add_shipping_fee');
 
 /**
  * A promotional card for the consultation/programmes, shown between shelves

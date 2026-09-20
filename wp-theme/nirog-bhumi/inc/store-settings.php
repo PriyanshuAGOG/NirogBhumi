@@ -13,9 +13,10 @@ if (!defined('ABSPATH')) {
 function nirog_bhumi_store_settings_defaults() {
   return [
     'store_status' => 'coming_soon',
-    'store_note' => 'Dispatch from Jaipur within 3 working days. Delivery across India.',
+    'store_note' => 'Dispatched from Jaipur. Delivery across India within 14 working days.',
     'free_shipping_threshold' => '1500',
-    'goods_gst_rate' => '',
+    'shipping_fee' => '150',
+    'goods_gst_rate' => '5',
     'default_hsn' => '',
     'waitlist_enabled' => 'yes',
     'show_cart_link' => 'yes',
@@ -35,6 +36,7 @@ function nirog_bhumi_sanitize_store_settings($input) {
     'store_status' => in_array($status, ['open', 'preview', 'coming_soon'], true) ? $status : 'coming_soon',
     'store_note' => isset($input['store_note']) ? sanitize_text_field($input['store_note']) : $defaults['store_note'],
     'free_shipping_threshold' => isset($input['free_shipping_threshold']) ? (string) max(0, (float) $input['free_shipping_threshold']) : '',
+    'shipping_fee' => isset($input['shipping_fee']) ? (string) max(0, (float) $input['shipping_fee']) : $defaults['shipping_fee'],
     'goods_gst_rate' => isset($input['goods_gst_rate']) && '' !== trim((string) $input['goods_gst_rate'])
       ? (string) max(0, min(100, (float) $input['goods_gst_rate']))
       : '',
@@ -89,5 +91,11 @@ function nirog_bhumi_store_waitlist_enabled() {
 function nirog_bhumi_store_free_shipping_threshold() {
   $settings = nirog_bhumi_get_store_settings();
   $value = (float) $settings['free_shipping_threshold'];
+  return $value > 0 ? $value : 0;
+}
+
+function nirog_bhumi_store_shipping_fee() {
+  $settings = nirog_bhumi_get_store_settings();
+  $value = (float) $settings['shipping_fee'];
   return $value > 0 ? $value : 0;
 }

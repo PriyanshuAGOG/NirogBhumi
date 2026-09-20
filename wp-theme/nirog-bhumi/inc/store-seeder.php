@@ -537,9 +537,14 @@ function nirog_bhumi_render_store_admin_page() {
           <p class="description"><?php esc_html_e('Shown on the store and product pages. Keep it accurate to your actual dispatch times.', 'nirog-bhumi'); ?></p></td>
         </tr>
         <tr>
+          <th scope="row"><label for="nb-shipping-fee"><?php esc_html_e('Shipping fee (Rs.)', 'nirog-bhumi'); ?></label></th>
+          <td><input id="nb-shipping-fee" type="number" min="0" step="1" class="small-text" name="nirog_bhumi_store_settings[shipping_fee]" value="<?php echo esc_attr($settings['shipping_fee']); ?>">
+          <p class="description"><?php esc_html_e('Added to every order automatically as a cart fee (no WooCommerce shipping zone needs to be configured). Waived once the order reaches the free-shipping threshold below. Set to 0 to never charge shipping.', 'nirog-bhumi'); ?></p></td>
+        </tr>
+        <tr>
           <th scope="row"><label for="nb-free-ship"><?php esc_html_e('Free shipping above (Rs.)', 'nirog-bhumi'); ?></label></th>
           <td><input id="nb-free-ship" type="number" min="0" step="1" class="small-text" name="nirog_bhumi_store_settings[free_shipping_threshold]" value="<?php echo esc_attr($settings['free_shipping_threshold']); ?>">
-          <p class="description"><?php esc_html_e('Display only. Configure the actual rule in WooCommerce > Settings > Shipping. Set to 0 to hide the message.', 'nirog-bhumi'); ?></p></td>
+          <p class="description"><?php esc_html_e('Waives the shipping fee above once the cart subtotal reaches this amount. Set to 0 to always charge the shipping fee.', 'nirog-bhumi'); ?></p></td>
         </tr>
         <tr>
           <th scope="row"><?php esc_html_e('Waitlist', 'nirog-bhumi'); ?></th>

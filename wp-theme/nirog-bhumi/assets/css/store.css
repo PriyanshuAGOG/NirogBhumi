@@ -628,7 +628,7 @@
  * reads first, the way a shopper actually scans a product card.
  */
 .store-tile h3 {
-  font-size: clamp(15px, 1.6vw, 17px);
+  font-size: clamp(13.5px, 1.3vw, 15px);
   line-height: 1.3;
   margin: 10px 0 6px;
 }
@@ -639,7 +639,7 @@
 }
 
 .store-tile .price-row strong {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 800;
   color: var(--ink);
 }
@@ -1389,6 +1389,28 @@ table.shop_table .order-total td {
 
 .cart-row figure {
   border-radius: 12px;
+}
+
+/*
+ * styles.css sizes .cart-row h2 at clamp(26px,3vw,38px) - a hero-scale
+ * heading size left over from an earlier layout, wildly oversized for a
+ * line item name sitting next to a small thumbnail. Bring it down to a
+ * normal product-name size and give the "simple product" type label
+ * (currently uppercase body text) a quieter treatment.
+ */
+.cart-row h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 4px 0 6px;
+  line-height: 1.3;
+}
+
+.cart-row > div > span {
+  font-size: 9.5px;
+}
+
+.cart-row strong {
+  font-size: 15px;
 }
 
 .cart-row .remove {
