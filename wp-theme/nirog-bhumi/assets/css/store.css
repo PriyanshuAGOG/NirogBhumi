@@ -432,20 +432,25 @@
  * ------------------------------------------------------------------------ */
 
 /*
- * The card itself stays minimal - its height comes only from the copy, not
- * from the image. The photo is positioned out of flow (absolute) so it
- * never sets the card's height; instead it is deliberately taller than the
- * card, overflowing evenly above and below the top/bottom edge, and its own
- * background matches the card so object-fit: contain (the full photo,
- * never cropped) never shows a mismatched letterbox colour behind it.
+ * A real transparent cutout (background removed from the theme's own photo,
+ * see assets/img/*-cutout.png), not a boxed photo panel: it needs no frame,
+ * no border-radius, no fill colour behind it. It sits flush with the card's
+ * bottom edge and rises up out of the top - feet planted inside the card,
+ * head breaking the top edge - which is what makes it read as a cutout
+ * rather than a photo. The card's own height still comes only from its
+ * copy; the image is positioned out of flow (absolute) so its height never
+ * feeds back into the card's.
  */
 .store-promo-card {
   position: relative;
   display: flex;
   align-items: center;
-  margin: clamp(28px, 4vw, 48px) clamp(20px, 5vw, 58px) 0;
+  /* Top margin has to clear the cutout poking up to 56px above the card's
+     own top edge (see .store-promo-media below) with room to spare, so it
+     never overlaps the shelf above it. */
+  margin: clamp(70px, 8vw, 96px) clamp(20px, 5vw, 58px) 0;
   padding: 20px clamp(20px, 3vw, 30px);
-  padding-right: clamp(140px, 20vw, 190px);
+  padding-right: clamp(160px, 24vw, 230px);
   border-radius: 20px;
   background: var(--dark);
   box-shadow: 0 16px 34px rgba(49, 73, 54, .18);
@@ -453,7 +458,7 @@
 
 .store-promo-card.image-left {
   padding-right: clamp(20px, 3vw, 30px);
-  padding-left: clamp(140px, 20vw, 190px);
+  padding-left: clamp(160px, 24vw, 230px);
 }
 
 .store-promo-card + .store-shelf {
@@ -462,27 +467,25 @@
 
 .store-promo-media {
   position: absolute;
-  top: -22px;
-  bottom: -22px;
-  right: clamp(14px, 2.6vw, 24px);
-  width: clamp(110px, 15vw, 150px);
+  top: clamp(-56px, -9vw, -34px);
+  bottom: 0;
+  right: clamp(10px, 2.4vw, 22px);
+  width: clamp(130px, 19vw, 190px);
   margin: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--dark);
-  box-shadow: 0 14px 28px rgba(15, 22, 16, .35);
 }
 
 .store-promo-card.image-left .store-promo-media {
   right: auto;
-  left: clamp(14px, 2.6vw, 24px);
+  left: clamp(10px, 2.4vw, 22px);
 }
 
 .store-promo-media img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: bottom;
   display: block;
+  filter: drop-shadow(0 14px 18px rgba(10, 16, 11, .4));
 }
 
 .store-promo-body-wrap {
@@ -563,16 +566,17 @@
   .store-promo-card,
   .store-promo-card.image-left {
     display: block;
-    padding: 130px 22px 22px;
+    padding: 150px 22px 22px;
   }
   .store-promo-media,
   .store-promo-card.image-left .store-promo-media {
-    top: 0;
+    top: -20px;
     bottom: auto;
-    left: 22px;
-    right: 22px;
-    width: auto;
-    height: 110px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 170px;
   }
   .store-promo-card h2,
   .store-promo-body {

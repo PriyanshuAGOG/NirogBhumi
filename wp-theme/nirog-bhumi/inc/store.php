@@ -526,7 +526,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.9.0'
+    '0.10.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -606,9 +606,10 @@ function nirog_bhumi_store_dispatch_note() {
  * just a signpost pointing at the real, separate consultation flow.
  */
 function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_side = 'right') {
-  // The same portrait used in the homepage hero (assets/img/yoga-meditation-opt.jpg)
-  // so this card reads as the same brand, not a stock photo pulled from
-  // nowhere - deliberately the one image the whole card is designed around.
+  // Transparent cutouts (background removed from the theme's own yoga
+  // photography, not a stock image) so the portrait can overlap the top
+  // edge of the card the way a premium product card does, instead of
+  // sitting in a boxed photo panel.
   $copy = [
     'consultation' => [
       'eyebrow' => __('Not sure where to start?', 'nirog-bhumi'),
@@ -618,6 +619,7 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_s
       'primary_url' => home_url('/consultation/'),
       'secondary_label' => __('Explore Programs', 'nirog-bhumi'),
       'secondary_url' => home_url('/programmes/'),
+      'image' => 'yoga-meditation-cutout.png',
     ],
     'yoga_programme' => [
       'eyebrow' => __('Tools alone are not the whole story', 'nirog-bhumi'),
@@ -627,12 +629,13 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_s
       'primary_url' => home_url('/yoga-programme/'),
       'secondary_label' => __('See All Programs', 'nirog-bhumi'),
       'secondary_url' => home_url('/programmes/'),
+      'image' => 'yoga-twist-cutout.png',
     ],
   ][$variant] ?? null;
   if (!$copy) {
     return;
   }
-  $image_url = get_template_directory_uri() . '/assets/img/yoga-meditation-opt.jpg';
+  $image_url = get_template_directory_uri() . '/assets/img/' . $copy['image'];
   $side_class = 'left' === $image_side ? ' image-left' : ' image-right';
   ?>
   <section class="store-promo-card<?php echo esc_attr($side_class); ?>">
