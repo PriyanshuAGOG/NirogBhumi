@@ -44,16 +44,37 @@ if (preg_match_all('/<li>(.*?)<\/li>/s', $description_html, $description_matches
 }
 $description_text = trim(preg_replace('/<ul>.*?<\/ul>/s', '', $description_html));
 
-// "Buy it with": WooCommerce's own Cross-sells field (Product data > Linked
-// Products), set by hand in wp-admin or pre-wired for launch SKUs in
-// inc/store-catalogue.php / nirog_bhumi_seed_cross_sells(). Never invented
-// here - if nothing is set, the section simply does not render.
+// "Buy it with": every other product in the launch catalogue, curated
+// cross-sells first (Product data > Linked Products, set by hand or
+// pre-wired for launch SKUs in inc/store-catalogue.php /
+// nirog_bhumi_seed_cross_sells()) so a deliberate pairing like Jal Neti
+// Lota <-> Vijaysar Tumbler still shows first, then filled up to 4 with
+// whatever else is published - with only five products in the catalogue
+// today this is effectively "the rest of the range."
 $cross_sell_products = array_filter(
   array_map('wc_get_product', $product->get_cross_sell_ids()),
   function ($cross_sell_product) {
     return $cross_sell_product && $cross_sell_product->is_visible();
   }
 );
+if (count($cross_sell_products) < 4) {
+  $exclude_ids = array_merge([$product->get_id()], array_map(function ($p) { return $p->get_id(); }, $cross_sell_products));
+  $other_products = wc_get_products([
+    'status' => 'publish',
+    'limit' => -1,
+    'orderby' => 'menu_order',
+    'order' => 'ASC',
+    'visibility' => 'visible',
+    'exclude' => $exclude_ids,
+  ]);
+  foreach ($other_products as $other_product) {
+    if (count($cross_sell_products) >= 4) {
+      break;
+    }
+    $cross_sell_products[] = $other_product;
+  }
+}
+$cross_sell_products = array_slice($cross_sell_products, 0, 4);
 ?>
 <?php do_action('woocommerce_before_single_product'); ?>
 <div id="product-<?php the_ID(); ?>" <?php wc_product_class('', $product); ?>>

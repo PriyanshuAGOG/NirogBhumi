@@ -639,9 +639,10 @@
 }
 
 .store-tile .price-row strong {
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--ink);
+  line-height: 1.1;
 }
 
 .store-tile .price-row .nb-price-gst-note {
