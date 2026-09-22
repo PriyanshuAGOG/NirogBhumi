@@ -348,8 +348,9 @@ function nirog_bhumi_render_invoice_pdf($data) {
  * nirog_bhumi_store_order_line_tax_meta() in inc/store.php), the shipping
  * fee, CGST/SGST vs IGST based on the buyer's billing state against the
  * business's, and a 14-working-day delivery estimate from the payment
- * date. Every amount on the store's product pages is GST-inclusive (see
- * nirog_bhumi_store_price_plus_gst_html()), so the taxable value here is
+ * date. Every amount on the store's product pages is GST-inclusive (the
+ * store never uses WooCommerce's own tax engine - see
+ * nirog_bhumi_product_tax_details() below), so the taxable value here is
  * always backed out of the line total rather than added on top of it.
  */
 function nirog_bhumi_order_invoice_data($order_id) {

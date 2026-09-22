@@ -294,38 +294,6 @@ function nirog_bhumi_product_tax_details($product_id) {
 }
 
 /**
- * Wherever a product's price is shown on the shop side (cards, hero, single
- * product page, "buy it with"), show it as the pre-tax price plus a "+ GST"
- * note instead of one flat GST-inclusive number. Rs. 78.75 reads like an
- * arbitrary number; Rs. 75 + GST reads like a real, itemised price.
- *
- * This only changes how the price is displayed. What is actually charged at
- * checkout is unaffected - it is still the product's regular price (the
- * same Rs. 78.75), since the store does not use WooCommerce's own tax
- * engine; see nirog_bhumi_product_tax_details() above for why. Cart and
- * checkout totals go through wc_price() on the cart total directly, not
- * this filter, so they always show the real amount being charged.
- */
-function nirog_bhumi_store_price_plus_gst_html($price_html, $product) {
-  if (!$product instanceof WC_Product) {
-    return $price_html;
-  }
-  $price = (float) $product->get_price();
-  if ($price <= 0) {
-    return $price_html;
-  }
-  $rate = (float) nirog_bhumi_product_tax_details($product->get_id())['gst_rate'];
-  if ($rate <= 0) {
-    return $price_html;
-  }
-  $base = round($price / (1 + $rate / 100), 2);
-  $decimals = (floor($base) === $base) ? 0 : 2;
-  $base_html = wc_price($base, ['decimals' => $decimals]);
-  return $base_html . ' <span class="nb-price-gst-note">' . esc_html__('+ GST', 'nirog-bhumi') . '</span>';
-}
-add_filter('woocommerce_get_price_html', 'nirog_bhumi_store_price_plus_gst_html', 20, 2);
-
-/**
  * Stamp the HSN and rate onto the order line at checkout so a later change to
  * the product does not rewrite the tax details of an invoice already issued.
  */
@@ -532,7 +500,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.15.0'
+    '0.16.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',

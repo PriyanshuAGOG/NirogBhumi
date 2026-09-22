@@ -16,19 +16,6 @@
  */
 
 /* ---------------------------------------------------------------------------
- * "+ GST" note appended to a base price wherever a taxed price is shown
- * (see nirog_bhumi_store_price_plus_gst_html in inc/store.php) - inline by
- * default, moved onto its own smaller line inside the compact product card.
- * ------------------------------------------------------------------------ */
-
-.nb-price-gst-note {
-  font-size: .55em;
-  font-weight: 650;
-  opacity: .7;
-  margin-left: 5px;
-}
-
-/* ---------------------------------------------------------------------------
  * Shared shelf rhythm
  * ------------------------------------------------------------------------ */
 
@@ -793,16 +780,6 @@
   line-height: 1.1;
 }
 
-.store-tile .price-row .nb-price-gst-note {
-  display: block;
-  margin-top: 2px;
-  font-size: 10.5px;
-  font-weight: 650;
-  color: #6b7568;
-  text-transform: none;
-  letter-spacing: 0;
-}
-
 .store-tile-badge {
   position: absolute;
   top: 10px;
@@ -905,6 +882,25 @@
  * Header cart link
  * ------------------------------------------------------------------------ */
 
+/*
+ * .nb-header is unconditionally display: grid with grid-template-columns:
+ * auto 1fr auto (a bare rule in styles.css, not inside any media query,
+ * so it wins over the header's own earlier display: flex at every
+ * viewport) - three columns: the logo (auto), the nav links (1fr), and a
+ * third auto column that has nothing in it today. .nb-header-end is now a
+ * direct child of .nb-header (a sibling of nav, not nested inside it - see
+ * header.php) specifically so it lands in that third column and reads as
+ * flush-right the way the logo reads as flush-left, instead of trailing
+ * after the last text link inside a nav box that only shrink-wraps its
+ * own links. Empty (store not selling, cart link hidden) takes no space.
+ */
+.nb-header-end {
+  justify-self: end;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nb-cart-link {
   display: inline-flex;
   align-items: center;
@@ -922,6 +918,23 @@
   background: var(--dark);
   color: #fff;
   font-size: 11px;
+}
+
+/*
+ * Below 900px, styles.css pins .menu (the hamburger) to grid-column: 3
+ * with !important, so plain auto-placement would push .nb-header-end -
+ * the next item in source order - into column 2 (the 1fr nav track)
+ * rather than column 3, since that's the next free cell. That's actually
+ * the look we want on mobile (cart icon sitting just left of the
+ * hamburger), so make it explicit instead of relying on placement order.
+ */
+@media (max-width: 900px) {
+  .nb-header-end {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    margin-right: 10px;
+  }
 }
 
 /* ---------------------------------------------------------------------------

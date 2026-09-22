@@ -20,7 +20,14 @@ $eyebrow = get_post_meta($product_id, '_nb_eyebrow', true);
 // rendered as a numbered or bulleted list rather than one run-on paragraph.
 $how_to_use = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_ritual', true)))));
 $precautions = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_caution', true)))));
-$benefits = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) get_post_meta($product_id, '_nb_benefits', true)))));
+// Benefits normally render as one flat bulleted list, but a blank line in
+// the field splits off everything above it as an unbulleted intro instead
+// (e.g. "besides the many other general benefits..." ahead of the list) -
+// no blank line keeps the old all-bulleted behaviour.
+$benefits_raw = (string) get_post_meta($product_id, '_nb_benefits', true);
+$benefits_blocks = preg_split('/\r\n\r\n|\n\n|\r\r/', $benefits_raw, 2);
+$benefits_intro = count($benefits_blocks) > 1 ? array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $benefits_blocks[0])))) : [];
+$benefits = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $benefits_blocks[count($benefits_blocks) > 1 ? 1 : 0]))));
 $diabetes_note = get_post_meta($product_id, '_nb_diabetes_note', true);
 $disclosure = get_post_meta($product_id, '_nb_disclosure', true);
 $dispatch = nirog_bhumi_store_dispatch_note();
@@ -176,14 +183,19 @@ $cross_sell_products = array_slice($cross_sell_products, 0, 4);
           </details>
         <?php endif; ?>
 
-        <?php if ($benefits) : ?>
+        <?php if ($benefits_intro || $benefits) : ?>
           <details>
             <summary><?php esc_html_e('Benefits', 'nirog-bhumi'); ?></summary>
-            <ul class="product-includes-list">
-              <?php foreach ($benefits as $benefit) : ?>
-                <li><?php echo esc_html($benefit); ?></li>
-              <?php endforeach; ?>
-            </ul>
+            <?php foreach ($benefits_intro as $benefit_line) : ?>
+              <p><?php echo esc_html($benefit_line); ?></p>
+            <?php endforeach; ?>
+            <?php if ($benefits) : ?>
+              <ul class="product-includes-list">
+                <?php foreach ($benefits as $benefit) : ?>
+                  <li><?php echo esc_html($benefit); ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
           </details>
         <?php endif; ?>
 
@@ -258,7 +270,10 @@ $cross_sell_products = array_slice($cross_sell_products, 0, 4);
   <?php endif; ?>
 
   <?php
-  $related_ids = wc_get_related_products($product_id, 4);
+  // Hidden for now at the client's request - the shelf still works, it is
+  // just switched off until they want it back.
+  $show_related_shelf = false;
+  $related_ids = $show_related_shelf ? wc_get_related_products($product_id, 4) : [];
   if ($related_ids) :
     ?>
     <section class="store-shelf related-shelf">
