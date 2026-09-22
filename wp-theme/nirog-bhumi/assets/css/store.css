@@ -448,35 +448,59 @@
   /* Top margin has to clear the cutout poking up to 56px above the card's
      own top edge (see .store-promo-media below) with room to spare, so it
      never overlaps the shelf above it. */
-  margin: clamp(70px, 8vw, 96px) clamp(20px, 5vw, 58px) 0;
-  padding: 20px clamp(20px, 3vw, 30px);
-  padding-right: clamp(160px, 24vw, 230px);
-  border-radius: 20px;
-  background: var(--dark);
-  box-shadow: 0 16px 34px rgba(49, 73, 54, .18);
+  margin: clamp(74px, 8vw, 100px) clamp(20px, 5vw, 58px) 0;
+  padding: 28px clamp(26px, 3.6vw, 38px);
+  padding-right: clamp(180px, 26vw, 250px);
+  border-radius: 26px;
+  background:
+    radial-gradient(120% 140% at 8% 8%, rgba(130, 173, 92, .16), transparent 55%),
+    linear-gradient(135deg, #3c5943 0%, var(--dark) 60%, #182319 100%);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 22px 44px rgba(15, 22, 16, .28);
 }
 
 .store-promo-card.image-left {
-  padding-right: clamp(20px, 3vw, 30px);
-  padding-left: clamp(160px, 24vw, 230px);
+  padding-right: clamp(26px, 3.6vw, 38px);
+  padding-left: clamp(180px, 26vw, 250px);
 }
 
 .store-promo-card + .store-shelf {
   margin-top: clamp(28px, 4vw, 48px);
 }
 
+/* Soft glow sitting behind the cutout, like a spotlight - the card has no
+   overflow: hidden (it would clip the cutout poking above the top edge),
+   so this is sized to stay comfortably inside the card on its own. */
+.store-promo-card::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: clamp(0px, 3vw, 20px);
+  width: clamp(140px, 20vw, 200px);
+  height: clamp(140px, 20vw, 200px);
+  background: radial-gradient(circle, rgba(130, 173, 92, .38), transparent 72%);
+  transform: translateY(-46%);
+  pointer-events: none;
+}
+
+.store-promo-card.image-left::before {
+  right: auto;
+  left: clamp(0px, 3vw, 20px);
+}
+
 .store-promo-media {
   position: absolute;
   top: clamp(-56px, -9vw, -34px);
   bottom: 0;
-  right: clamp(10px, 2.4vw, 22px);
-  width: clamp(130px, 19vw, 190px);
+  right: clamp(16px, 3vw, 30px);
+  width: clamp(140px, 20vw, 200px);
   margin: 0;
+  z-index: 1;
 }
 
 .store-promo-card.image-left .store-promo-media {
   right: auto;
-  left: clamp(10px, 2.4vw, 22px);
+  left: clamp(16px, 3vw, 30px);
 }
 
 /*
@@ -493,10 +517,12 @@
   object-fit: contain !important;
   object-position: bottom;
   display: block;
-  filter: drop-shadow(0 14px 18px rgba(10, 16, 11, .4));
+  filter: drop-shadow(0 18px 22px rgba(6, 10, 6, .45));
 }
 
 .store-promo-body-wrap {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -504,17 +530,21 @@
 }
 
 .store-promo-card .eyebrow {
-  display: flex;
+  display: inline-flex;
+  width: max-content;
   align-items: center;
-  gap: 8px;
-  color: #bcd4b3;
-  margin-bottom: 4px;
+  gap: 7px;
+  padding: 6px 13px 6px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .1);
+  color: #dcecd4;
+  margin: 0 0 12px;
 }
 
 .store-promo-card .eyebrow::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
   background: var(--earth);
   flex: 0 0 auto;
@@ -522,73 +552,104 @@
 
 .store-promo-card h2 {
   color: #fff;
-  font-size: clamp(17px, 1.9vw, 22px);
-  line-height: 1.3;
-  max-width: 32ch;
+  font-size: clamp(19px, 2.1vw, 25px);
+  line-height: 1.25;
+  letter-spacing: -.01em;
+  max-width: 30ch;
 }
 
 .store-promo-body {
-  max-width: 48ch;
-  margin-top: 8px;
-  color: #d7e2d2;
+  max-width: 44ch;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, .74);
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .store-promo-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 .store-promo-actions .pill {
-  min-height: 38px;
-  padding: 0 17px;
+  min-height: 40px;
+  padding: 0 18px;
   font-size: 11.5px;
-  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  font-weight: 700;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
 
 .store-promo-actions .pill.primary {
   background: #fff;
   color: var(--dark);
   border-color: #fff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, .18);
 }
 
 .store-promo-actions .pill.primary:hover {
   background: var(--earth);
   border-color: var(--earth);
-  color: #1c2b1e;
+  color: #16240f;
+  transform: translateY(-1px);
+}
+
+.store-promo-actions .pill.primary span {
+  margin-left: 6px;
+  transition: transform .15s ease;
+  display: inline-block;
+}
+
+.store-promo-actions .pill.primary:hover span {
+  transform: translateX(2px);
 }
 
 .store-promo-actions .pill.ghost {
   color: #fff;
-  border-color: rgba(255, 255, 255, .5);
+  border-color: rgba(255, 255, 255, .32);
+  background: rgba(255, 255, 255, .04);
 }
 
 .store-promo-actions .pill.ghost:hover {
   border-color: #fff;
+  background: rgba(255, 255, 255, .12);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 640px) {
   .store-promo-card,
   .store-promo-card.image-left {
     display: block;
-    padding: 150px 22px 22px;
+    padding: 160px 24px 26px;
+    text-align: center;
   }
   .store-promo-media,
   .store-promo-card.image-left .store-promo-media {
-    top: -20px;
+    top: -22px;
     bottom: auto;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    width: 150px;
-    height: 170px;
+    width: 160px;
+    height: 180px;
+  }
+  .store-promo-card::before,
+  .store-promo-card.image-left::before {
+    top: 10px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  .store-promo-card .eyebrow {
+    margin-inline: auto;
   }
   .store-promo-card h2,
   .store-promo-body {
     max-width: none;
+  }
+  .store-promo-actions {
+    justify-content: center;
   }
 }
 

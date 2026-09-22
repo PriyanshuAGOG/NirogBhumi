@@ -132,10 +132,69 @@ $selling = $woo_ready && nirog_bhumi_store_selling_is_open();
         ?>
       </div>
     </section>
-    <?php if (function_exists('nirog_bhumi_render_store_promo_card')) : ?>
-      <?php nirog_bhumi_render_store_promo_card('consultation', 'right'); ?>
-    <?php endif; ?>
   <?php endif; ?>
+
+  <?php
+  // Category shelves below Featured - Lifestyle, Acupressure, and any
+  // future category, each its own browsable shelf rather than just the
+  // single combined Featured grid above.
+  $nb_shelf_terms = get_terms([
+    'taxonomy' => 'product_cat',
+    'hide_empty' => true,
+    'exclude' => [(int) get_option('default_product_cat')],
+    'orderby' => 'menu_order',
+    'order' => 'ASC',
+  ]);
+
+  $nb_promo_variants = ['consultation', 'yoga_programme'];
+  if (!is_wp_error($nb_shelf_terms)) :
+    $nb_shelf_index = 0;
+    foreach ($nb_shelf_terms as $nb_shelf) :
+      $nb_shelf_products = wc_get_products([
+        'status' => 'publish',
+        'limit' => 4,
+        'category' => [$nb_shelf->slug],
+        'orderby' => 'menu_order',
+        'order' => 'ASC',
+        'visibility' => 'visible',
+      ]);
+      if (!$nb_shelf_products) {
+        continue;
+      }
+      $nb_shelf_index++;
+      ?>
+      <section class="store-shelf">
+        <div class="store-shelf-title">
+          <div>
+            <p class="eyebrow"><?php echo esc_html($nb_shelf->name); ?></p>
+            <?php if ($nb_shelf->description) : ?><h2><?php echo esc_html($nb_shelf->description); ?></h2><?php endif; ?>
+          </div>
+          <a href="<?php echo esc_url(get_term_link($nb_shelf)); ?>"><?php esc_html_e('See all', 'nirog-bhumi'); ?></a>
+        </div>
+        <div class="store-shelf-grid products">
+          <?php
+          foreach ($nb_shelf_products as $nb_shelf_product) {
+            $post_object = get_post($nb_shelf_product->get_id());
+            if (!$post_object) {
+              continue;
+            }
+            setup_postdata($GLOBALS['post'] = $post_object); // phpcs:ignore
+            wc_setup_product_data($post_object);
+            wc_get_template_part('content', 'product');
+          }
+          wp_reset_postdata();
+          ?>
+        </div>
+      </section>
+      <?php
+      if (function_exists('nirog_bhumi_render_store_promo_card')) {
+        $nb_promo_variant = $nb_promo_variants[($nb_shelf_index - 1) % count($nb_promo_variants)];
+        $nb_promo_side = 0 === ($nb_shelf_index - 1) % 2 ? 'left' : 'right';
+        nirog_bhumi_render_store_promo_card($nb_promo_variant, $nb_promo_side);
+      }
+    endforeach;
+  endif;
+  ?>
 
   <section class="store-legal-note">
     <p><?php esc_html_e('Nirog Bhumi products support daily wellness routines. They do not diagnose, treat or cure any condition, and they do not replace medical advice, diagnosis or prescribed medication. Speak with your doctor before changing medication, diet or activity.', 'nirog-bhumi'); ?></p>

@@ -532,7 +532,7 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.12.0'
+    '0.13.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
@@ -685,7 +685,7 @@ function nirog_bhumi_render_store_promo_card($variant = 'consultation', $image_s
       <h2><?php echo esc_html($copy['heading']); ?></h2>
       <p class="store-promo-body"><?php echo esc_html($copy['body']); ?></p>
       <div class="store-promo-actions">
-        <a class="pill primary" href="<?php echo esc_url($copy['primary_url']); ?>"><?php echo esc_html($copy['primary_label']); ?></a>
+        <a class="pill primary" href="<?php echo esc_url($copy['primary_url']); ?>"><?php echo esc_html($copy['primary_label']); ?><span aria-hidden="true">&rarr;</span></a>
         <a class="pill ghost" href="<?php echo esc_url($copy['secondary_url']); ?>"><?php echo esc_html($copy['secondary_label']); ?></a>
       </div>
     </div>
