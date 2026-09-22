@@ -445,12 +445,14 @@
   position: relative;
   display: flex;
   align-items: center;
-  /* Top margin has to clear the cutout poking up to 56px above the card's
-     own top edge (see .store-promo-media below) with room to spare, so it
-     never overlaps the shelf above it. */
-  margin: clamp(74px, 8vw, 100px) clamp(20px, 5vw, 58px) 0;
-  padding: 28px clamp(26px, 3.6vw, 38px);
-  padding-right: clamp(180px, 26vw, 250px);
+  /* Top margin has to clear the cutout poking above the card's own top
+     edge (see .store-promo-media below) with room to spare, so it never
+     overlaps the shelf above it. The cutout's own height is now driven by
+     aspect-ratio off a generous width, which can reach further above the
+     card than the old fixed-offset version did, so this is taller too. */
+  margin: clamp(108px, 11vw, 140px) clamp(20px, 5vw, 58px) 0;
+  padding: 22px clamp(26px, 3.6vw, 38px);
+  padding-right: clamp(250px, 34vw, 330px);
   border-radius: 26px;
   background:
     radial-gradient(120% 140% at 8% 8%, rgba(130, 173, 92, .16), transparent 55%),
@@ -461,7 +463,7 @@
 
 .store-promo-card.image-left {
   padding-right: clamp(26px, 3.6vw, 38px);
-  padding-left: clamp(180px, 26vw, 250px);
+  padding-left: clamp(250px, 34vw, 330px);
 }
 
 .store-promo-card + .store-shelf {
@@ -474,33 +476,41 @@
 .store-promo-card::before {
   content: "";
   position: absolute;
-  top: 50%;
-  right: clamp(0px, 3vw, 20px);
-  width: clamp(140px, 20vw, 200px);
-  height: clamp(140px, 20vw, 200px);
-  background: radial-gradient(circle, rgba(130, 173, 92, .38), transparent 72%);
-  transform: translateY(-46%);
+  top: 4%;
+  right: clamp(10px, 3.2vw, 30px);
+  width: clamp(170px, 22vw, 220px);
+  height: clamp(170px, 22vw, 220px);
+  background: radial-gradient(circle, rgba(130, 173, 92, .4), transparent 72%);
   pointer-events: none;
 }
 
 .store-promo-card.image-left::before {
   right: auto;
-  left: clamp(0px, 3vw, 20px);
+  left: clamp(6px, 3vw, 24px);
 }
 
+/*
+ * The box is sized by width and a fixed aspect-ratio rather than by
+ * stretching between a top and bottom offset - that guarantees a real
+ * amount of the cutout clears the top edge regardless of how tall or wide
+ * the source photo happens to be (a narrow box previously left slack
+ * above the image instead of poking it out, which read as barely any
+ * overlap at all). Anchored to the card's bottom edge only: shoulders and
+ * torso sit inside the card, head and neck break out above it.
+ */
 .store-promo-media {
   position: absolute;
-  top: clamp(-56px, -9vw, -34px);
   bottom: 0;
-  right: clamp(16px, 3vw, 30px);
-  width: clamp(140px, 20vw, 200px);
+  right: clamp(18px, 3.4vw, 34px);
+  width: clamp(230px, 30vw, 300px);
+  aspect-ratio: .82;
   margin: 0;
   z-index: 1;
 }
 
 .store-promo-card.image-left .store-promo-media {
   right: auto;
-  left: clamp(16px, 3vw, 30px);
+  left: clamp(18px, 3.4vw, 34px);
 }
 
 /*
@@ -626,13 +636,14 @@
   }
   .store-promo-media,
   .store-promo-card.image-left .store-promo-media {
-    top: -22px;
+    top: -40px;
     bottom: auto;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    width: 160px;
-    height: 180px;
+    width: 170px;
+    height: 200px;
+    aspect-ratio: auto;
   }
   .store-promo-card::before,
   .store-promo-card.image-left::before {
