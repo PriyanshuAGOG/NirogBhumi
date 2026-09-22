@@ -112,24 +112,28 @@ $selling = $woo_ready && nirog_bhumi_store_selling_is_open();
           <h2><?php esc_html_e('The full launch range.', 'nirog-bhumi'); ?></h2>
         </div>
       </div>
-      <div class="store-shelf-grid products">
-        <?php
-        foreach ($nb_all_products as $nb_featured_product) {
-          $post_object = get_post($nb_featured_product->get_id());
-          if (!$post_object) {
-            continue;
+      <div class="store-shelf-carousel" data-nb-shelf-carousel>
+        <div class="store-shelf-grid store-shelf-track products" data-nb-shelf-track>
+          <?php
+          foreach ($nb_all_products as $nb_featured_product) {
+            $post_object = get_post($nb_featured_product->get_id());
+            if (!$post_object) {
+              continue;
+            }
+            setup_postdata($GLOBALS['post'] = $post_object); // phpcs:ignore
+            // setup_postdata() alone does not fire the `the_post` action, so
+            // WooCommerce's own wc_setup_product_data() hook (which sets
+            // $GLOBALS['product']) never runs - content-product.php reads
+            // global $product, so without this every card would render the
+            // wrong product (or nothing, on the first one).
+            wc_setup_product_data($post_object);
+            wc_get_template_part('content', 'product');
           }
-          setup_postdata($GLOBALS['post'] = $post_object); // phpcs:ignore
-          // setup_postdata() alone does not fire the `the_post` action, so
-          // WooCommerce's own wc_setup_product_data() hook (which sets
-          // $GLOBALS['product']) never runs - content-product.php reads
-          // global $product, so without this every card would render the
-          // wrong product (or nothing, on the first one).
-          wc_setup_product_data($post_object);
-          wc_get_template_part('content', 'product');
-        }
-        wp_reset_postdata();
-        ?>
+          wp_reset_postdata();
+          ?>
+        </div>
+        <button type="button" class="store-shelf-arrow prev" data-nb-shelf-prev aria-label="<?php esc_attr_e('Previous products', 'nirog-bhumi'); ?>">&larr;</button>
+        <button type="button" class="store-shelf-arrow next" data-nb-shelf-next aria-label="<?php esc_attr_e('More products', 'nirog-bhumi'); ?>">&rarr;</button>
       </div>
     </section>
   <?php endif; ?>

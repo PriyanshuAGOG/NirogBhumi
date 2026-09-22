@@ -532,11 +532,18 @@ function nirog_bhumi_store_assets() {
     'nirog-bhumi-store',
     get_template_directory_uri() . '/assets/css/store.css',
     ['nirog-bhumi-overrides'],
-    '0.14.0'
+    '0.15.0'
   );
   wp_enqueue_script(
     'nirog-bhumi-store-carousel',
     get_template_directory_uri() . '/assets/js/store-carousel.js',
+    [],
+    '0.1.0',
+    true
+  );
+  wp_enqueue_script(
+    'nirog-bhumi-store-shelf-carousel',
+    get_template_directory_uri() . '/assets/js/store-shelf-carousel.js',
     [],
     '0.1.0',
     true
