@@ -729,6 +729,25 @@ function nirog_bhumi_ensure_policy_pages() {
 }
 add_action('init', 'nirog_bhumi_ensure_policy_pages', 36);
 
+/**
+ * Ensure the hidden quick yoga interest page exists at /interest. It is
+ * deliberately not linked from navigation, footer or any menu, and is
+ * marked noindex/nofollow below - visitors only reach it via a direct
+ * link that we share ourselves.
+ */
+function nirog_bhumi_ensure_interest_page() {
+  if (!get_page_by_path('interest')) {
+    wp_insert_post([
+      'post_type' => 'page',
+      'post_status' => 'publish',
+      'post_title' => __('Yoga Interest', 'nirog-bhumi'),
+      'post_name' => 'interest',
+      'post_content' => '',
+    ]);
+  }
+}
+add_action('init', 'nirog_bhumi_ensure_interest_page', 36);
+
 /** Last-updated date shown on policy pages. */
 function nirog_bhumi_policy_last_updated() {
   return '25 June 2026';
@@ -758,7 +777,7 @@ function nirog_bhumi_policy_contact_block() {
 }
 
 function nirog_bhumi_private_consultation_robots($robots) {
-  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'consultation-feedback', 'approach', 'mission'])) {
+  if (is_page(['consultation-payment', 'consultation-status', 'consultation-invoice', 'consultation-calendar', 'consultation-feedback', 'approach', 'mission', 'interest'])) {
     $robots['noindex'] = true;
     $robots['nofollow'] = true;
   }
@@ -1928,6 +1947,40 @@ function nirog_bhumi_form_entry_column_content($column, $post_id) {
     echo esc_html(get_post_meta($post_id, 'phone', true));
   }
 }
+
+/** "Form" filter dropdown on the Form Entries admin list, so the NB Dashboard's "View all" links can land pre-filtered (e.g. to just Yoga Interest). */
+function nirog_bhumi_form_entry_type_filter($post_type) {
+  if ($post_type !== 'nb_form_entry' || !current_user_can('manage_options')) {
+    return;
+  }
+  global $wpdb;
+  $types = $wpdb->get_col($wpdb->prepare(
+    "SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm
+     JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+     WHERE pm.meta_key = %s AND p.post_type = %s AND pm.meta_value != ''
+     ORDER BY pm.meta_value ASC",
+    'form_type', 'nb_form_entry'
+  ));
+  $selected = isset($_GET['nb_form_type']) ? sanitize_text_field(wp_unslash($_GET['nb_form_type'])) : '';
+  echo '<select name="nb_form_type"><option value="">' . esc_html__('All forms', 'nirog-bhumi') . '</option>';
+  foreach ($types as $type) {
+    echo '<option value="' . esc_attr($type) . '"' . selected($selected, $type, false) . '>' . esc_html($type) . '</option>';
+  }
+  echo '</select>';
+}
+add_action('restrict_manage_posts', 'nirog_bhumi_form_entry_type_filter');
+
+function nirog_bhumi_form_entry_type_query($query) {
+  if (!is_admin() || !$query->is_main_query() || $query->get('post_type') !== 'nb_form_entry') {
+    return;
+  }
+  $selected = isset($_GET['nb_form_type']) ? sanitize_text_field(wp_unslash($_GET['nb_form_type'])) : '';
+  if ($selected === '') {
+    return;
+  }
+  $query->set('meta_query', [['key' => 'form_type', 'value' => $selected]]);
+}
+add_action('pre_get_posts', 'nirog_bhumi_form_entry_type_query');
 add_action('manage_nb_form_entry_posts_custom_column', 'nirog_bhumi_form_entry_column_content', 10, 2);
 
 function nirog_bhumi_register_education_articles() {

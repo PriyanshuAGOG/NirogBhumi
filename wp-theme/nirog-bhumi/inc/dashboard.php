@@ -116,6 +116,17 @@ function nirog_bhumi_dash_recent_form_entries($limit = 10) {
   ]);
 }
 
+function nirog_bhumi_dash_recent_yoga_interest($limit = 10) {
+  return get_posts([
+    'post_type'      => 'nb_form_entry',
+    'post_status'    => ['publish', 'private', 'draft'],
+    'posts_per_page' => $limit,
+    'orderby'        => 'date',
+    'order'          => 'DESC',
+    'meta_query'     => [['key' => 'form_type', 'value' => 'Yoga Interest']],
+  ]);
+}
+
 function nirog_bhumi_dash_mail_error_status() {
   $error = get_option('nirog_bhumi_last_mail_error');
   $at    = get_option('nirog_bhumi_last_mail_error_at');
@@ -196,6 +207,8 @@ function nirog_bhumi_render_dashboard() {
   // Recent activity
   $recent_cons  = nirog_bhumi_dash_recent_consultations(8);
   $recent_forms = nirog_bhumi_dash_recent_form_entries(6);
+  $recent_yoga_interest = nirog_bhumi_dash_recent_yoga_interest(50);
+  $yoga_interest_total  = nirog_bhumi_dash_count_meta('nb_form_entry', 'form_type', 'Yoga Interest');
 
   // Mail health
   $mail_err = nirog_bhumi_dash_mail_error_status();
@@ -289,6 +302,7 @@ function nirog_bhumi_render_dashboard() {
   <div class="nb-quick-links">
     <a href="<?php echo esc_url(admin_url('edit.php?post_type=nb_consultation')); ?>"><span class="dashicons dashicons-calendar-alt"></span> Consultations</a>
     <a href="<?php echo esc_url(admin_url('edit.php?post_type=nb_form_entry')); ?>"><span class="dashicons dashicons-feedback"></span> Form Entries</a>
+    <a href="<?php echo esc_url(admin_url('edit.php?post_type=nb_form_entry&nb_form_type=' . rawurlencode('Yoga Interest'))); ?>"><span class="dashicons dashicons-universal-access-alt"></span> Yoga Interest (<?php echo esc_html($yoga_interest_total); ?>)</a>
     <a href="<?php echo esc_url(admin_url('options-general.php?page=nirog-bhumi-setup')); ?>"><span class="dashicons dashicons-admin-settings"></span> Settings</a>
     <a href="<?php echo esc_url(admin_url('tools.php?page=nirog-anonymised-data')); ?>"><span class="dashicons dashicons-lock"></span> Anonymised Data</a>
     <a href="<?php echo esc_url(home_url('/consultation-feedback/')); ?>" target="_blank"><span class="dashicons dashicons-star-filled"></span> Feedback Form</a>
@@ -682,6 +696,43 @@ function nirog_bhumi_render_dashboard() {
           <td style="font-size:11px;color:#5f6368"><?php echo esc_html(nirog_bhumi_local_date('d M Y, g:i a', $f->post_date)); ?></td>
           <td style="font-size:11px;color:#5f6368"><?php echo $anon ? '—' : esc_html($femail ?: '—'); ?></td>
           <td><a href="<?php echo esc_url(get_edit_post_link($f->ID)); ?>" style="font-size:11px;color:#2e7d32">View</a></td>
+        </tr>
+        <?php endforeach; ?>
+      <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Yoga interest signups (from the hidden /interest form) ── -->
+  <div class="nb-section-head">
+    <h2>Yoga Interest Signups</h2>
+    <a href="<?php echo esc_url(admin_url('edit.php?post_type=nb_form_entry&nb_form_type=' . rawurlencode('Yoga Interest'))); ?>">View all &rarr;</a>
+  </div>
+  <div class="nb-activity-card" style="margin-bottom:40px">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody>
+      <?php if (!$recent_yoga_interest) : ?>
+        <tr><td colspan="4" class="nb-empty">No yoga interest signups yet.</td></tr>
+      <?php else : ?>
+        <?php foreach ($recent_yoga_interest as $y) :
+          $yname = get_post_meta($y->ID, 'name', true) ?: $y->post_title;
+          $yphone = get_post_meta($y->ID, 'phone', true);
+          $anon = nirog_bhumi_is_anonymised_record($y->ID);
+        ?>
+        <tr>
+          <td>
+            <?php if ($anon) : ?>
+              <em style="color:#80868b">Anonymised</em>
+            <?php else : ?>
+              <a href="<?php echo esc_url(get_edit_post_link($y->ID)); ?>" style="font-weight:600;color:#1d2327;text-decoration:none"><?php echo esc_html($yname ?: '—'); ?></a>
+            <?php endif; ?>
+          </td>
+          <td style="font-size:11px;color:#5f6368"><?php echo $anon ? '—' : esc_html($yphone ?: '—'); ?></td>
+          <td style="font-size:11px;color:#5f6368"><?php echo esc_html(nirog_bhumi_local_date('d M Y, g:i a', $y->post_date)); ?></td>
+          <td><a href="<?php echo esc_url(get_edit_post_link($y->ID)); ?>" style="font-size:11px;color:#2e7d32">View</a></td>
         </tr>
         <?php endforeach; ?>
       <?php endif; ?>
