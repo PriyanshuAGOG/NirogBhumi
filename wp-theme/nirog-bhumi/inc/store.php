@@ -294,6 +294,24 @@ function nirog_bhumi_product_tax_details($product_id) {
 }
 
 /**
+ * Force every product's tax status to "none", regardless of what is saved
+ * in the database. Every price in the catalogue is already GST-inclusive
+ * (see nirog_bhumi_product_tax_details() above) and this store has never
+ * used WooCommerce's own tax engine - GST is only ever bifurcated out of
+ * the price for the invoice PDF - so WooCommerce must never add a
+ * configured tax rate on top at cart or checkout. The seeder already sets
+ * tax_status to "none" when a product is created or refreshed, but this
+ * filter is the actual fix: it takes effect immediately for every product
+ * already live, with no re-seed step needed, and keeps working even if a
+ * product's tax_status is ever changed by hand in wp-admin.
+ */
+function nirog_bhumi_force_product_tax_status() {
+  return 'none';
+}
+add_filter('woocommerce_product_get_tax_status', 'nirog_bhumi_force_product_tax_status');
+add_filter('woocommerce_product_variation_get_tax_status', 'nirog_bhumi_force_product_tax_status');
+
+/**
  * Stamp the HSN and rate onto the order line at checkout so a later change to
  * the product does not rewrite the tax details of an invoice already issued.
  */

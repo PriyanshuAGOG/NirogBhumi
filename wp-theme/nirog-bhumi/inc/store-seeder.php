@@ -242,6 +242,14 @@ function nirog_bhumi_build_seed_product($entry, $category_map) {
   $product->set_featured(!empty($entry['featured']));
   $product->set_catalog_visibility(!empty($entry['catalogue_visibility']) ? $entry['catalogue_visibility'] : 'visible');
   $product->set_reviews_allowed(false);
+  // Every price in the catalogue is already GST-inclusive (see
+  // nirog_bhumi_product_tax_details() in inc/store.php) and the store never
+  // uses WooCommerce's own tax engine - GST is only ever bifurcated out of
+  // the price for the invoice PDF. A product left at WooCommerce's default
+  // tax status ('taxable') would have WooCommerce add a configured tax rate
+  // on top of this already-inclusive price at cart/checkout, double
+  // counting GST, so every seeded product is explicitly untaxed.
+  $product->set_tax_status('none');
 
   if ('sale' === $entry['status'] && '' !== $entry['price']) {
     $product->set_regular_price($entry['price']);
@@ -353,6 +361,11 @@ function nirog_bhumi_update_seeded_products() {
     $product->set_short_description($entry['short']);
     $product->set_description(nirog_bhumi_catalogue_description($entry));
     $product->set_featured(!empty($entry['featured']));
+    // See the matching note in nirog_bhumi_build_seed_product() - prices
+    // are GST-inclusive and the store never uses WooCommerce's tax engine,
+    // so this also retroactively fixes any product that was created before
+    // this flag existed and is showing WooCommerce-calculated tax on top.
+    $product->set_tax_status('none');
 
     if ('sale' === $entry['status'] && '' !== $entry['price']) {
       $product->set_regular_price($entry['price']);
