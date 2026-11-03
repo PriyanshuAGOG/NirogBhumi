@@ -45,11 +45,18 @@ function nirog_bhumi_seed_product_categories() {
 
 /**
  * SKUs of products that were once part of the launch catalogue and have
- * since been retired (combos, programmes and consultations sold as
- * products, and any tool later dropped). Kept here so a site that already
- * ran "Create missing products" before these were removed from the
- * catalogue can clean them up with one click, instead of the products
- * silently staying live forever.
+ * since been retired (combos, programmes, and any tool later dropped).
+ * Kept here so a site that already ran "Create missing products" before
+ * these were removed from the catalogue can clean them up with one click,
+ * instead of the products silently staying live forever.
+ *
+ * CONSULT-500 must NEVER be in this list. It is not a retired catalogue
+ * placeholder - it is the live consultation product that
+ * nirog_bhumi_consultation_product_id() (Settings > Nirog Bhumi Setup)
+ * points to, and the entire consultation payment flow depends on it being
+ * published. It was mistakenly added here once already and trashing it
+ * broke consultation payments site-wide ("the consultation product could
+ * not be found") until the product was restored from Trash by hand.
  */
 function nirog_bhumi_store_retired_skus() {
   return [
@@ -58,7 +65,6 @@ function nirog_bhumi_store_retired_skus() {
     'NB-COMBO-03',
     'NB-PROG-06M',
     'NB-PROG-99D',
-    'CONSULT-500',
     'NB-TOOL-03',
     // Retired when the catalogue was replaced with the five products from
     // the September 2026 website information pack: the placeholder kit
@@ -78,14 +84,24 @@ function nirog_bhumi_store_retired_skus() {
  * WooCommerce > Products > Trash in case a SKU was reused by mistake.
  */
 function nirog_bhumi_cleanup_retired_products() {
-  $result = ['trashed' => 0, 'not_found' => 0];
+  $result = ['trashed' => 0, 'not_found' => 0, 'protected' => 0];
   if (!function_exists('wc_get_product_id_by_sku')) {
     return $result;
   }
+  // Whatever Settings > Nirog Bhumi Setup currently points to as THE
+  // consultation product must never be trashed by this tool, no matter
+  // what ends up in the retired-SKU list above - the entire consultation
+  // payment flow depends on that product staying published. This is a
+  // second line of defence on top of keeping CONSULT-500 out of the list.
+  $protected_id = function_exists('nirog_bhumi_consultation_product_id') ? nirog_bhumi_consultation_product_id() : 0;
   foreach (nirog_bhumi_store_retired_skus() as $sku) {
     $product_id = wc_get_product_id_by_sku($sku);
     if (!$product_id) {
       $result['not_found']++;
+      continue;
+    }
+    if ($protected_id && $product_id === $protected_id) {
+      $result['protected']++;
       continue;
     }
     wp_trash_post($product_id);
