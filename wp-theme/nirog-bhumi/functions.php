@@ -147,6 +147,23 @@ function nirog_bhumi_render_settings_page() {
           <td>
             <input id="nirog-consultation-product-id" name="nirog_bhumi_settings[consultation_product_id]" type="number" min="0" class="regular-text" value="<?php echo esc_attr($settings['consultation_product_id']); ?>">
             <p class="description"><?php esc_html_e('Enter the WooCommerce product ID for the Rs. 500 consultation product.', 'nirog-bhumi'); ?></p>
+            <?php
+            $cp_id = (int) $settings['consultation_product_id'];
+            if ($cp_id) {
+              $cp = function_exists('wc_get_product') ? wc_get_product($cp_id) : null;
+              if (!$cp || !$cp->exists()) {
+                echo '<p style="color:#b32d2e;font-weight:600">' . esc_html__('This product ID does not exist. Consultation payment is broken right now.', 'nirog-bhumi') . '</p>';
+              } elseif ('publish' !== $cp->get_status()) {
+                echo '<p style="color:#b32d2e;font-weight:600">' . esc_html(sprintf(__('Product #%d ("%s") is not published (status: %s). Consultation payment is broken right now.', 'nirog-bhumi'), $cp_id, $cp->get_name(), $cp->get_status())) . '</p>';
+              } elseif (!$cp->is_purchasable()) {
+                echo '<p style="color:#b32d2e;font-weight:600">' . esc_html(sprintf(__('Product #%d ("%s") is not purchasable. Consultation payment is broken right now.', 'nirog-bhumi'), $cp_id, $cp->get_name())) . '</p>';
+              } else {
+                echo '<p style="color:#2e7d32;font-weight:600">' . esc_html(sprintf(__('OK - resolves to "%s", published and purchasable.', 'nirog-bhumi'), $cp->get_name())) . '</p>';
+              }
+            } else {
+              echo '<p style="color:#b32d2e;font-weight:600">' . esc_html__('No product ID set. Consultation payment is broken right now.', 'nirog-bhumi') . '</p>';
+            }
+            ?>
           </td>
         </tr>
         <tr>
@@ -328,6 +345,25 @@ function nirog_bhumi_consultation_is_virtual($needs_shipping, $product) {
   return $product && (int) $product->get_id() === nirog_bhumi_consultation_product_id() ? false : $needs_shipping;
 }
 add_filter('woocommerce_product_needs_shipping', 'nirog_bhumi_consultation_is_virtual', 10, 2);
+
+/**
+ * The consultation product is a booking slot, not stock - it must never be
+ * blockable by "out of stock", a stray stock quantity of 0, or someone
+ * turning on stock management for it by mistake in wp-admin. Force it
+ * in-stock and unmanaged, the same way is_purchasable() and needs_shipping
+ * are already forced above, so a booking can never fail to add to the cart
+ * for a stock reason.
+ */
+function nirog_bhumi_consultation_always_in_stock($stock_status, $product) {
+  return $product && (int) $product->get_id() === nirog_bhumi_consultation_product_id() ? 'instock' : $stock_status;
+}
+add_filter('woocommerce_product_get_stock_status', 'nirog_bhumi_consultation_always_in_stock', 10, 2);
+add_filter('woocommerce_product_variation_get_stock_status', 'nirog_bhumi_consultation_always_in_stock', 10, 2);
+
+function nirog_bhumi_consultation_unmanaged_stock($manage_stock, $product) {
+  return $product && (int) $product->get_id() === nirog_bhumi_consultation_product_id() ? false : $manage_stock;
+}
+add_filter('woocommerce_product_get_manage_stock', 'nirog_bhumi_consultation_unmanaged_stock', 10, 2);
 
 /**
  * The consultation fee is Rs. 500 + 18% GST = Rs. 590, exactly as already
@@ -1007,6 +1043,16 @@ function nirog_bhumi_consultation_whatsapp_url($entry_id) {
   return 'https://wa.me/917357542882?text=' . rawurlencode($message);
 }
 
+function nirog_bhumi_consultation_payment_setup_error_message($code) {
+  $messages = [
+    'missing-product' => __('Payment is not set up correctly on our end (the consultation product could not be found). We have been notified - please try again shortly, or contact us directly.', 'nirog-bhumi'),
+    'not-purchasable' => __('Payment is not available right now. Please contact us directly and we will get this sorted.', 'nirog-bhumi'),
+    'add-to-cart-failed' => __('We could not add the consultation fee to your cart just now. Please try again, or contact us if this keeps happening.', 'nirog-bhumi'),
+    'woocommerce-missing' => __('Payment is not available right now. Please contact us directly.', 'nirog-bhumi'),
+  ];
+  return $messages[$code] ?? '';
+}
+
 function nirog_bhumi_render_consultation_payment_actions($entry_id) {
   if (!$entry_id) {
     return '<p>' . esc_html__('Please complete the consultation form to continue.', 'nirog-bhumi') . '</p>';
@@ -1016,11 +1062,15 @@ function nirog_bhumi_render_consultation_payment_actions($entry_id) {
   if ($status === 'verified') {
     return '<a class="pill primary" href="' . esc_url($status_url) . '">' . esc_html__('View consultation status', 'nirog-bhumi') . '</a>';
   }
+  $setup_error = isset($_GET['payment_setup']) ? sanitize_key(wp_unslash($_GET['payment_setup'])) : '';
+  $setup_message = $setup_error ? nirog_bhumi_consultation_payment_setup_error_message($setup_error) : '';
   $checkout_url = nirog_bhumi_consultation_checkout_url();
   if ($checkout_url) {
-    return '<a class="pill primary" href="' . esc_url($checkout_url) . '">' . esc_html__('Pay Rs. 590 securely', 'nirog-bhumi') . '</a>';
+    $retry_notice = $setup_message ? '<p class="payment-error">' . esc_html($setup_message) . '</p>' : '';
+    return $retry_notice . '<a class="pill primary" href="' . esc_url($checkout_url) . '">' . esc_html__('Pay Rs. 590 securely', 'nirog-bhumi') . '</a>';
   }
-  return '<p>' . esc_html__('Payment is not available right now. Please contact us at priyanshu@nirogbhumi.com.', 'nirog-bhumi') . '</p>';
+  $message = $setup_message ?: __('Payment is not available right now. Please contact us at priyanshu@nirogbhumi.com.', 'nirog-bhumi');
+  return '<p class="payment-error">' . esc_html($message) . '</p>';
 }
 
 function nirog_bhumi_consultation_edit_url() {
@@ -1274,6 +1324,34 @@ function nirog_bhumi_attach_consultation_entry_to_order($order, $data) {
 }
 add_action('woocommerce_checkout_create_order', 'nirog_bhumi_attach_consultation_entry_to_order', 10, 2);
 
+/**
+ * A broken consultation payment setup (deleted product, wrong ID, etc.)
+ * silently blocks every booking on the site until someone happens to
+ * notice - so the first time it happens, email the admin immediately
+ * instead of only showing the customer an error. Rate-limited to once per
+ * hour per reason so a stuck setting does not spam the inbox on every
+ * retry.
+ */
+function nirog_bhumi_alert_admin_consultation_payment_broken($reason) {
+  $throttle_key = 'nirog_bhumi_consultation_payment_alert_' . $reason;
+  if (get_transient($throttle_key)) {
+    return;
+  }
+  set_transient($throttle_key, 1, HOUR_IN_SECONDS);
+  $admin_email = get_option('admin_email');
+  if (!$admin_email) {
+    return;
+  }
+  wp_mail(
+    $admin_email,
+    __('Consultation payment is broken on the website', 'nirog-bhumi'),
+    sprintf(
+      "A visitor just tried to pay for a consultation and it failed: %s\n\nCheck Settings > Nirog Bhumi (consultation_product_id) and the product itself in WooCommerce > Products.\n\nThis will block every consultation booking until fixed.",
+      $reason
+    )
+  );
+}
+
 function nirog_bhumi_maybe_start_consultation_checkout() {
   if (empty($_GET['nb_start_consultation_checkout'])) {
     return;
@@ -1283,12 +1361,30 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
     exit;
   }
   if (!function_exists('WC') || !function_exists('wc_get_checkout_url')) {
+    nirog_bhumi_alert_admin_consultation_payment_broken('woocommerce-missing');
     wp_safe_redirect(add_query_arg('payment_setup', 'woocommerce-missing', home_url('/consultation-payment/')));
     exit;
   }
   $product_id = nirog_bhumi_consultation_product_id();
   if (!$product_id) {
+    nirog_bhumi_alert_admin_consultation_payment_broken('missing-product (not set in Settings)');
     wp_safe_redirect(add_query_arg('payment_setup', 'missing-product', home_url('/consultation-payment/')));
+    exit;
+  }
+  // The ID in Settings can go stale (product deleted, moved to trash, or
+  // never published) without anything else noticing, since nothing reads
+  // it until a customer actually clicks Pay. Check it here instead of
+  // letting WC()->cart->add_to_cart() fail silently below and sending the
+  // customer to a checkout page with nothing in the cart.
+  $consultation_product = wc_get_product($product_id);
+  if (!$consultation_product || !$consultation_product->exists() || 'publish' !== $consultation_product->get_status()) {
+    nirog_bhumi_alert_admin_consultation_payment_broken('missing-product (ID ' . $product_id . ' does not exist or is not published)');
+    wp_safe_redirect(add_query_arg('payment_setup', 'missing-product', home_url('/consultation-payment/')));
+    exit;
+  }
+  if (!$consultation_product->is_purchasable()) {
+    nirog_bhumi_alert_admin_consultation_payment_broken('not-purchasable (product ID ' . $product_id . ')');
+    wp_safe_redirect(add_query_arg('payment_setup', 'not-purchasable', home_url('/consultation-payment/')));
     exit;
   }
   if (null === WC()->cart) {
@@ -1309,8 +1405,15 @@ function nirog_bhumi_maybe_start_consultation_checkout() {
     WC()->cart->empty_cart();
   }
   $cart_id = WC()->cart->generate_cart_id($product_id);
-  if (!WC()->cart->find_product_in_cart($cart_id)) {
-    WC()->cart->add_to_cart($product_id, 1);
+  $already_in_cart = (bool) WC()->cart->find_product_in_cart($cart_id);
+  $added = $already_in_cart ? true : WC()->cart->add_to_cart($product_id, 1);
+  if (!$added) {
+    // add_to_cart() already queued a wc_add_notice() explaining why (out of
+    // stock, etc.) - land back on the payment page instead of an empty
+    // checkout so that notice is actually visible to the customer.
+    nirog_bhumi_alert_admin_consultation_payment_broken('add-to-cart-failed (product ID ' . $product_id . ')');
+    wp_safe_redirect(add_query_arg('payment_setup', 'add-to-cart-failed', home_url('/consultation-payment/')));
+    exit;
   }
   $checkout_id = nirog_bhumi_ensure_checkout_page();
   $checkout_url = $checkout_id ? get_permalink($checkout_id) : wc_get_checkout_url();

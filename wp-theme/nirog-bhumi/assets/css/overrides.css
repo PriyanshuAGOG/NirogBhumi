@@ -62,3 +62,6 @@
 .consultation-price-inline{margin-top:16px;padding:12px 16px;background:#f0f5ef;border:1px solid #d6e2d3;border-radius:8px;font-size:14px;color:#2f3e30;line-height:1.5}
 .consultation-price-inline strong{color:var(--ink)}
 .consultation-price-inline span{color:#4a5a4c}
+
+/* Consultation payment setup error - shown above the Pay button when the automation hits a problem, see nirog_bhumi_render_consultation_payment_actions(). */
+.payment-error{width:100%;margin:0 0 14px;padding:12px 16px;background:#fbeaea;border:1px solid #e3b8b8;border-radius:8px;font-size:13px;line-height:1.5;color:#7a2a2a}
