@@ -279,6 +279,99 @@ function nirog_bhumi_consultation_product_id() {
   return (int) $settings['consultation_product_id'];
 }
 
+/**
+ * Self-healing consultation product. If Settings > Nirog Bhumi Setup's
+ * consultation product ID does not currently resolve to a published,
+ * purchasable product - never set, deleted, or trashed (e.g. by the
+ * retired-products cleanup bug that trashed it once already) - find or
+ * create the real one and point Settings at it automatically. No manual
+ * wp-admin Products > Trash step required.
+ *
+ * wc_get_product_id_by_sku() deliberately excludes trashed posts
+ * (WooCommerce core filters post_status != 'trash'), which is exactly why
+ * a trashed consultation product reads as "does not exist" everywhere
+ * else in this file - so recovery here queries the database directly
+ * instead, so a trashed product is found and restored (preserving its
+ * original ID, price and order history) rather than leaving the site
+ * broken or spawning a duplicate.
+ */
+function nirog_bhumi_ensure_consultation_product() {
+  if (!class_exists('WooCommerce') || !function_exists('wc_get_product')) {
+    return;
+  }
+  $product_id = nirog_bhumi_consultation_product_id();
+  if ($product_id) {
+    $product = wc_get_product($product_id);
+    if ($product && $product->exists() && 'publish' === $product->get_status() && $product->is_purchasable()) {
+      return; // Already fine - nothing to do.
+    }
+  }
+
+  global $wpdb;
+  $sku = 'CONSULT-500';
+  $found_id = (int) $wpdb->get_var($wpdb->prepare(
+    "SELECT posts.ID FROM {$wpdb->posts} posts
+     LEFT JOIN {$wpdb->postmeta} meta ON posts.ID = meta.post_id
+     WHERE meta.meta_key = '_sku' AND meta.meta_value = %s AND posts.post_type = 'product'
+     ORDER BY posts.ID DESC LIMIT 1",
+    $sku
+  ));
+
+  if ($found_id) {
+    // Recover the original product exactly as it was configured (price,
+    // name, etc.) rather than overwriting it - only its publish status
+    // needs fixing.
+    $previous_status = get_post_status($found_id);
+    if ($previous_status !== 'publish') {
+      if ($previous_status === 'trash') {
+        wp_untrash_post($found_id);
+      }
+      wp_update_post(['ID' => $found_id, 'post_status' => 'publish']);
+    }
+    $resolved_id = $found_id;
+    $recovery_note = 'restored product #' . $found_id . ' from ' . ('trash' === $previous_status ? 'trash' : ('status "' . $previous_status . '"'));
+  } else {
+    // Truly never existed (or was permanently deleted) - create it fresh
+    // with sensible defaults; the admin can adjust name/price afterwards.
+    $product = new WC_Product_Simple();
+    $product->set_name(__('30-Minute Consultation', 'nirog-bhumi'));
+    $product->set_sku($sku);
+    $product->set_regular_price('500');
+    $product->set_status('publish');
+    $product->set_virtual(true);
+    $product->set_catalog_visibility('hidden');
+    $product->set_reviews_allowed(false);
+    $resolved_id = (int) $product->save();
+    $recovery_note = 'created a brand new product #' . $resolved_id . ' (none existed under SKU ' . $sku . ')';
+  }
+
+  if (!$resolved_id) {
+    return;
+  }
+
+  $settings = nirog_bhumi_get_settings();
+  $settings['consultation_product_id'] = $resolved_id;
+  update_option('nirog_bhumi_settings', $settings);
+
+  $throttle_key = 'nirog_bhumi_consultation_product_recovered_alert';
+  if (!get_transient($throttle_key)) {
+    set_transient($throttle_key, 1, HOUR_IN_SECONDS);
+    $admin_email = get_option('admin_email');
+    if ($admin_email) {
+      wp_mail(
+        $admin_email,
+        __('Consultation payment was broken and has been auto-fixed', 'nirog-bhumi'),
+        sprintf(
+          "Consultation payment stopped working because the product Settings pointed to was missing or unpublished.\n\nThe website automatically fixed this: %s, and Settings > Nirog Bhumi Setup now points to product #%d.\n\nPlease double-check its name and price (should be Rs. 500) in WooCommerce > Products.",
+          $recovery_note,
+          $resolved_id
+        )
+      );
+    }
+  }
+}
+add_action('init', 'nirog_bhumi_ensure_consultation_product', 37);
+
 function nirog_bhumi_cart_is_consultation_only() {
   if (!function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) {
     return false;
