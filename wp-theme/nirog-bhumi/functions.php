@@ -9,6 +9,7 @@ require_once get_template_directory() . '/inc/store-settings.php';
 require_once get_template_directory() . '/inc/store-catalogue.php';
 require_once get_template_directory() . '/inc/store-seeder.php';
 require_once get_template_directory() . '/inc/store.php';
+require_once get_template_directory() . '/inc/education-seeder.php';
 
 function nirog_bhumi_setup() {
   add_theme_support('title-tag');
@@ -2215,27 +2216,25 @@ function nirog_bhumi_register_education_articles() {
 add_action('init', 'nirog_bhumi_register_education_articles');
 
 /**
- * The six fixed education categories used on the Education page. The term names
- * here must match the vertical headings rendered in page-education.php so that
- * published articles land under the right category automatically.
+ * The four fixed education categories used on the Education page. The term
+ * names here must match the vertical headings rendered in page-education.php
+ * so that published articles land under the right category automatically.
  */
 function nirog_bhumi_education_topics() {
   return [
-    'Foundations of Health',
-    'Movement',
-    'How to Eat',
-    'What to Eat',
-    'What to Avoid',
-    'Recovery, Stress & Tracking',
+    'Movement, Exercise & Yoga',
+    'Lifestyle',
+    'Food',
+    'Miscellaneous',
   ];
 }
 
 /**
  * Normalise a topic name to a comparison key so category matching is robust to
  * casing, surrounding whitespace, punctuation and HTML-encoded ampersands
- * (WordPress can return "Recovery, Stress &amp; Tracking"). e.g. both
- * "Recovery, Stress & Tracking" and "recovery, stress &amp; tracking" become
- * "recoverystresstracking".
+ * (WordPress can return "Movement, Exercise &amp; Yoga"). e.g. both
+ * "Movement, Exercise & Yoga" and "movement, exercise &amp; yoga" become
+ * "movementexerciseyoga".
  */
 function nirog_bhumi_education_topic_key($name) {
   $decoded = html_entity_decode((string) $name, ENT_QUOTES, 'UTF-8');
@@ -2243,11 +2242,11 @@ function nirog_bhumi_education_topic_key($name) {
 }
 
 /**
- * Seed the six education topics once so the editor always offers a fixed,
+ * Seed the four education topics once so the editor always offers a fixed,
  * foolproof list to assign an article to.
  */
 function nirog_bhumi_seed_education_topics() {
-  if (get_option('nirog_bhumi_education_topics_seeded') === '6') {
+  if (get_option('nirog_bhumi_education_topics_seeded') === '4') {
     return;
   }
   foreach (nirog_bhumi_education_topics() as $topic) {
@@ -2255,9 +2254,65 @@ function nirog_bhumi_seed_education_topics() {
       wp_insert_term($topic, 'nb_education_topic');
     }
   }
-  update_option('nirog_bhumi_education_topics_seeded', '6');
+  update_option('nirog_bhumi_education_topics_seeded', '4');
 }
 add_action('init', 'nirog_bhumi_seed_education_topics', 30);
+
+/**
+ * One-time migration from the old six education topics to the new four,
+ * run once so any article already published under the old scheme keeps its
+ * place under the right new category instead of falling through to the
+ * fallback topic. Simple 1:1 renames keep the term (and its posts) intact;
+ * "How to Eat", "What to Eat" and "What to Avoid" all collapse into the one
+ * new "Food" term, so their posts are reassigned before the now-redundant
+ * terms are deleted.
+ */
+function nirog_bhumi_migrate_education_topics_to_four() {
+  if (get_option('nirog_bhumi_education_topics_migrated') === '4') {
+    return;
+  }
+  if (!taxonomy_exists('nb_education_topic')) {
+    return;
+  }
+
+  $renames = [
+    'Movement' => 'Movement, Exercise & Yoga',
+    'Recovery, Stress & Tracking' => 'Lifestyle',
+    'Foundations of Health' => 'Miscellaneous',
+    'How to Eat' => 'Food',
+  ];
+  foreach ($renames as $old_name => $new_name) {
+    $term = get_term_by('name', $old_name, 'nb_education_topic');
+    if ($term && !is_wp_error($term)) {
+      wp_update_term($term->term_id, 'nb_education_topic', ['name' => $new_name, 'slug' => sanitize_title($new_name)]);
+    }
+  }
+
+  $food_term = get_term_by('name', 'Food', 'nb_education_topic');
+  $merge_into_food = ['What to Eat', 'What to Avoid'];
+  foreach ($merge_into_food as $old_name) {
+    $term = get_term_by('name', $old_name, 'nb_education_topic');
+    if (!$term || is_wp_error($term)) {
+      continue;
+    }
+    if ($food_term && !is_wp_error($food_term)) {
+      $posts = get_posts([
+        'post_type' => 'nb_education_post',
+        'post_status' => 'any',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'tax_query' => [['taxonomy' => 'nb_education_topic', 'field' => 'term_id', 'terms' => $term->term_id]],
+      ]);
+      foreach ($posts as $post_id) {
+        wp_set_post_terms($post_id, [(int) $food_term->term_id], 'nb_education_topic', true);
+      }
+    }
+    wp_delete_term($term->term_id, 'nb_education_topic');
+  }
+
+  update_option('nirog_bhumi_education_topics_migrated', '4');
+}
+add_action('init', 'nirog_bhumi_migrate_education_topics_to_four', 29);
 
 /**
  * Render the published Nirog Bhumi articles for one education category as

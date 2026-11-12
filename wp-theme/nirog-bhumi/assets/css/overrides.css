@@ -65,3 +65,23 @@
 
 /* Consultation payment setup error - shown above the Pay button when the automation hits a problem, see nirog_bhumi_render_consultation_payment_actions(). */
 .payment-error{width:100%;margin:0 0 14px;padding:12px 16px;background:#fbeaea;border:1px solid #e3b8b8;border-radius:8px;font-size:13px;line-height:1.5;color:#7a2a2a}
+
+/*
+ * Education page: each category's articles are split into "From Nirog Bhumi"
+ * and "From other sources" groups (page-education.php), so it is always
+ * obvious which writing is ours and which is curated third-party material.
+ */
+.edu-group{display:flex;flex-direction:column;gap:10px}
+.edu-group .edu-grid:not(:last-child){margin-bottom:28px}
+.edu-source-label{margin:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;display:flex;align-items:center;gap:8px}
+.edu-source-label::before{content:"";width:8px;height:8px;border-radius:999px;flex-shrink:0}
+.edu-source-label.nb{color:#1f6f3d}
+.edu-source-label.nb::before{background:var(--earth)}
+.edu-source-label.other{color:#6b5f3f}
+.edu-source-label.other::before{background:#c9bd94}
+.edu-card[data-nb-own]{border-color:var(--earth);background:#fff}
+.edu-card[data-nb-own] small{color:#1f6f3d}
+
+/* Dense citation list at the end of a long-form article (see inc/education-seeder.php) - smaller type so 20+ references don't dominate the page. */
+.nb-article-body .nb-reference-list{font-size:13px;line-height:1.6;color:#4a564b}
+.nb-article-body .nb-reference-list li{margin-bottom:12px}
