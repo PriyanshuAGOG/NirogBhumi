@@ -197,9 +197,62 @@ function nirog_bhumi_fibre_article_content($image_html) {
 }
 
 /**
+ * Remove any duplicate copy of the fibre article created by a past race
+ * (two front-end requests both passing the "does it exist yet" check in
+ * nirog_bhumi_seed_fibre_article() before either had actually inserted it -
+ * WordPress then auto-suffixes the second post's slug with "-2" instead of
+ * rejecting it). Keeps the oldest post under the canonical slug and trashes
+ * the rest, rather than permanently deleting, so nothing is lost if one of
+ * them was actually edited by hand.
+ */
+function nirog_bhumi_cleanup_duplicate_fibre_articles() {
+  if (get_option('nirog_bhumi_fibre_duplicates_cleaned') === '1') {
+    return;
+  }
+  if (!post_type_exists('nb_education_post')) {
+    return;
+  }
+  $slug = 'is-fibre-the-superfood-for-reversing-type-2-diabetes';
+  $matches = get_posts([
+    'post_type' => 'nb_education_post',
+    'post_status' => ['publish', 'draft', 'pending', 'future'],
+    'posts_per_page' => -1,
+    'orderby' => 'ID',
+    'order' => 'ASC',
+    'title' => 'Is Fibre the "Superfood" for Reversing Type 2 Diabetes?',
+  ]);
+  if (count($matches) > 1) {
+    // Prefer the one sitting at the canonical slug; otherwise keep whichever
+    // was created first.
+    $canonical = null;
+    foreach ($matches as $post) {
+      if ($post->post_name === $slug) {
+        $canonical = $post;
+        break;
+      }
+    }
+    $keep_id = $canonical ? $canonical->ID : $matches[0]->ID;
+    foreach ($matches as $post) {
+      if ((int) $post->ID !== (int) $keep_id) {
+        wp_trash_post($post->ID);
+      }
+    }
+  }
+  update_option('nirog_bhumi_fibre_duplicates_cleaned', '1');
+}
+add_action('init', 'nirog_bhumi_cleanup_duplicate_fibre_articles', 30);
+
+/**
  * Create the fibre article once, idempotently, by slug - safe to run on
  * every request. Never overwrites it afterwards, so an editorial change
  * made by hand in wp-admin later is never clobbered by this file.
+ *
+ * Guarded by an add_option() mutex (atomic at the DB level - add_option()
+ * fails if the key already exists) so two front-end requests landing on
+ * init at nearly the same moment cannot both pass the "does it exist yet"
+ * check and both insert a copy, which is exactly how the article ended up
+ * duplicated once already (see nirog_bhumi_cleanup_duplicate_fibre_articles
+ * above, which fixes that existing duplicate).
  */
 function nirog_bhumi_seed_fibre_article() {
   if (!post_type_exists('nb_education_post')) {
@@ -210,42 +263,63 @@ function nirog_bhumi_seed_fibre_article() {
     return;
   }
 
-  $image_html = '';
-  $attachment_id = function_exists('nirog_bhumi_import_theme_image') ? nirog_bhumi_import_theme_image('fibre-glucose-insulin-response.png') : 0;
-  if ($attachment_id) {
-    $image_url = wp_get_attachment_image_url($attachment_id, 'large');
-    if ($image_url) {
-      $image_html = '<figure><img src="' . esc_url($image_url) . '" alt="' . esc_attr__('Chart showing lower glucose and insulin response when protein and vegetables are eaten before carbohydrates', 'nirog-bhumi') . '" loading="lazy"><figcaption>' . esc_html__('Glucose and insulin response by food order. Source: Shukla et al., Diabetes Care, 2015 [17].', 'nirog-bhumi') . '</figcaption></figure>';
+  $lock_key = 'nirog_bhumi_fibre_seed_lock';
+  $lock_acquired = add_option($lock_key, time(), '', false);
+  if (!$lock_acquired) {
+    // Someone else is (or just finished) seeding it - stale locks older
+    // than two minutes are abandoned requests, not a live race.
+    if ((int) get_option($lock_key) < time() - 120) {
+      delete_option($lock_key);
     }
-  }
-
-  // This is trusted, code-authored content (tables, figure/figcaption,
-  // target="_blank" links), not untrusted user input - insert it without
-  // running it through the post-content KSES filters, which would strip
-  // attributes on an anonymous front-end request (no unfiltered_html cap).
-  if (function_exists('kses_remove_filters')) {
-    kses_remove_filters();
-  }
-  $post_id = wp_insert_post([
-    'post_type' => 'nb_education_post',
-    'post_status' => 'publish',
-    'post_title' => __('Is Fibre the "Superfood" for Reversing Type 2 Diabetes?', 'nirog-bhumi'),
-    'post_name' => $slug,
-    'post_excerpt' => __('Fibre does not need an expensive supplement. Simple plant-based whole foods can help you reach your daily fibre target and support a gentler blood sugar response. Why fibre matters, how much you need, where to get it, and when to eat it.', 'nirog-bhumi'),
-    'post_content' => nirog_bhumi_fibre_article_content($image_html),
-  ], true);
-  if (function_exists('kses_init_filters')) {
-    kses_init_filters();
-  }
-
-  if (is_wp_error($post_id) || !$post_id) {
     return;
   }
 
-  wp_set_post_terms($post_id, ['Food'], 'nb_education_topic');
+  try {
+    // Re-check now that the lock is held, in case the other request finished
+    // and inserted the post in the time it took to acquire this lock.
+    if (get_page_by_path($slug, OBJECT, 'nb_education_post')) {
+      return;
+    }
 
-  if ($attachment_id) {
-    set_post_thumbnail($post_id, $attachment_id);
+    $image_html = '';
+    $attachment_id = function_exists('nirog_bhumi_import_theme_image') ? nirog_bhumi_import_theme_image('fibre-glucose-insulin-response.png') : 0;
+    if ($attachment_id) {
+      $image_url = wp_get_attachment_image_url($attachment_id, 'large');
+      if ($image_url) {
+        $image_html = '<figure><img src="' . esc_url($image_url) . '" alt="' . esc_attr__('Chart showing lower glucose and insulin response when protein and vegetables are eaten before carbohydrates', 'nirog-bhumi') . '" loading="lazy"><figcaption>' . esc_html__('Glucose and insulin response by food order. Source: Shukla et al., Diabetes Care, 2015 [17].', 'nirog-bhumi') . '</figcaption></figure>';
+      }
+    }
+
+    // This is trusted, code-authored content (tables, figure/figcaption,
+    // target="_blank" links), not untrusted user input - insert it without
+    // running it through the post-content KSES filters, which would strip
+    // attributes on an anonymous front-end request (no unfiltered_html cap).
+    if (function_exists('kses_remove_filters')) {
+      kses_remove_filters();
+    }
+    $post_id = wp_insert_post([
+      'post_type' => 'nb_education_post',
+      'post_status' => 'publish',
+      'post_title' => __('Is Fibre the "Superfood" for Reversing Type 2 Diabetes?', 'nirog-bhumi'),
+      'post_name' => $slug,
+      'post_excerpt' => __('Fibre does not need an expensive supplement. Simple plant-based whole foods can help you reach your daily fibre target and support a gentler blood sugar response. Why fibre matters, how much you need, where to get it, and when to eat it.', 'nirog-bhumi'),
+      'post_content' => nirog_bhumi_fibre_article_content($image_html),
+    ], true);
+    if (function_exists('kses_init_filters')) {
+      kses_init_filters();
+    }
+
+    if (is_wp_error($post_id) || !$post_id) {
+      return;
+    }
+
+    wp_set_post_terms($post_id, ['Food'], 'nb_education_topic');
+
+    if ($attachment_id) {
+      set_post_thumbnail($post_id, $attachment_id);
+    }
+  } finally {
+    delete_option($lock_key);
   }
 }
 add_action('init', 'nirog_bhumi_seed_fibre_article', 31);
