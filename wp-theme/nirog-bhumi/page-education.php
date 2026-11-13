@@ -17,6 +17,30 @@ $nb_education_posts = get_posts([
   'order' => 'DESC',
 ]);
 
+// Defensive de-duplication: if two published posts ever share the exact
+// same title (a seeding race, an accidental duplicate created by hand,
+// etc.), show only the oldest one rather than a repeated card. This runs
+// regardless of why a duplicate exists, so the page itself can never show
+// the same article twice even if the underlying data briefly does.
+if ($nb_education_posts) {
+  usort($nb_education_posts, function ($a, $b) {
+    return $a->ID <=> $b->ID;
+  });
+  $nb_seen_titles = [];
+  $nb_education_posts = array_values(array_filter($nb_education_posts, function ($post) use (&$nb_seen_titles) {
+    $key = strtolower(trim($post->post_title));
+    if (isset($nb_seen_titles[$key])) {
+      return false;
+    }
+    $nb_seen_titles[$key] = true;
+    return true;
+  }));
+  // Restore newest-first order for display now that duplicates are gone.
+  usort($nb_education_posts, function ($a, $b) {
+    return strcmp($b->post_date, $a->post_date);
+  });
+}
+
 // Group published articles by their education topic so each vertical can render
 // the ones that belong to it. Matching uses a normalised key so it is robust to
 // casing and HTML-encoded ampersands. Articles without a recognised topic fall
