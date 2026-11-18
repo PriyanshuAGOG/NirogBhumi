@@ -44,6 +44,14 @@ if (have_posts()) :
     </div>
   </section>
 
+  <?php if (comments_open() || get_comments_number()) : ?>
+  <section class="nb-article-section nb-comments-section">
+    <div class="nb-article-body">
+      <?php comments_template(); ?>
+    </div>
+  </section>
+  <?php endif; ?>
+
   <section class="consult-cards">
     <article>
       <h2>Continue learning</h2>

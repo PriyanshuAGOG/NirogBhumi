@@ -24,7 +24,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
-  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.5');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.6');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.1', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
@@ -2198,7 +2198,7 @@ function nirog_bhumi_register_education_articles() {
     'show_in_rest' => true,
     'has_archive' => true,
     'rewrite' => ['slug' => 'education-articles', 'with_front' => false],
-    'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions'],
+    'supports' => ['title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions', 'comments'],
   ]);
 
   register_taxonomy('nb_education_topic', ['nb_education_post'], [
@@ -2214,6 +2214,58 @@ function nirog_bhumi_register_education_articles() {
   ]);
 }
 add_action('init', 'nirog_bhumi_register_education_articles');
+
+/**
+ * Every education article should take comments, however it is created (a
+ * new post in wp-admin, the REST API, or a code-seeded article like the
+ * fibre one) - regardless of the site-wide "allow comments on new posts"
+ * default under Settings > Discussion, which a reader has no reason to
+ * expect governs this one content type. Runs on every save, so changing
+ * it by hand afterwards on an individual article (e.g. to close comments
+ * on one specific post) is still respected on later edits of that post.
+ */
+function nirog_bhumi_force_education_comments_open($data, $postarr) {
+  if (($data['post_type'] ?? '') === 'nb_education_post' && empty($postarr['ID'])) {
+    $data['comment_status'] = 'open';
+  }
+  return $data;
+}
+add_filter('wp_insert_post_data', 'nirog_bhumi_force_education_comments_open', 10, 2);
+
+/**
+ * One-time migration: open comments on every education article that
+ * already existed before comment support was added to the post type, so
+ * nothing published earlier is silently left without the comment box.
+ */
+function nirog_bhumi_open_comments_on_existing_education_posts() {
+  if (get_option('nirog_bhumi_education_comments_opened') === '1') {
+    return;
+  }
+  if (!post_type_exists('nb_education_post')) {
+    return;
+  }
+  $posts = get_posts([
+    'post_type' => 'nb_education_post',
+    'post_status' => 'any',
+    'posts_per_page' => -1,
+    'fields' => 'ids',
+  ]);
+  foreach ($posts as $post_id) {
+    if (get_post_field('comment_status', $post_id) !== 'open') {
+      wp_update_post(['ID' => $post_id, 'comment_status' => 'open']);
+    }
+  }
+  update_option('nirog_bhumi_education_comments_opened', '1');
+}
+add_action('init', 'nirog_bhumi_open_comments_on_existing_education_posts', 32);
+
+/** Threaded "Reply" links on an education article need this script loaded. */
+function nirog_bhumi_education_comment_reply_script() {
+  if (is_singular('nb_education_post') && comments_open() && get_option('thread_comments')) {
+    wp_enqueue_script('comment-reply');
+  }
+}
+add_action('wp_enqueue_scripts', 'nirog_bhumi_education_comment_reply_script');
 
 /**
  * The four fixed education categories used on the Education page. The term
@@ -2346,4 +2398,44 @@ function nirog_bhumi_education_cards_html($posts, $start_index = 0) {
       . '</article>';
   }
   return $html;
+}
+
+/**
+ * Custom markup for one comment in the education article comment list (see
+ * comments.php, passed as wp_list_comments()'s 'callback'). Per the
+ * documented pattern for a custom callback, this outputs the opening tag
+ * and the comment's own content only - WordPress's Walker_Comment closes
+ * the tag afterwards (and recurses into any replies) on its own.
+ */
+function nirog_bhumi_education_comment_callback($comment, $args, $depth) {
+  $tag = ('div' === $args['style']) ? 'div' : 'li';
+  $is_pending = '0' === $comment->comment_approved;
+  ?>
+  <<?php echo esc_html($tag); ?> id="comment-<?php comment_ID(); ?>" <?php comment_class('nb-comment' . ($is_pending ? ' nb-comment-pending' : '')); ?>>
+    <div class="nb-comment-body">
+      <div class="nb-comment-meta">
+        <?php echo get_avatar($comment, 44); ?>
+        <div>
+          <p class="nb-comment-author"><?php comment_author(); ?></p>
+          <p class="nb-comment-date"><a href="<?php echo esc_url(get_comment_link($comment)); ?>"><?php
+            /* translators: 1: comment date, 2: comment time */
+            printf(esc_html__('%1$s at %2$s', 'nirog-bhumi'), get_comment_date('', $comment), get_comment_time());
+          ?></a></p>
+        </div>
+      </div>
+      <?php if ($is_pending) : ?>
+        <p class="nb-comment-pending-note"><em><?php esc_html_e('Your comment is awaiting moderation.', 'nirog-bhumi'); ?></em></p>
+      <?php endif; ?>
+      <div class="nb-comment-content"><?php comment_text(); ?></div>
+      <?php
+      comment_reply_link(array_merge($args, [
+        'add_below' => 'comment',
+        'depth' => $depth,
+        'max_depth' => $args['max_depth'],
+        'reply_text' => __('Reply', 'nirog-bhumi'),
+        'class' => 'nb-comment-reply-link',
+      ]));
+      ?>
+    </div>
+  <?php
 }

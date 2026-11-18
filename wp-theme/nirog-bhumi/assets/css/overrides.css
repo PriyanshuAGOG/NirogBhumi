@@ -85,3 +85,34 @@
 /* Dense citation list at the end of a long-form article (see inc/education-seeder.php) - smaller type so 20+ references don't dominate the page. */
 .nb-article-body .nb-reference-list{font-size:13px;line-height:1.6;color:#4a564b}
 .nb-article-body .nb-reference-list li{margin-bottom:12px}
+
+/*
+ * Education article comments (comments.php + nirog_bhumi_education_comment_callback()
+ * in functions.php). Inputs/labels/the submit pill all inherit the site's global
+ * form styling already - this only adds the list/thread/meta layout on top.
+ */
+.nb-comments-section{border-top:1px solid var(--line)}
+.nb-comments-title{font-family:Georgia,serif;color:var(--ink);font-size:clamp(22px,3vw,30px);font-weight:400;margin:0 0 24px}
+.nb-comment-list,.nb-comment-list ol.children{list-style:none;margin:0;padding:0}
+.nb-comment-list ol.children{margin:20px 0 0;padding-left:clamp(16px,4vw,44px);border-left:2px solid var(--line)}
+.nb-comment{margin:0 0 24px}
+.nb-comment-body{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+.nb-comment-pending .nb-comment-body{background:var(--soft);border-style:dashed}
+.nb-comment-meta{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.nb-comment-meta img{border-radius:999px;flex-shrink:0}
+.nb-comment-author{margin:0;font-weight:700;color:var(--ink);font-size:14px}
+.nb-comment-date{margin:2px 0 0;font-size:12px}
+.nb-comment-date a{color:#5b6a5c}
+.nb-comment-pending-note{margin:0 0 10px;font-size:12px;color:#8a7a3f}
+.nb-comment-content{font-size:14.5px;line-height:1.7;color:#2f3b32}
+.nb-comment-content p:last-child{margin-bottom:0}
+.nb-comment-reply-link a{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:#1f6f3d;text-decoration:underline;text-underline-offset:2px}
+.nb-comment-nav{display:flex;justify-content:space-between;gap:12px;margin:0 0 32px;font-size:13px;font-weight:700}
+.nb-comment-nav a{color:#1f6f3d}
+.nb-comments-closed{color:#5b6a5c;font-size:14px}
+.nb-comment-form{margin-top:12px}
+.nb-comment-form p{margin:0 0 16px}
+.nb-comment-form .comment-form-comment textarea{min-height:140px;resize:vertical}
+.nb-comment-form .comment-notes,.nb-comment-form .logged-in-as{font-size:13px;color:#5b6a5c;margin-bottom:16px}
+.nb-comment-form .form-submit{margin-bottom:0}
+.nb-comment-form input[type="submit"]{border:0;cursor:pointer}
