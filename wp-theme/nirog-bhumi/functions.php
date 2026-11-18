@@ -24,7 +24,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
-  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.6');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.7');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.1', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
@@ -2266,6 +2266,24 @@ function nirog_bhumi_education_comment_reply_script() {
   }
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_education_comment_reply_script');
+
+/**
+ * The comment form's DPDP Act data-consent checkbox (comments.php) is
+ * required in the HTML, but that is only a client-side check - enforce it
+ * server-side too, so a direct POST to wp-comments-post.php (bypassing the
+ * browser) cannot record a comment without consent having been given.
+ */
+function nirog_bhumi_require_comment_consent($commentdata) {
+  if (empty($_POST['wp-comment-cookies-consent'])) {
+    wp_die(
+      esc_html__('Please confirm the data consent checkbox before posting your comment.', 'nirog-bhumi'),
+      esc_html__('Comment Not Submitted', 'nirog-bhumi'),
+      ['response' => 400, 'back_link' => true]
+    );
+  }
+  return $commentdata;
+}
+add_filter('preprocess_comment', 'nirog_bhumi_require_comment_consent');
 
 /**
  * The four fixed education categories used on the Education page. The term

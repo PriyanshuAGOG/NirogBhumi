@@ -47,6 +47,12 @@ if (post_password_required()) {
   <?php endif; ?>
 
   <?php
+  // Custom fields: no Website field, and the field order/required-ness is
+  // explicit rather than left to WordPress's own "require_name_email"
+  // default field markup (which is what was stacking the label text and
+  // the "*" onto separate lines under this theme's global label styling).
+  $nb_commenter = wp_get_current_commenter();
+  $nb_consent_checked = !empty($nb_commenter['comment_author_email']) ? ' checked' : '';
   comment_form([
     'title_reply' => __('Leave a comment', 'nirog-bhumi'),
     'title_reply_to' => __('Leave a reply to %s', 'nirog-bhumi'),
@@ -54,6 +60,23 @@ if (post_password_required()) {
     'class_form' => 'nb-comment-form',
     'class_submit' => 'pill primary',
     'comment_field' => '<p class="comment-form-comment"><label for="comment">' . esc_html__('Comment', 'nirog-bhumi') . ' <span class="required">*</span></label><textarea id="comment" name="comment" rows="6" required></textarea></p>',
+    'fields' => [
+      'author' => '<p class="comment-form-author"><label for="author">' . esc_html__('Name', 'nirog-bhumi') . ' <span class="required">*</span></label><input id="author" name="author" type="text" value="' . esc_attr($nb_commenter['comment_author']) . '" required></p>',
+      'email' => '<p class="comment-form-email"><label for="email">' . esc_html__('Email', 'nirog-bhumi') . ' <span class="required">*</span></label><input id="email" name="email" type="email" value="' . esc_attr($nb_commenter['comment_author_email']) . '" required></p>',
+      // Replaces WordPress's generic "save my name, email and website in
+      // this browser" opt-in with an explicit Digital Personal Data
+      // Protection Act (DPDP Act) consent statement covering what this
+      // site actually does with the submitted data: publishing the
+      // comment and name, keeping the email private, and optionally
+      // remembering the details in this browser for next time (the same
+      // underlying "wp-comment-cookies-consent" field WordPress already
+      // uses for that, so ticking it keeps that convenience working).
+      'cookies' => '<p class="comment-form-cookies-consent"><label class="check"><input id="wp-comment-cookies-consent" name="wp-comment-cookies-consent" type="checkbox" value="yes"' . $nb_consent_checked . ' required><span>' . sprintf(
+        /* translators: %s: link to the Privacy Policy page */
+        esc_html__('I consent to Nirog Bhumi collecting and storing my name, email and this comment, in accordance with the %s, so that it can be published and moderated. My email will not be published, and these details may be remembered in this browser for next time.', 'nirog-bhumi'),
+        '<a href="' . esc_url(home_url('/privacy-policy/')) . '" target="_blank" rel="noopener">' . esc_html__('Privacy Policy', 'nirog-bhumi') . '</a>'
+      ) . '</span></label></p>',
+    ],
   ]);
   ?>
 </div>

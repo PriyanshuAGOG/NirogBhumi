@@ -116,3 +116,16 @@
 .nb-comment-form .comment-notes,.nb-comment-form .logged-in-as{font-size:13px;color:#5b6a5c;margin-bottom:16px}
 .nb-comment-form .form-submit{margin-bottom:0}
 .nb-comment-form input[type="submit"]{border:0;cursor:pointer}
+
+/*
+ * The sitewide base rule `label{display:grid;gap:8px}` is designed for the
+ * "<label>Field name<input></label>" pattern used elsewhere (label text and
+ * its field as two stacked grid rows, one element). The comment form's
+ * Name/Email labels instead sit next to their <input> as plain siblings (the
+ * standard WordPress comment_form() structure), so that same grid rule was
+ * putting the label text and the required "*" on their own separate lines.
+ * :not(.check) leaves the consent checkbox's <label class="check"> (already
+ * styled as a flex row by .check) untouched.
+ */
+.nb-comment-form p > label:not(.check){display:block;margin-bottom:8px}
+.nb-comment-form .comment-form-cookies-consent{font-size:13px;line-height:1.55;color:#3a4a3c}
