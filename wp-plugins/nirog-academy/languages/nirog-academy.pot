@@ -1,0 +1,3055 @@
+# Copyright (C) 2026 Nirog Bhumi
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Nirog Bhumi Academy 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/nirog-academy\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-24T13:38:31+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: nirog-academy\n"
+
+#. Plugin Name of the plugin
+#: nirog-academy.php:3
+msgid "Nirog Bhumi Academy"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: nirog-academy.php:4
+msgid "https://nirogbhumi.com/academy/"
+msgstr ""
+
+#. Description of the plugin
+#: nirog-academy.php:5
+msgid "Programmes, protected lessons, progress tracking, one-device access and notifications for Nirog Bhumi participants. Sells programmes through WooCommerce."
+msgstr ""
+
+#. Author of the plugin
+#: nirog-academy.php:9
+msgid "Nirog Bhumi"
+msgstr ""
+
+#: nirog-academy.php:43
+msgid "Nirog Bhumi Academy needs PHP 8.1 or newer. Ask your host to upgrade PHP."
+msgstr ""
+
+#: src/Access/Gate.php:47
+#: src/Access/Gate.php:51
+msgid "This lesson is not available."
+msgstr ""
+
+#: src/Access/Gate.php:59
+#: src/Access/Gate.php:167
+msgid "The Academy opens soon. We will email you when it is ready."
+msgstr ""
+
+#: src/Access/Gate.php:64
+#: src/Access/Gate.php:158
+msgid "Please log in to continue."
+msgstr ""
+
+#: src/Access/Gate.php:70
+#: src/Access/Gate.php:161
+msgid "Your programme is registered to another device."
+msgstr ""
+
+#: src/Access/Gate.php:82
+msgid "Only free preview lessons are open right now. Full access starts soon."
+msgstr ""
+
+#: src/Access/Gate.php:88
+msgid "This lesson is part of a programme you have not joined yet."
+msgstr ""
+
+#: src/Access/Gate.php:91
+#: templates/dashboard.php:48
+msgid "Your access is paused. Contact us when you are ready to continue."
+msgstr ""
+
+#: src/Access/Gate.php:94
+msgid "Your place is confirmed. We are assigning you to a batch and will email you the start date."
+msgstr ""
+
+#: src/Access/Gate.php:98
+msgid "Access to this programme has been closed. Contact us if you think this is a mistake."
+msgstr ""
+
+#: src/Access/Gate.php:99
+msgid "Your access period for this programme has ended."
+msgstr ""
+
+#. translators: %s: date
+#: src/Access/Gate.php:108
+#, php-format
+msgid "This lesson opens on %s."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Access/Gate.php:119
+#, php-format
+msgid "Complete \"%s\" first."
+msgstr ""
+
+#: src/Access/Gate.php:128
+msgid "Please read and accept the health and safety note before your first lesson."
+msgstr ""
+
+#: src/Access/Gate.php:155
+msgid "This programme is not available."
+msgstr ""
+
+#: src/Access/Gate.php:171
+msgid "You have not joined this programme yet."
+msgstr ""
+
+#: src/Admin/Admin.php:39
+#: src/Admin/Admin.php:40
+#: src/Enrollment/WooBridge.php:51
+#: templates/layout.php:20
+#: templates/layout.php:71
+msgid "Academy"
+msgstr ""
+
+#: src/Admin/Admin.php:48
+msgid "Overview"
+msgstr ""
+
+#: src/Admin/Admin.php:49
+#: src/Admin/Pages.php:166
+msgid "Enrollments"
+msgstr ""
+
+#: src/Admin/Admin.php:50
+#: src/Admin/Pages.php:125
+#: src/Admin/Pages.php:202
+#: src/Admin/Pages.php:289
+#: src/Admin/Pages.php:457
+#: src/Admin/Pages.php:579
+msgid "Participant"
+msgstr ""
+
+#: src/Admin/Admin.php:51
+#: src/Admin/Pages.php:415
+#: src/Admin/Pages.php:434
+msgid "Batches"
+msgstr ""
+
+#: src/Admin/Admin.php:52
+msgid "Device Requests"
+msgstr ""
+
+#: src/Admin/Admin.php:53
+#: src/Admin/Pages.php:484
+#: src/Content/PostTypes.php:68
+msgid "Announcements"
+msgstr ""
+
+#: src/Admin/Admin.php:54
+#: src/Admin/Pages.php:511
+msgid "Reports"
+msgstr ""
+
+#: src/Admin/Admin.php:55
+msgid "Import Videos"
+msgstr ""
+
+#: src/Admin/Admin.php:56
+msgid "Audit Log"
+msgstr ""
+
+#: src/Admin/Admin.php:57
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/Admin.php:58
+#: src/Frontend/Router.php:537
+#: templates/layout.php:85
+msgid "Help"
+msgstr ""
+
+#: src/Admin/Admin.php:96
+msgid "Module name (for example \"Week 1: Foundations\")"
+msgstr ""
+
+#: src/Admin/Admin.php:97
+msgid "Order saved"
+msgstr ""
+
+#: src/Admin/Admin.php:98
+#: src/Frontend/Router.php:99
+msgid "Saving…"
+msgstr ""
+
+#: src/Admin/Admin.php:99
+msgid "Could not save. Reload the page and try again."
+msgstr ""
+
+#: src/Admin/Admin.php:100
+msgid "Delete this module? Its lessons are kept and listed under \"Lessons not in a module\"."
+msgstr ""
+
+#: src/Admin/Admin.php:101
+msgid "Choose files for this lesson"
+msgstr ""
+
+#: src/Admin/Admin.php:102
+msgid "Use these files"
+msgstr ""
+
+#. translators: %s: settings URL
+#: src/Admin/Admin.php:129
+#, php-format
+msgid "The Academy is <strong>closed</strong>: only staff can see lessons. Open it in <a href=\"%s\">Academy → Settings</a> when you are ready."
+msgstr ""
+
+#: src/Admin/Admin.php:134
+msgid "WooCommerce is not active, so programmes cannot be sold. Manual enrollment still works."
+msgstr ""
+
+#: src/Admin/Admin.php:148
+#: src/Admin/Pages.php:125
+#: src/Admin/Pages.php:202
+#: src/Admin/Pages.php:241
+#: src/Admin/Pages.php:275
+#: src/Admin/Pages.php:424
+#: src/Admin/Pages.php:489
+#: src/Content/MetaBoxes.php:244
+#: src/Content/MetaBoxes.php:369
+#: src/Content/PostTypes.php:41
+#: templates/layout.php:25
+msgid "Programme"
+msgstr ""
+
+#: src/Admin/Admin.php:149
+#: src/Content/MetaBoxes.php:269
+msgid "Opens on day"
+msgstr ""
+
+#: src/Admin/Admin.php:150
+#: src/Admin/Pages.php:244
+msgid "Type"
+msgstr ""
+
+#: src/Admin/Admin.php:158
+#: templates/layout.php:26
+msgid "Bonus"
+msgstr ""
+
+#: src/Admin/Admin.php:166
+#: src/Admin/Pages.php:202
+#: src/Content/MetaBoxes.php:27
+#: src/Content/MetaBoxes.php:310
+msgid "Source"
+msgstr ""
+
+#: src/Admin/Admin.php:166
+msgid "Length"
+msgstr ""
+
+#: src/Admin/Admin.php:166
+#: src/Admin/Pages.php:202
+#: src/Admin/Pages.php:431
+#: src/Admin/Pages.php:434
+#: src/Content/MetaBoxes.php:331
+msgid "Status"
+msgstr ""
+
+#: src/Admin/Admin.php:172
+msgid "Protected HLS"
+msgstr ""
+
+#: src/Admin/Admin.php:172
+#: src/Content/MetaBoxes.php:323
+msgid "Private file"
+msgstr ""
+
+#: src/Admin/Admin.php:172
+msgid "External"
+msgstr ""
+
+#: src/Admin/Handlers.php:33
+msgid "You do not have permission to do that."
+msgstr ""
+
+#: src/Admin/Handlers.php:54
+#: src/Enrollment/WooBridge.php:252
+msgid "Enter a valid email address."
+msgstr ""
+
+#: src/Admin/Handlers.php:58
+msgid "Could not create the account."
+msgstr ""
+
+#: src/Admin/Handlers.php:75
+msgid "Enrolled. A welcome email has been sent."
+msgstr ""
+
+#: src/Admin/Handlers.php:83
+msgid "Enrollment not found."
+msgstr ""
+
+#: src/Admin/Handlers.php:96
+msgid "Enrollment updated."
+msgstr ""
+
+#: src/Admin/Handlers.php:96
+msgid "Nothing changed."
+msgstr ""
+
+#. translators: %d: order number
+#: src/Admin/Handlers.php:117
+#, php-format
+msgid "Payment link emailed (order #%d). Access opens automatically when they pay."
+msgstr ""
+
+#: src/Admin/Handlers.php:135
+msgid "Batch saved."
+msgstr ""
+
+#: src/Admin/Handlers.php:141
+msgid "Approved. The participant can now log in on their new device."
+msgstr ""
+
+#: src/Admin/Handlers.php:141
+msgid "Request declined. The participant has been emailed."
+msgstr ""
+
+#: src/Admin/Handlers.php:141
+msgid "That request was already decided."
+msgstr ""
+
+#: src/Admin/Handlers.php:147
+msgid "Device reset. The next device the participant logs in from will be registered."
+msgstr ""
+
+#: src/Admin/Handlers.php:156
+msgid "Add a title and a message."
+msgstr ""
+
+#: src/Admin/Handlers.php:162
+msgid "Coaches can send announcements only to their own batches."
+msgstr ""
+
+#. translators: %d: number of people
+#: src/Admin/Handlers.php:182
+#, php-format
+msgid "Sending to %d participant."
+msgid_plural "Sending to %d participants. Large groups are sent in batches every 15 minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of videos
+#: src/Admin/Handlers.php:190
+#, php-format
+msgid "%d new video imported."
+msgid_plural "%d new videos imported."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/Pages.php:54
+msgid "— No batch —"
+msgstr ""
+
+#: src/Admin/Pages.php:86
+msgid "Academy overview"
+msgstr ""
+
+#: src/Admin/Pages.php:95
+msgid "Active participants"
+msgstr ""
+
+#: src/Admin/Pages.php:96
+msgid "New this month"
+msgstr ""
+
+#: src/Admin/Pages.php:97
+#: src/Enrollment/Enrollments.php:37
+msgid "Paused"
+msgstr ""
+
+#: src/Admin/Pages.php:98
+msgid "Need review"
+msgstr ""
+
+#: src/Admin/Pages.php:99
+#: src/Admin/Pages.php:448
+msgid "Device requests"
+msgstr ""
+
+#: src/Admin/Pages.php:120
+msgid "Need a check-in"
+msgstr ""
+
+#: src/Admin/Pages.php:121
+msgid "Active for 5+ days but not seen in the last 5 days. A short message often helps."
+msgstr ""
+
+#: src/Admin/Pages.php:123
+msgid "Everyone has been active recently."
+msgstr ""
+
+#: src/Admin/Pages.php:125
+msgid "Last seen"
+msgstr ""
+
+#: src/Admin/Pages.php:125
+#: src/Admin/Pages.php:202
+msgid "Progress"
+msgstr ""
+
+#: src/Admin/Pages.php:128
+msgid "ago"
+msgstr ""
+
+#: src/Admin/Pages.php:128
+msgid "Never"
+msgstr ""
+
+#: src/Admin/Pages.php:132
+msgid "Access ending in 14 days"
+msgstr ""
+
+#: src/Admin/Pages.php:134
+msgid "None."
+msgstr ""
+
+#: src/Admin/Pages.php:142
+msgid "Next live sessions"
+msgstr ""
+
+#: src/Admin/Pages.php:145
+msgid "None scheduled."
+msgstr ""
+
+#: src/Admin/Pages.php:145
+msgid "Schedule one"
+msgstr ""
+
+#: src/Admin/Pages.php:155
+#: src/Admin/Pages.php:167
+msgid "Enroll someone"
+msgstr ""
+
+#: src/Admin/Pages.php:156
+#: src/Admin/Pages.php:167
+msgid "Send a payment link"
+msgstr ""
+
+#: src/Admin/Pages.php:157
+msgid "New programme"
+msgstr ""
+
+#: src/Admin/Pages.php:158
+msgid "View the Academy"
+msgstr ""
+
+#: src/Admin/Pages.php:167
+msgid "All enrollments"
+msgstr ""
+
+#: src/Admin/Pages.php:194
+msgid "All programmes"
+msgstr ""
+
+#: src/Admin/Pages.php:195
+msgid "Any status"
+msgstr ""
+
+#: src/Admin/Pages.php:196
+msgid "Needs review"
+msgstr ""
+
+#: src/Admin/Pages.php:197
+msgid "Name or email"
+msgstr ""
+
+#: src/Admin/Pages.php:198
+msgid "Filter"
+msgstr ""
+
+#: src/Admin/Pages.php:202
+#: src/Admin/Pages.php:242
+#: src/Admin/Pages.php:434
+#: src/Admin/Pages.php:490
+#: src/Content/MetaBoxes.php:370
+msgid "Batch"
+msgstr ""
+
+#: src/Admin/Pages.php:202
+#: src/Admin/Pages.php:618
+msgid "Access"
+msgstr ""
+
+#: src/Admin/Pages.php:207
+msgid "No enrollments match."
+msgstr ""
+
+#: src/Admin/Pages.php:215
+msgid "Review"
+msgstr ""
+
+#: src/Admin/Pages.php:230
+msgid "Download as CSV"
+msgstr ""
+
+#: src/Admin/Pages.php:235
+msgid "Give someone access without a WooCommerce order — for example a complimentary place, or a payment received another way. If the email has no account yet, one is created and they get a \"choose your password\" email."
+msgstr ""
+
+#: src/Admin/Pages.php:238
+#: src/Admin/Pages.php:272
+#: templates/forgot.php:15
+#: templates/login.php:19
+msgid "Email"
+msgstr ""
+
+#: src/Admin/Pages.php:239
+msgid "Name (new accounts)"
+msgstr ""
+
+#: src/Admin/Pages.php:239
+#: src/Admin/Pages.php:273
+#: templates/profile.php:34
+msgid "First name"
+msgstr ""
+
+#: src/Admin/Pages.php:239
+#: src/Admin/Pages.php:273
+#: templates/profile.php:35
+msgid "Last name"
+msgstr ""
+
+#: src/Admin/Pages.php:240
+#: src/Admin/Pages.php:274
+#: templates/profile.php:37
+msgid "Phone"
+msgstr ""
+
+#: src/Admin/Pages.php:242
+msgid "Only for batch programmes. Leave empty to use the next open batch."
+msgstr ""
+
+#: src/Admin/Pages.php:243
+msgid "Start date"
+msgstr ""
+
+#: src/Admin/Pages.php:243
+msgid "Leave empty to start today."
+msgstr ""
+
+#: src/Admin/Pages.php:244
+msgid "Paid another way"
+msgstr ""
+
+#: src/Admin/Pages.php:244
+msgid "Complimentary"
+msgstr ""
+
+#: src/Admin/Pages.php:245
+msgid "Internal note"
+msgstr ""
+
+#: src/Admin/Pages.php:247
+msgid "Enroll and send welcome email"
+msgstr ""
+
+#: src/Admin/Pages.php:253
+msgid "WooCommerce is needed for payment links."
+msgstr ""
+
+#: src/Admin/Pages.php:257
+msgid "Payment link (also emailed):"
+msgstr ""
+
+#: src/Admin/Pages.php:265
+msgid "For programmes joined after a consultation. This creates an order for the person and emails them a secure Razorpay payment link. Their access opens automatically when the payment succeeds, and your normal invoice is generated."
+msgstr ""
+
+#: src/Admin/Pages.php:267
+msgid "No product is linked to a programme yet. Open the programme's WooCommerce product and tick the programme on its Academy tab."
+msgstr ""
+
+#: src/Admin/Pages.php:273
+#: src/Admin/Pages.php:425
+msgid "Name"
+msgstr ""
+
+#: src/Admin/Pages.php:276
+msgid "Price (₹)"
+msgstr ""
+
+#: src/Admin/Pages.php:276
+msgid "Leave empty for the product price. Enter an amount for an agreed price."
+msgstr ""
+
+#: src/Admin/Pages.php:277
+msgid "Message to include"
+msgstr ""
+
+#: src/Admin/Pages.php:277
+msgid "Optional: shown in the payment email"
+msgstr ""
+
+#: src/Admin/Pages.php:279
+msgid "Create order and email payment link"
+msgstr ""
+
+#: src/Admin/Pages.php:290
+msgid "Participant not found."
+msgstr ""
+
+#: src/Admin/Pages.php:298
+msgid "Last active:"
+msgstr ""
+
+#: src/Admin/Pages.php:298
+msgid "never"
+msgstr ""
+
+#: src/Admin/Pages.php:300
+msgid "WordPress profile"
+msgstr ""
+
+#. translators: 1: start, 2: end, 3: source
+#: src/Admin/Pages.php:311
+#, php-format
+msgid "Access %1$s → %2$s · Source: %3$s"
+msgstr ""
+
+#: src/Admin/Pages.php:315
+msgid "Batch:"
+msgstr ""
+
+#. translators: %d: days
+#: src/Admin/Pages.php:317
+#, php-format
+msgid "%d days paused so far"
+msgstr ""
+
+#: src/Admin/Pages.php:321
+msgid "Needs review."
+msgstr ""
+
+#. translators: 1: completed, 2: total
+#: src/Admin/Pages.php:325
+#, php-format
+msgid "%1$d of %2$d lessons complete"
+msgstr ""
+
+#: src/Admin/Pages.php:332
+msgid "Lesson by lesson"
+msgstr ""
+
+#: src/Admin/Pages.php:342
+msgid "Opens"
+msgstr ""
+
+#: src/Admin/Pages.php:358
+msgid "Pause access"
+msgstr ""
+
+#: src/Admin/Pages.php:361
+msgid "Resume access"
+msgstr ""
+
+#: src/Admin/Pages.php:364
+msgid "Reactivate"
+msgstr ""
+
+#: src/Admin/Pages.php:366
+msgid "Extend"
+msgstr ""
+
+#: src/Admin/Pages.php:366
+#: src/Admin/Pages.php:643
+#: src/Admin/Pages.php:649
+msgid "days"
+msgstr ""
+
+#: src/Admin/Pages.php:367
+msgid "Move to batch"
+msgstr ""
+
+#: src/Admin/Pages.php:369
+msgid "Mark reviewed"
+msgstr ""
+
+#: src/Admin/Pages.php:372
+msgid "Revoke access"
+msgstr ""
+
+#: src/Admin/Pages.php:372
+#: src/Admin/Pages.php:457
+msgid "Reason"
+msgstr ""
+
+#: src/Admin/Pages.php:380
+msgid "Device"
+msgstr ""
+
+#: src/Admin/Pages.php:383
+msgid "No device registered. The next device they log in from will be registered."
+msgstr ""
+
+#: src/Admin/Pages.php:386
+msgid "registered"
+msgstr ""
+
+#: src/Admin/Pages.php:386
+msgid "last seen"
+msgstr ""
+
+#. translators: %d: count
+#: src/Admin/Pages.php:389
+#, php-format
+msgid "Device changes in the last 12 months: %d"
+msgstr ""
+
+#: src/Admin/Pages.php:392
+msgid "Reason (for the log)"
+msgstr ""
+
+#: src/Admin/Pages.php:393
+msgid "Reset device"
+msgstr ""
+
+#: src/Admin/Pages.php:400
+msgid "Activity log"
+msgstr ""
+
+#: src/Admin/Pages.php:407
+msgid "Enroll in another programme"
+msgstr ""
+
+#: src/Admin/Pages.php:415
+msgid "A batch is a group that starts together. In programmes set to \"Batch\", every lesson opens on its day counted from the batch start date. Self-paced programmes do not need batches."
+msgstr ""
+
+#: src/Admin/Pages.php:417
+#: src/Content/MetaBoxes.php:77
+msgid "— None —"
+msgstr ""
+
+#: src/Admin/Pages.php:421
+msgid "Edit batch"
+msgstr ""
+
+#: src/Admin/Pages.php:421
+msgid "New batch"
+msgstr ""
+
+#: src/Admin/Pages.php:425
+msgid "e.g. January 2027"
+msgstr ""
+
+#: src/Admin/Pages.php:426
+#: src/Admin/Pages.php:434
+msgid "Starts"
+msgstr ""
+
+#: src/Admin/Pages.php:427
+msgid "Enrollment opens"
+msgstr ""
+
+#: src/Admin/Pages.php:427
+msgid "Optional. Empty = open now."
+msgstr ""
+
+#: src/Admin/Pages.php:428
+msgid "Enrollment closes"
+msgstr ""
+
+#: src/Admin/Pages.php:428
+msgid "Optional. Empty = closes the day after the batch starts."
+msgstr ""
+
+#: src/Admin/Pages.php:429
+msgid "Places"
+msgstr ""
+
+#: src/Admin/Pages.php:429
+msgid "Optional. When full, new buyers go to the next open batch."
+msgstr ""
+
+#: src/Admin/Pages.php:430
+msgid "Coach"
+msgstr ""
+
+#: src/Admin/Pages.php:431
+#: src/Admin/Pages.php:563
+msgid "Open"
+msgstr ""
+
+#: src/Admin/Pages.php:431
+msgid "Closed to new joiners"
+msgstr ""
+
+#: src/Admin/Pages.php:431
+msgid "Archived"
+msgstr ""
+
+#: src/Admin/Pages.php:433
+msgid "Save batch"
+msgstr ""
+
+#: src/Admin/Pages.php:433
+msgid "Create batch"
+msgstr ""
+
+#: src/Admin/Pages.php:434
+msgid "Members"
+msgstr ""
+
+#. translators: %d: days
+#: src/Admin/Pages.php:450
+#, php-format
+msgid "Participants can change device themselves once every %d days with an email code. Requests beyond that come here. Approving frees their device slot: the next device they log in from becomes their device."
+msgstr ""
+
+#: src/Admin/Pages.php:455
+msgid "No pending requests."
+msgstr ""
+
+#: src/Admin/Pages.php:457
+msgid "Requested"
+msgstr ""
+
+#: src/Admin/Pages.php:457
+msgid "New device"
+msgstr ""
+
+#: src/Admin/Pages.php:457
+msgid "Changes in 12 months"
+msgstr ""
+
+#: src/Admin/Pages.php:462
+msgid "Approve"
+msgstr ""
+
+#: src/Admin/Pages.php:462
+msgid "Decline"
+msgstr ""
+
+#: src/Admin/Pages.php:472
+msgid "Recently decided"
+msgstr ""
+
+#: src/Admin/Pages.php:484
+msgid "Messages appear in participants' notification bell. Tick \"Also email\" for important news."
+msgstr ""
+
+#: src/Admin/Pages.php:485
+msgid "New announcement"
+msgstr ""
+
+#: src/Admin/Pages.php:487
+msgid "Title"
+msgstr ""
+
+#: src/Admin/Pages.php:488
+msgid "Message"
+msgstr ""
+
+#: src/Admin/Pages.php:489
+msgid "Everyone with active access"
+msgstr ""
+
+#: src/Admin/Pages.php:490
+msgid "All batches"
+msgstr ""
+
+#: src/Admin/Pages.php:491
+msgid "Also email (participants who turned off announcement emails will not get one)"
+msgstr ""
+
+#: src/Admin/Pages.php:492
+msgid "Send"
+msgstr ""
+
+#: src/Admin/Pages.php:493
+msgid "Sent"
+msgstr ""
+
+#. translators: 1: sent, 2: total
+#: src/Admin/Pages.php:499
+#, php-format
+msgid "%1$d of %2$d delivered"
+msgstr ""
+
+#: src/Admin/Pages.php:511
+msgid "Where participants are in each programme, and which lessons people stop at."
+msgstr ""
+
+#: src/Admin/Pages.php:515
+#: templates/login.php:24
+#: templates/set-password.php:29
+msgid "Show"
+msgstr ""
+
+#: src/Admin/Pages.php:518
+msgid "Create a programme first."
+msgstr ""
+
+#. translators: %d: count
+#: src/Admin/Pages.php:526
+#, php-format
+msgid "%d participants with active access."
+msgstr ""
+
+#: src/Admin/Pages.php:527
+#: src/Content/PostTypes.php:53
+msgid "Lesson"
+msgstr ""
+
+#: src/Admin/Pages.php:527
+msgid "Started"
+msgstr ""
+
+#: src/Admin/Pages.php:527
+#: src/Frontend/Router.php:100
+#: src/Frontend/Router.php:226
+#: templates/lesson.php:54
+msgid "Completed"
+msgstr ""
+
+#: src/Admin/Pages.php:527
+msgid "Completion (of active participants)"
+msgstr ""
+
+#: src/Admin/Pages.php:531
+msgid "day"
+msgstr ""
+
+#: src/Admin/Pages.php:534
+msgid "A sharp drop between two lessons usually means the earlier lesson is too long, unclear, or physically hard. Consider a check-in message or a shorter alternative."
+msgstr ""
+
+#: src/Admin/Pages.php:537
+msgid "Download participant progress (CSV)"
+msgstr ""
+
+#: src/Admin/Pages.php:545
+msgid "Import videos"
+msgstr ""
+
+#: src/Admin/Pages.php:547
+msgid "How to add a protected video"
+msgstr ""
+
+#: src/Admin/Pages.php:548
+msgid "On your computer, run the encode script from the plugin's tools folder on the MP4 file. It creates a folder with the encrypted video."
+msgstr ""
+
+#: src/Admin/Pages.php:549
+msgid "Upload that whole folder to the server folder below, using Hostinger File Manager or SFTP."
+msgstr ""
+
+#: src/Admin/Pages.php:550
+msgid "Press \"Find new videos\". Each new folder becomes an entry in the Video Library, and its key is moved somewhere private."
+msgstr ""
+
+#: src/Admin/Pages.php:551
+msgid "Open the lesson and choose the video."
+msgstr ""
+
+#: src/Admin/Pages.php:552
+msgid "Server folder:"
+msgstr ""
+
+#: src/Admin/Pages.php:553
+msgid "Full guide:"
+msgstr ""
+
+#: src/Admin/Pages.php:553
+msgid "Preparing and uploading videos"
+msgstr ""
+
+#: src/Admin/Pages.php:555
+msgid "Find new videos"
+msgstr ""
+
+#: src/Admin/Pages.php:559
+msgid "Last scan"
+msgstr ""
+
+#: src/Admin/Pages.php:575
+msgid "Audit log"
+msgstr ""
+
+#: src/Admin/Pages.php:575
+msgid "A record of sensitive actions. Entries cannot be edited."
+msgstr ""
+
+#: src/Admin/Pages.php:579
+msgid "When"
+msgstr ""
+
+#: src/Admin/Pages.php:579
+msgid "Who"
+msgstr ""
+
+#: src/Admin/Pages.php:579
+msgid "What"
+msgstr ""
+
+#: src/Admin/Pages.php:579
+#: templates/dashboard.php:112
+msgid "Details"
+msgstr ""
+
+#: src/Admin/Pages.php:583
+msgid "System"
+msgstr ""
+
+#: src/Admin/Pages.php:598
+msgid "Academy settings"
+msgstr ""
+
+#: src/Admin/Pages.php:608
+msgid "Launch"
+msgstr ""
+
+#: src/Admin/Pages.php:609
+msgid "Academy status"
+msgstr ""
+
+#: src/Admin/Pages.php:610
+msgid "Closed — only staff can see lessons"
+msgstr ""
+
+#: src/Admin/Pages.php:611
+msgid "Preview — participants can log in and watch free preview lessons only"
+msgstr ""
+
+#: src/Admin/Pages.php:612
+msgid "Open — enrolled participants have full access"
+msgstr ""
+
+#: src/Admin/Pages.php:614
+msgid "Name shown to participants"
+msgstr ""
+
+#: src/Admin/Pages.php:615
+msgid "Web address"
+msgstr ""
+
+#: src/Admin/Pages.php:615
+msgid "Changing this changes every Academy link. Avoid changing it after launch."
+msgstr ""
+
+#: src/Admin/Pages.php:619
+msgid "Default access length (days)"
+msgstr ""
+
+#: src/Admin/Pages.php:619
+msgid "Used when a programme does not set its own. 365 = one year."
+msgstr ""
+
+#: src/Admin/Pages.php:620
+msgid "Extra grace days"
+msgstr ""
+
+#: src/Admin/Pages.php:620
+msgid "Added to every new enrollment."
+msgstr ""
+
+#: src/Admin/Pages.php:621
+msgid "A lesson counts as watched at"
+msgstr ""
+
+#: src/Admin/Pages.php:624
+msgid "Devices"
+msgstr ""
+
+#: src/Admin/Pages.php:625
+msgid "Devices per participant"
+msgstr ""
+
+#: src/Admin/Pages.php:625
+msgid "1 = strictly one device. 2 allows, for example, one phone and one computer."
+msgstr ""
+
+#: src/Admin/Pages.php:626
+msgid "Self-service device change"
+msgstr ""
+
+#. translators: %s: number input
+#: src/Admin/Pages.php:628
+#, php-format
+msgid "Once every %s days"
+msgstr ""
+
+#: src/Admin/Pages.php:630
+msgid "0 = participants must always ask the team."
+msgstr ""
+
+#: src/Admin/Pages.php:631
+msgid "Staff"
+msgstr ""
+
+#: src/Admin/Pages.php:631
+msgid "Staff are exempt from the device rule"
+msgstr ""
+
+#: src/Admin/Pages.php:634
+#: src/Content/MetaBoxes.php:260
+#: templates/lesson.php:51
+msgid "Video"
+msgstr ""
+
+#: src/Admin/Pages.php:635
+msgid "Watermark"
+msgstr ""
+
+#: src/Admin/Pages.php:635
+msgid "Show the participant's name and phone ending on the video"
+msgstr ""
+
+#: src/Admin/Pages.php:635
+msgid "A faint, moving watermark. It discourages screen recording because any leak can be traced."
+msgstr ""
+
+#: src/Admin/Pages.php:636
+msgid "Video link lifetime (seconds)"
+msgstr ""
+
+#: src/Admin/Pages.php:636
+msgid "How long a page of video stays playable before it needs a reload. Links only work for the logged-in participant on their registered device."
+msgstr ""
+
+#: src/Admin/Pages.php:639
+#: src/Frontend/Router.php:515
+#: templates/notifications.php:15
+msgid "Notifications"
+msgstr ""
+
+#: src/Admin/Pages.php:640
+msgid "Email sender name"
+msgstr ""
+
+#: src/Admin/Pages.php:641
+msgid "New lesson emails"
+msgstr ""
+
+#: src/Admin/Pages.php:641
+msgid "Email participants (at 6 am) when new lessons open"
+msgstr ""
+
+#: src/Admin/Pages.php:642
+msgid "Gentle reminder after"
+msgstr ""
+
+#: src/Admin/Pages.php:642
+msgid "days without activity"
+msgstr ""
+
+#: src/Admin/Pages.php:642
+msgid "0 turns reminders off."
+msgstr ""
+
+#: src/Admin/Pages.php:643
+msgid "Warn before access ends"
+msgstr ""
+
+#: src/Admin/Pages.php:644
+msgid "Support email"
+msgstr ""
+
+#: src/Admin/Pages.php:644
+msgid "Shown to participants, and receives device change requests."
+msgstr ""
+
+#: src/Admin/Pages.php:645
+msgid "Support WhatsApp number"
+msgstr ""
+
+#: src/Admin/Pages.php:645
+msgid "With country code, digits only, e.g. 919876543210. Shows a \"Chat on WhatsApp\" link."
+msgstr ""
+
+#: src/Admin/Pages.php:648
+msgid "Data"
+msgstr ""
+
+#: src/Admin/Pages.php:649
+msgid "Keep the audit log for"
+msgstr ""
+
+#: src/Admin/Pages.php:650
+msgid "Uninstall"
+msgstr ""
+
+#: src/Admin/Pages.php:650
+msgid "Delete all Academy data when the plugin is deleted"
+msgstr ""
+
+#: src/Admin/Pages.php:650
+msgid "Leave this off unless you are sure. Enrollments and progress cannot be recovered."
+msgstr ""
+
+#: src/Admin/Pages.php:657
+msgid "Sample programme"
+msgstr ""
+
+#: src/Admin/Pages.php:657
+msgid "Creates a draft programme with three modules of placeholder lessons, so you can see how everything fits together. You can delete it afterwards."
+msgstr ""
+
+#: src/Admin/Pages.php:659
+msgid "Create sample programme"
+msgstr ""
+
+#: src/Admin/Pages.php:667
+msgid "Site uses HTTPS"
+msgstr ""
+
+#: src/Admin/Pages.php:668
+msgid "WooCommerce active"
+msgstr ""
+
+#: src/Admin/Pages.php:669
+msgid "Pretty permalinks enabled"
+msgstr ""
+
+#: src/Admin/Pages.php:670
+msgid "Private storage folder is writable"
+msgstr ""
+
+#: src/Admin/Pages.php:671
+msgid "Private folders have their protection rules"
+msgstr ""
+
+#: src/Admin/Pages.php:673
+msgid "Daily jobs are scheduled"
+msgstr ""
+
+#: src/Admin/Pages.php:674
+msgid "WP-Cron runs from a real server cron job (recommended)"
+msgstr ""
+
+#: src/Admin/Pages.php:674
+msgid "WP-Cron runs on page visits — add a Hostinger cron job for reliable timing"
+msgstr ""
+
+#: src/Admin/Pages.php:675
+msgid "Signing key present"
+msgstr ""
+
+#: src/Admin/Pages.php:676
+msgid "Health check"
+msgstr ""
+
+#: src/Admin/Pages.php:691
+msgid "All guides"
+msgstr ""
+
+#: src/Admin/Pages.php:696
+msgid "Academy guides"
+msgstr ""
+
+#: src/Admin/Pages.php:696
+msgid "Step-by-step guides for the team. Participant guides are in the Academy Help Center."
+msgstr ""
+
+#: src/Admin/Pages.php:701
+msgid "Open the participant Help Center"
+msgstr ""
+
+#: src/Audit/AuditLog.php:67
+msgid "Enrollment created"
+msgstr ""
+
+#: src/Audit/AuditLog.php:68
+msgid "Enrollment status changed"
+msgstr ""
+
+#: src/Audit/AuditLog.php:69
+msgid "Access extended"
+msgstr ""
+
+#: src/Audit/AuditLog.php:70
+msgid "Moved to another batch"
+msgstr ""
+
+#: src/Audit/AuditLog.php:71
+msgid "Partial refund, needs review"
+msgstr ""
+
+#: src/Audit/AuditLog.php:72
+msgid "Device registered"
+msgstr ""
+
+#: src/Audit/AuditLog.php:73
+msgid "Blocked: another device"
+msgstr ""
+
+#: src/Audit/AuditLog.php:74
+msgid "Device changed by participant"
+msgstr ""
+
+#: src/Audit/AuditLog.php:75
+msgid "Device reset by staff"
+msgstr ""
+
+#: src/Audit/AuditLog.php:76
+msgid "Device change requested"
+msgstr ""
+
+#: src/Audit/AuditLog.php:77
+msgid "Device request decided"
+msgstr ""
+
+#: src/Audit/AuditLog.php:78
+msgid "Access denied"
+msgstr ""
+
+#: src/Audit/AuditLog.php:79
+msgid "Failed login"
+msgstr ""
+
+#: src/Audit/AuditLog.php:80
+msgid "Login link sent"
+msgstr ""
+
+#: src/Audit/AuditLog.php:81
+msgid "Payment offer created"
+msgstr ""
+
+#: src/Audit/AuditLog.php:82
+msgid "Announcement sent"
+msgstr ""
+
+#: src/Audit/AuditLog.php:83
+msgid "Settings updated"
+msgstr ""
+
+#: src/Audit/AuditLog.php:84
+msgid "Safety acknowledgement accepted"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:22
+msgid "Programme settings"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:23
+msgid "Curriculum"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:24
+msgid "Health and safety acknowledgement"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:25
+msgid "Lesson settings"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:26
+msgid "Downloads for this lesson"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:28
+msgid "Session details"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:68
+msgid "— Choose a programme —"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:90
+msgid "Short description"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:90
+msgid "One or two sentences shown on the participant dashboard."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:91
+#: src/Content/MetaBoxes.php:277
+msgid "Title in Hindi"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:91
+msgid "Optional. Shown when the participant chooses Hindi."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:92
+msgid "Short description in Hindi"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:94
+msgid "Access length (days)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:96
+msgid "How long a participant keeps access from their start date. 365 = one year."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:98
+msgid "Lesson release"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:99
+msgid "All lessons available immediately"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:100
+msgid "Self-paced: lessons open day by day from each person's start date"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:101
+msgid "Batch: lessons open day by day from the batch start date"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:102
+msgid "Each lesson has an \"Opens on day\" number. Day 0 opens immediately."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:103
+msgid "Batch assignment"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:104
+msgid "Automatic: put new buyers in the next open batch"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:105
+msgid "Manual: staff choose the batch"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:106
+msgid "Only used when lesson release is set to Batch. Batches are managed under Academy → Batches."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:107
+msgid "Order"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:107
+msgid "Participants must complete each lesson before the next one opens"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:108
+msgid "Colour"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:109
+msgid "Earth (green)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:110
+msgid "Water (aqua)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:111
+msgid "Fire (gold)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:112
+msgid "Air (blue)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:113
+msgid "Space (violet)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:122
+msgid "Sold through"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:123
+msgid "No WooCommerce product linked yet."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:124
+msgid "To sell this programme, open the WooCommerce product and choose this programme on its \"Academy\" tab."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:131
+msgid "Participants must accept this once before their first lesson. Write it with your clinical team. If you change the English text, everyone is asked to accept the new version."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:133
+msgid "Acknowledgement (English)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:134
+msgid "Acknowledgement (Hindi)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:137
+msgid "Current version"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:144
+msgid "Save the programme first, then add modules and lessons here."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:170
+msgid "(untitled)"
+msgstr ""
+
+#. translators: %d: day number
+#: src/Content/MetaBoxes.php:173
+#, php-format
+msgid "day %d"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:181
+msgid "Drag modules and lessons to reorder them, then press Save order. Lessons can be dragged between modules."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:186
+msgid "Rename"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:187
+msgid "+ Lesson"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:188
+msgid "Delete module"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:200
+msgid "Lessons not in a module"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:208
+msgid "+ Add module"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:209
+msgid "Save order"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:212
+#: src/Frontend/Router.php:452
+#: templates/bonus.php:14
+#: templates/lesson.php:44
+#: templates/programme.php:93
+msgid "Bonus library"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:220
+msgid "+ Bonus item"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:234
+msgid "— Choose a module —"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:245
+msgid "Where it appears"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:246
+msgid "In the programme curriculum"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:247
+msgid "In the Bonus library"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:256
+#: src/Content/PostTypes.php:47
+msgid "Module"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:257
+msgid "Bonus category"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:257
+msgid "Bonus items only, for example Recipes, Pranayama, Q&A."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:259
+msgid "Lesson type"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:261
+#: templates/lesson.php:51
+msgid "Audio"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:262
+msgid "Reading (uses the main text above)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:265
+msgid "Video or audio"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:265
+msgid "Choose from Academy → Video Library."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:266
+msgid "Hindi version (optional)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:266
+msgid "If set, participants who choose Hindi see this one instead."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:267
+#: src/Content/MetaBoxes.php:376
+msgid "Length (minutes)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:271
+msgid "0 = available from the start. 7 = opens one week after the participant's start date (or the batch start date). Ignored if the programme releases everything at once."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:273
+msgid "Counts towards progress"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:273
+msgid "Required lesson"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:274
+msgid "Free preview"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:274
+msgid "Any logged-in visitor can watch this lesson without buying"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:275
+msgid "Summary"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:276
+msgid "Safety note"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:276
+msgid "Shown above the lesson, for example who should skip a posture. Must be approved by your clinical team."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:278
+msgid "Summary in Hindi"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:279
+msgid "Safety note in Hindi"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:292
+msgid "This file was uploaded outside the lesson, so it is stored in the public uploads folder. Re-upload it from here to protect it."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:292
+msgid "public file"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:294
+msgid "Remove"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:298
+msgid "Add files"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:299
+msgid "PDFs and audio uploaded here are stored in a private folder and can only be downloaded by enrolled participants."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:311
+msgid "Protected video on this website (encrypted HLS)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:312
+msgid "Protected audio or MP4 file on this website"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:313
+msgid "YouTube (unlisted) — previews only, not protected"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:314
+msgid "External video service (HLS or MP4 link)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:316
+msgid "HLS folder"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:316
+msgid "Folder name inside wp-content/uploads/nirog-academy/media/. Filled in automatically by Academy → Import Videos."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:319
+msgid "— Choose a file —"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:323
+msgid "Files in wp-content/uploads/nirog-academy/files/ (upload by SFTP or Hostinger File Manager)."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:324
+msgid "YouTube link or ID"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:325
+msgid "External link"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:325
+msgid "An HLS (.m3u8) or MP4 link from a video service. Protection depends on that service."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:326
+msgid "Length (seconds)"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:364
+msgid "Everyone in the programme"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:371
+msgid "Starts at"
+msgstr ""
+
+#. translators: %s: timezone name
+#: src/Content/MetaBoxes.php:373
+#, php-format
+msgid "Time zone: %s"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:377
+msgid "Join link"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:377
+msgid "Zoom, Google Meet or similar. Shown to participants 15 minutes before the start."
+msgstr ""
+
+#: src/Content/MetaBoxes.php:378
+msgid "— None yet —"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:384
+msgid "Recording"
+msgstr ""
+
+#: src/Content/MetaBoxes.php:384
+msgid "After the session, link the lesson that holds the recording."
+msgstr ""
+
+#: src/Content/PostTypes.php:41
+msgid "Programmes"
+msgstr ""
+
+#: src/Content/PostTypes.php:47
+msgid "Modules"
+msgstr ""
+
+#: src/Content/PostTypes.php:53
+msgid "Lessons"
+msgstr ""
+
+#: src/Content/PostTypes.php:58
+msgid "Video / Audio"
+msgstr ""
+
+#: src/Content/PostTypes.php:58
+msgid "Video Library"
+msgstr ""
+
+#: src/Content/PostTypes.php:63
+msgid "Live Session"
+msgstr ""
+
+#: src/Content/PostTypes.php:63
+msgid "Live Sessions"
+msgstr ""
+
+#: src/Content/PostTypes.php:68
+msgid "Announcement"
+msgstr ""
+
+#. translators: %s: content type name
+#: src/Content/PostTypes.php:81
+#, php-format
+msgid "Add %s"
+msgstr ""
+
+#. translators: %s: content type name
+#: src/Content/PostTypes.php:83
+#, php-format
+msgid "Edit %s"
+msgstr ""
+
+#. translators: %s: content type name
+#: src/Content/PostTypes.php:85
+#, php-format
+msgid "New %s"
+msgstr ""
+
+#. translators: %s: content type name
+#: src/Content/PostTypes.php:87
+#, php-format
+msgid "Search %s"
+msgstr ""
+
+#. translators: %s: content type name
+#: src/Content/PostTypes.php:89
+#, php-format
+msgid "No %s found."
+msgstr ""
+
+#: src/Content/PostTypes.php:90
+msgid "Add new"
+msgstr ""
+
+#: src/Device/Devices.php:229
+msgid "Too many codes requested. Please try again in an hour."
+msgstr ""
+
+#: src/Device/Devices.php:243
+msgid "This code has expired. Request a new one."
+msgstr ""
+
+#: src/Device/Devices.php:247
+msgid "Too many wrong attempts. Request a new code."
+msgstr ""
+
+#: src/Device/Devices.php:253
+msgid "That code is not right. Check the email and try again."
+msgstr ""
+
+#: src/Device/Devices.php:257
+msgid "You have already changed device recently. Your request has been sent to our team instead."
+msgstr ""
+
+#: src/Device/Devices.php:350
+msgid "Browser"
+msgstr ""
+
+#: src/Device/Devices.php:360
+msgid "unknown device"
+msgstr ""
+
+#. translators: 1: browser name, 2: operating system
+#: src/Device/Devices.php:363
+#, php-format
+msgid "%1$s on %2$s"
+msgstr ""
+
+#: src/Enrollment/Cohorts.php:48
+msgid "A batch needs a programme, a name and a start date."
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:36
+msgid "Active"
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:38
+msgid "Ended"
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:39
+msgid "Revoked"
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:40
+msgid "Pending"
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:123
+msgid "That user does not exist."
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:126
+msgid "That programme does not exist."
+msgstr ""
+
+#: src/Enrollment/Enrollments.php:193
+msgid "Could not save the enrollment."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:64
+msgid "Gives access to"
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:66
+msgid "Create a programme under Academy → Programmes first."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:71
+msgid "When an order for this product is paid, the buyer is enrolled automatically and receives a welcome email. Mark programme products as Virtual so no shipping is asked for."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:130
+msgid "Academy: could not create an account for this order. Enroll the buyer manually."
+msgstr ""
+
+#. translators: %s: programme name
+#: src/Enrollment/WooBridge.php:146
+#, php-format
+msgid "Academy: access opened for %s."
+msgstr ""
+
+#. translators: %s: programme name
+#: src/Enrollment/WooBridge.php:220
+#, php-format
+msgid "Academy: access closed for %s."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:256
+msgid "Choose a programme product."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:259
+msgid "That product is not linked to a programme. Open the product and tick a programme on its Academy tab."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:264
+msgid "Could not create the participant account."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:310
+#: src/Enrollment/WooBridge.php:313
+#: templates/profile.php:74
+msgid "My programmes"
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:326
+#: src/Notify/Notifications.php:170
+msgid "Your programme is ready"
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:328
+msgid "We have emailed you the next steps. If you are new, the email has a button to choose your password."
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:329
+#: src/Notify/Notifications.php:172
+#: src/Notify/Notifications.php:219
+#: src/Notify/Scheduler.php:197
+#: src/Notify/Scheduler.php:286
+msgid "Open the Academy"
+msgstr ""
+
+#: src/Enrollment/WooBridge.php:331
+msgid "Your access opens as soon as the payment is confirmed. We will email you."
+msgstr ""
+
+#: src/Frontend/Actions.php:19
+msgid "This form has expired. Please try again."
+msgstr ""
+
+#: src/Frontend/Actions.php:36
+msgid "Unknown action."
+msgstr ""
+
+#: src/Frontend/Actions.php:82
+msgid "Please tick the box to confirm you have read the note."
+msgstr ""
+
+#: src/Frontend/Actions.php:94
+msgid "You changed device recently, so this change needs our team. Send a request below."
+msgstr ""
+
+#: src/Frontend/Actions.php:100
+msgid "We have emailed you a 6-digit code. Enter it below."
+msgstr ""
+
+#: src/Frontend/Actions.php:113
+msgid "Done. This is now your registered device."
+msgstr ""
+
+#: src/Frontend/Actions.php:120
+msgid "Request sent. Our team will reply by email, usually within one working day."
+msgstr ""
+
+#: src/Frontend/Actions.php:150
+msgid "Your profile is saved."
+msgstr ""
+
+#: src/Frontend/Auth.php:101
+msgid "You have logged out."
+msgstr ""
+
+#: src/Frontend/Auth.php:102
+#: templates/login.php:27
+msgid "Log in"
+msgstr ""
+
+#: src/Frontend/Auth.php:105
+msgid "Forgot password"
+msgstr ""
+
+#: src/Frontend/Auth.php:118
+#: src/Notify/Notifications.php:172
+#: templates/set-password.php:19
+msgid "Choose your password"
+msgstr ""
+
+#: src/Frontend/Auth.php:128
+msgid "That email and password do not match. Try again, or use \"Email me a login link\"."
+msgstr ""
+
+#: src/Frontend/Auth.php:131
+msgid "Too many attempts. Please wait 15 minutes, or use \"Forgot password\"."
+msgstr ""
+
+#: src/Frontend/Auth.php:166
+msgid "If that email belongs to an Academy account, a login link is on its way. It works once, for 15 minutes."
+msgstr ""
+
+#: src/Frontend/Auth.php:168
+#: src/Frontend/Auth.php:215
+msgid "Too many requests. Please try again in an hour."
+msgstr ""
+
+#: src/Frontend/Auth.php:177
+msgid "Your login link"
+msgstr ""
+
+#: src/Frontend/Auth.php:178
+msgid "Log in to the Academy"
+msgstr ""
+
+#: src/Frontend/Auth.php:180
+msgid "Use the button below to log in. It works once, for 15 minutes."
+msgstr ""
+
+#: src/Frontend/Auth.php:181
+msgid "If you did not ask for this, you can ignore this email."
+msgstr ""
+
+#: src/Frontend/Auth.php:183
+msgid "Log me in"
+msgstr ""
+
+#: src/Frontend/Auth.php:202
+msgid "That login link has expired or was already used. Request a new one below."
+msgstr ""
+
+#: src/Frontend/Auth.php:221
+msgid "Reset your password"
+msgstr ""
+
+#: src/Frontend/Auth.php:222
+#: src/Frontend/Auth.php:224
+msgid "Choose a new password"
+msgstr ""
+
+#: src/Frontend/Auth.php:223
+msgid "Someone asked to reset the password for your Academy account. If it was you, use the button below. If not, you can ignore this email."
+msgstr ""
+
+#: src/Frontend/Auth.php:228
+msgid "If that email belongs to an Academy account, we have sent a link to reset the password."
+msgstr ""
+
+#: src/Frontend/Auth.php:241
+msgid "This link has expired. Use \"Forgot password\" to get a new one."
+msgstr ""
+
+#: src/Frontend/Auth.php:244
+msgid "Please use at least 8 characters."
+msgstr ""
+
+#: src/Frontend/Auth.php:247
+msgid "The two passwords do not match."
+msgstr ""
+
+#: src/Frontend/Router.php:98
+msgid "Saved"
+msgstr ""
+
+#: src/Frontend/Router.php:101
+msgid "Playback stopped because this account started playing somewhere else."
+msgstr ""
+
+#: src/Frontend/Router.php:102
+msgid "This page has been open a long time. Reload to continue watching."
+msgstr ""
+
+#: src/Frontend/Router.php:103
+msgid "Something went wrong. Check your connection and try again."
+msgstr ""
+
+#: src/Frontend/Router.php:104
+#: src/Progress/Progress.php:124
+msgid "Watch the lesson to the end to complete it."
+msgstr ""
+
+#: src/Frontend/Router.php:156
+msgid "The Academy opens soon"
+msgstr ""
+
+#: src/Frontend/Router.php:157
+msgid "Your account is ready. We will email you as soon as the lessons are open."
+msgstr ""
+
+#: src/Frontend/Router.php:158
+#: src/Frontend/Router.php:283
+msgid "Opening soon"
+msgstr ""
+
+#: src/Frontend/Router.php:184
+msgid "We could not find that page"
+msgstr ""
+
+#: src/Frontend/Router.php:185
+msgid "It may have moved. Go back to your dashboard to continue."
+msgstr ""
+
+#: src/Frontend/Router.php:186
+#: templates/device.php:36
+msgid "Go to dashboard"
+msgstr ""
+
+#: src/Frontend/Router.php:187
+msgid "Not found"
+msgstr ""
+
+#. translators: %s: date
+#: src/Frontend/Router.php:233
+#, php-format
+msgid "Opens %s"
+msgstr ""
+
+#: src/Frontend/Router.php:236
+msgid "Finish the previous lesson first"
+msgstr ""
+
+#: src/Frontend/Router.php:237
+#: src/Frontend/Router.php:248
+msgid "Start"
+msgstr ""
+
+#. translators: %d: percent
+#: src/Frontend/Router.php:244
+#, php-format
+msgid "%d%% watched"
+msgstr ""
+
+#: src/Frontend/Router.php:268
+msgid "Back to dashboard"
+msgstr ""
+
+#: src/Frontend/Router.php:270
+msgid "Go to the previous lesson"
+msgstr ""
+
+#: src/Frontend/Router.php:273
+#: templates/dashboard.php:32
+msgid "See our programmes"
+msgstr ""
+
+#: src/Frontend/Router.php:278
+msgid "Not open yet"
+msgstr ""
+
+#: src/Frontend/Router.php:279
+msgid "One step at a time"
+msgstr ""
+
+#: src/Frontend/Router.php:280
+msgid "Access paused"
+msgstr ""
+
+#: src/Frontend/Router.php:281
+msgid "Almost there"
+msgstr ""
+
+#: src/Frontend/Router.php:282
+msgid "Access ended"
+msgstr ""
+
+#: src/Frontend/Router.php:284
+msgid "This lesson is locked"
+msgstr ""
+
+#: src/Frontend/Router.php:289
+msgid "Locked"
+msgstr ""
+
+#: src/Frontend/Router.php:347
+#: templates/programme.php:22
+msgid "Dashboard"
+msgstr ""
+
+#: src/Frontend/Router.php:438
+msgid "Before you begin"
+msgstr ""
+
+#: src/Frontend/Router.php:447
+msgid "More"
+msgstr ""
+
+#: src/Frontend/Router.php:477
+#: templates/layout.php:27
+#: templates/lesson.php:110
+#: templates/resources.php:13
+msgid "Downloads"
+msgstr ""
+
+#: src/Frontend/Router.php:495
+#: templates/live.php:26
+msgid "Live sessions"
+msgstr ""
+
+#: src/Frontend/Router.php:509
+#: templates/layout.php:29
+#: templates/profile.php:23
+msgid "Profile"
+msgstr ""
+
+#: src/Frontend/Router.php:528
+#: templates/device.php:34
+msgid "Your device"
+msgstr ""
+
+#. translators: %d: percent
+#: src/Frontend/View.php:104
+#, php-format
+msgid "%d%% complete"
+msgstr ""
+
+#. translators: %d: minutes
+#: src/Frontend/View.php:114
+#, php-format
+msgid "%d min"
+msgid_plural "%d min"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Install/Roles.php:33
+msgid "Academy Participant"
+msgstr ""
+
+#: src/Install/Roles.php:35
+msgid "Academy Coach"
+msgstr ""
+
+#: src/Install/Roles.php:48
+msgid "Academy Manager"
+msgstr ""
+
+#: src/Media/Importer.php:42
+msgid "Folder names may only use letters, numbers, - and _."
+msgstr ""
+
+#: src/Media/Importer.php:47
+msgid "No master.m3u8 inside."
+msgstr ""
+
+#: src/Media/Importer.php:72
+msgid "No enc.key found. Was the video encoded with the Academy script?"
+msgstr ""
+
+#: src/Media/Stream.php:282
+msgid "No folder set. Use Academy → Import Videos."
+msgstr ""
+
+#: src/Media/Stream.php:286
+msgid "Folder not found on the server."
+msgstr ""
+
+#: src/Media/Stream.php:289
+msgid "master.m3u8 is missing in the folder."
+msgstr ""
+
+#: src/Media/Stream.php:294
+msgid "Encryption key is missing. Re-run Import Videos."
+msgstr ""
+
+#: src/Media/Stream.php:296
+msgid "Ready"
+msgstr ""
+
+#. translators: %s: date
+#: src/Notify/Notifications.php:139
+#, php-format
+msgid "Your batch begins on %s. You can log in now and finish the orientation."
+msgstr ""
+
+#: src/Notify/Notifications.php:142
+msgid "We will place you in the next batch and email you the start date."
+msgstr ""
+
+#. translators: %s: programme name
+#: src/Notify/Notifications.php:148
+#: src/Notify/Notifications.php:169
+#, php-format
+msgid "Welcome to %s"
+msgstr ""
+
+#: src/Notify/Notifications.php:149
+msgid "Your lessons are ready. Start with the first one when you have a quiet moment."
+msgstr ""
+
+#. translators: %s: programme name
+#: src/Notify/Notifications.php:155
+#, php-format
+msgid "You are enrolled in %s. Everything you need is in the Academy: your lessons, bonus videos, downloads and live session times."
+msgstr ""
+
+#. translators: %s: date
+#: src/Notify/Notifications.php:157
+#, php-format
+msgid "Your access lasts until %s."
+msgstr ""
+
+#: src/Notify/Notifications.php:162
+msgid "Important: your programme works on one device. The first phone or computer you log in from becomes your device, so please use the one you plan to practise with."
+msgstr ""
+
+#: src/Notify/Notifications.php:164
+msgid "Start by choosing your password. The button below works for 24 hours; after that, use \"Forgot password\" on the login page."
+msgstr ""
+
+#: src/Notify/Notifications.php:193
+msgid "Your device change code"
+msgstr ""
+
+#: src/Notify/Notifications.php:194
+msgid "Confirm your new device"
+msgstr ""
+
+#. translators: %s: 6-digit code
+#: src/Notify/Notifications.php:197
+#, php-format
+msgid "Your code is: %s"
+msgstr ""
+
+#. translators: %d: minutes
+#: src/Notify/Notifications.php:199
+#, php-format
+msgid "It works for %d minutes. Enter it on the device you want to use from now on."
+msgstr ""
+
+#: src/Notify/Notifications.php:200
+msgid "If you did not ask for this, ignore this email and consider changing your password."
+msgstr ""
+
+#: src/Notify/Notifications.php:203
+msgid "We could not send the email. Please contact us."
+msgstr ""
+
+#: src/Notify/Notifications.php:208
+#: src/Notify/Notifications.php:211
+msgid "Your programme moved to a new device"
+msgstr ""
+
+#: src/Notify/Notifications.php:208
+msgid "If this was not you, contact us straight away."
+msgstr ""
+
+#: src/Notify/Notifications.php:212
+msgid "Device changed"
+msgstr ""
+
+#: src/Notify/Notifications.php:215
+msgid "Our team has reset your registered device. The next phone or computer you log in from will become your device."
+msgstr ""
+
+#: src/Notify/Notifications.php:216
+msgid "Your programme is now registered to the device you just confirmed. Your previous device has been signed out."
+msgstr ""
+
+#: src/Notify/Notifications.php:217
+msgid "If this was not you, reply to this email or contact us straight away."
+msgstr ""
+
+#: src/Notify/Notifications.php:232
+msgid "team"
+msgstr ""
+
+#: src/Notify/Notifications.php:233
+msgid "Device change request"
+msgstr ""
+
+#. translators: 1: name, 2: email
+#: src/Notify/Notifications.php:236
+#, php-format
+msgid "%1$s (%2$s) has asked to change their registered device."
+msgstr ""
+
+#: src/Notify/Notifications.php:238
+msgid "Review the request"
+msgstr ""
+
+#: src/Notify/Notifications.php:241
+msgid "Academy: device change request"
+msgstr ""
+
+#: src/Notify/Notifications.php:249
+msgid "Your device change request was not approved"
+msgstr ""
+
+#: src/Notify/Notifications.php:249
+msgid "Please contact us so we can help."
+msgstr ""
+
+#: src/Notify/Notifications.php:250
+msgid "About your device change request"
+msgstr ""
+
+#: src/Notify/Notifications.php:250
+msgid "Request not approved"
+msgstr ""
+
+#: src/Notify/Notifications.php:251
+msgid "We could not approve your device change request this time. Please reply to this email so we can help you continue your programme."
+msgstr ""
+
+#. translators: %s: programme name
+#: src/Notify/Notifications.php:262
+#, php-format
+msgid "You completed every lesson in %s"
+msgstr ""
+
+#: src/Notify/Notifications.php:263
+msgid "Keep practising daily. You can revisit any lesson while your access lasts."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Notify/Scheduler.php:105
+#: src/Notify/Scheduler.php:128
+#, php-format
+msgid "New lesson: %s"
+msgstr ""
+
+#: src/Notify/Scheduler.php:106
+msgid "It is ready whenever you are."
+msgstr ""
+
+#: src/Notify/Scheduler.php:129
+msgid "New lessons are ready"
+msgstr ""
+
+#: src/Notify/Scheduler.php:130
+msgid "Today's practice is ready"
+msgstr ""
+
+#: src/Notify/Scheduler.php:131
+msgid "These lessons opened today:"
+msgstr ""
+
+#: src/Notify/Scheduler.php:132
+msgid "Start the lesson"
+msgstr ""
+
+#: src/Notify/Scheduler.php:160
+#: src/Notify/Scheduler.php:162
+msgid "Your practice is waiting for you"
+msgstr ""
+
+#: src/Notify/Scheduler.php:160
+msgid "Even ten minutes today keeps the rhythm going."
+msgstr ""
+
+#: src/Notify/Scheduler.php:162
+msgid "A gentle reminder"
+msgstr ""
+
+#: src/Notify/Scheduler.php:163
+msgid "We noticed you have not opened the Academy for a few days. That is completely normal — life gets busy."
+msgstr ""
+
+#: src/Notify/Scheduler.php:164
+msgid "Even one short lesson today helps you keep the rhythm. Your place is saved, so you can continue exactly where you stopped."
+msgstr ""
+
+#: src/Notify/Scheduler.php:165
+msgid "Continue where I left off"
+msgstr ""
+
+#. translators: 1: programme name, 2: date
+#: src/Notify/Scheduler.php:192
+#, php-format
+msgid "Your access to %1$s ends on %2$s."
+msgstr ""
+
+#: src/Notify/Scheduler.php:193
+#: src/Notify/Scheduler.php:194
+msgid "Your access ends soon"
+msgstr ""
+
+#: src/Notify/Scheduler.php:196
+msgid "Download any worksheets you want to keep, and contact us if you would like to continue."
+msgstr ""
+
+#. translators: %s: session title
+#: src/Notify/Scheduler.php:234
+#, php-format
+msgid "Starting soon: %s"
+msgstr ""
+
+#. translators: %s: session title
+#: src/Notify/Scheduler.php:236
+#, php-format
+msgid "Tomorrow: %s"
+msgstr ""
+
+#. translators: %s: date and time
+#: src/Notify/Scheduler.php:241
+#, php-format
+msgid "Live session: %s"
+msgstr ""
+
+#: src/Notify/Scheduler.php:242
+msgid "The join button appears on the Live Sessions page 15 minutes before the start."
+msgstr ""
+
+#: src/Notify/Scheduler.php:243
+msgid "Go to live sessions"
+msgstr ""
+
+#: templates/bonus.php:15
+msgid "Extra talks, recipes and recordings to support your practice."
+msgstr ""
+
+#: templates/bonus.php:18
+msgid "Bonus items will appear here as they are added."
+msgstr ""
+
+#: templates/dashboard.php:19
+msgid "Good morning"
+msgstr ""
+
+#: templates/dashboard.php:19
+msgid "Good afternoon"
+msgstr ""
+
+#: templates/dashboard.php:19
+msgid "Good evening"
+msgstr ""
+
+#: templates/dashboard.php:30
+msgid "You have not joined a programme yet"
+msgstr ""
+
+#: templates/dashboard.php:31
+msgid "When you join a programme, your lessons will appear here."
+msgstr ""
+
+#: templates/dashboard.php:45
+msgid "Your programme"
+msgstr ""
+
+#: templates/dashboard.php:50
+msgid "Your place is confirmed. We will email you your batch start date."
+msgstr ""
+
+#. translators: %s: date
+#: templates/dashboard.php:54
+#, php-format
+msgid "Your batch begins on %s. Lessons open from that day."
+msgstr ""
+
+#: templates/dashboard.php:57
+msgid "See what is coming"
+msgstr ""
+
+#: templates/dashboard.php:59
+msgid "Continue where you left off"
+msgstr ""
+
+#: templates/dashboard.php:59
+#: templates/lesson.php:93
+msgid "Next lesson"
+msgstr ""
+
+#: templates/dashboard.php:59
+msgid "Start your first lesson"
+msgstr ""
+
+#: templates/dashboard.php:65
+#: templates/dashboard.php:71
+msgid "View programme"
+msgstr ""
+
+#: templates/dashboard.php:70
+msgid "You have completed every lesson. Keep practising — you can revisit any lesson while your access lasts."
+msgstr ""
+
+#. translators: 1: completed, 2: total
+#: templates/dashboard.php:78
+#, php-format
+msgid "%1$d of %2$d lessons"
+msgstr ""
+
+#. translators: %s: date
+#: templates/dashboard.php:85
+#: templates/programme.php:30
+#, php-format
+msgid "Access until %s"
+msgstr ""
+
+#: templates/dashboard.php:96
+msgid "Opened today"
+msgstr ""
+
+#: templates/dashboard.php:109
+msgid "Next live session"
+msgstr ""
+
+#: templates/dashboard.php:118
+msgid "From the team"
+msgstr ""
+
+#: templates/dashboard.php:121
+msgid "All messages"
+msgstr ""
+
+#: templates/dashboard.php:126
+msgid "Need help?"
+msgstr ""
+
+#: templates/dashboard.php:127
+msgid "Short guides for logging in, your device, watching lessons and more."
+msgstr ""
+
+#: templates/dashboard.php:128
+msgid "Open the Help Center"
+msgstr ""
+
+#: templates/device.php:23
+msgid "Your programme is on another device"
+msgstr ""
+
+#. translators: 1: device label, 2: date
+#: templates/device.php:27
+#, php-format
+msgid "It is registered to %1$s (since %2$s). Each programme works on one device, so it stays private to you."
+msgstr ""
+
+#: templates/device.php:32
+msgid "This can also happen if you cleared your browser data, used a private window, or switched browsers on the same phone."
+msgstr ""
+
+#: templates/device.php:35
+msgid "This device is registered for your programme. Everything is working."
+msgstr ""
+
+#. translators: %s: date
+#: templates/device.php:43
+#, php-format
+msgid "Your request from %s is with our team. We will email you, usually within one working day."
+msgstr ""
+
+#: templates/device.php:47
+msgid "Use this device instead"
+msgstr ""
+
+#: templates/device.php:49
+msgid "We will email you a 6-digit code. Your other device will be signed out."
+msgstr ""
+
+#: templates/device.php:53
+msgid "Email me a code"
+msgstr ""
+
+#: templates/device.php:59
+msgid "6-digit code from the email"
+msgstr ""
+
+#: templates/device.php:61
+msgid "Confirm this device"
+msgstr ""
+
+#: templates/device.php:66
+msgid "Send a new code"
+msgstr ""
+
+#. translators: %d: days
+#: templates/device.php:71
+#, php-format
+msgid "You can change device yourself once every %d days."
+msgstr ""
+
+#: templates/device.php:75
+msgid "Ask our team to move your programme"
+msgstr ""
+
+#. translators: %s: date
+#: templates/device.php:79
+#, php-format
+msgid "You changed device recently. You can do it yourself again from %s, or ask us now."
+msgstr ""
+
+#: templates/device.php:86
+msgid "What happened? (optional)"
+msgstr ""
+
+#: templates/device.php:87
+msgid "For example: my phone was replaced"
+msgstr ""
+
+#: templates/device.php:88
+msgid "Send request"
+msgstr ""
+
+#: templates/device.php:91
+msgid "How the one-device rule works"
+msgstr ""
+
+#: templates/device.php:92
+#: templates/layout.php:86
+#: templates/profile.php:99
+msgid "Log out"
+msgstr ""
+
+#. translators: %s: name
+#: templates/email.php:28
+#, php-format
+msgid "Namaste %s,"
+msgstr ""
+
+#: templates/email.php:38
+msgid "If the button does not work, copy this link into your browser:"
+msgstr ""
+
+#. translators: %s: support email
+#: templates/email.php:44
+#, php-format
+msgid "Questions? Reply to this email or write to %s."
+msgstr ""
+
+#: templates/forgot.php:10
+msgid "Forgot your password?"
+msgstr ""
+
+#: templates/forgot.php:11
+msgid "Enter the email you used to join. We will send you a link to choose a new password."
+msgstr ""
+
+#: templates/forgot.php:17
+msgid "Send reset link"
+msgstr ""
+
+#: templates/forgot.php:19
+msgid "Back to log in"
+msgstr ""
+
+#: templates/help-article.php:14
+#: templates/help.php:16
+msgid "Help Center"
+msgstr ""
+
+#: templates/help.php:17
+msgid "Short guides to common questions."
+msgstr ""
+
+#: templates/help.php:18
+msgid "Search the guides"
+msgstr ""
+
+#: templates/help.php:29
+msgid "Still stuck?"
+msgstr ""
+
+#: templates/help.php:30
+msgid "Write to us and tell us what you were trying to do. A screenshot helps."
+msgstr ""
+
+#: templates/help.php:33
+msgid "Chat on WhatsApp"
+msgstr ""
+
+#: templates/layout.php:24
+msgid "Home"
+msgstr ""
+
+#: templates/layout.php:28
+msgid "Live"
+msgstr ""
+
+#: templates/layout.php:51
+msgid "Skip to content"
+msgstr ""
+
+#: templates/layout.php:58
+#: templates/layout.php:97
+#: templates/profile.php:39
+msgid "Language"
+msgstr ""
+
+#. translators: %d: unread count
+#: templates/layout.php:104
+#, php-format
+msgid "Notifications, %d unread"
+msgid_plural "Notifications, %d unread"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/layout.php:120
+msgid "Main"
+msgstr ""
+
+#: templates/lesson.php:51
+msgid "Reading"
+msgstr ""
+
+#: templates/lesson.php:61
+msgid "Before you start"
+msgstr ""
+
+#: templates/lesson.php:73
+msgid "Find a comfortable position. You can lock your phone screen; the audio keeps playing."
+msgstr ""
+
+#: templates/lesson.php:88
+msgid "Mark as complete"
+msgstr ""
+
+#: templates/lesson.php:95
+msgid "The next lesson opens later"
+msgstr ""
+
+#: templates/lesson.php:120
+msgid "My notes"
+msgstr ""
+
+#: templates/lesson.php:121
+msgid "Only you can see these notes. How did the practice feel?"
+msgstr ""
+
+#: templates/lesson.php:128
+msgid "Previous lesson"
+msgstr ""
+
+#: templates/live.php:27
+msgid "The join button appears 15 minutes before each session starts."
+msgstr ""
+
+#: templates/live.php:31
+msgid "No live sessions are scheduled right now. We will notify you when one is added."
+msgstr ""
+
+#: templates/live.php:52
+msgid "Join now"
+msgstr ""
+
+#: templates/live.php:54
+msgid "Add to Google Calendar"
+msgstr ""
+
+#: templates/live.php:63
+msgid "Past sessions"
+msgstr ""
+
+#: templates/live.php:69
+msgid "Watch recording"
+msgstr ""
+
+#: templates/login.php:12
+msgid "Welcome back"
+msgstr ""
+
+#: templates/login.php:13
+msgid "Log in to continue your programme."
+msgstr ""
+
+#: templates/login.php:21
+#: templates/profile.php:89
+msgid "Password"
+msgstr ""
+
+#: templates/login.php:24
+#: templates/set-password.php:29
+msgid "Hide"
+msgstr ""
+
+#: templates/login.php:26
+msgid "Keep me logged in"
+msgstr ""
+
+#: templates/login.php:30
+msgid "Forgot password?"
+msgstr ""
+
+#: templates/login.php:32
+msgid "or"
+msgstr ""
+
+#: templates/login.php:37
+msgid "Log in without a password"
+msgstr ""
+
+#: templates/login.php:38
+msgid "Your email"
+msgstr ""
+
+#: templates/login.php:39
+msgid "Email me a login link"
+msgstr ""
+
+#: templates/login.php:42
+msgid "Your programme works on one device. The first device you log in from becomes your registered device."
+msgstr ""
+
+#: templates/login.php:43
+msgid "Learn more"
+msgstr ""
+
+#: templates/notice.php:27
+msgid "Questions?"
+msgstr ""
+
+#: templates/notifications.php:18
+msgid "Nothing yet. New lessons, live session reminders and messages from the team will appear here."
+msgstr ""
+
+#. translators: %s: time ago
+#: templates/notifications.php:29
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: templates/orientation.php:18
+msgid "Before your first lesson"
+msgstr ""
+
+#: templates/orientation.php:25
+msgid "I have read and understood this note."
+msgstr ""
+
+#: templates/orientation.php:26
+msgid "Continue to the lesson"
+msgstr ""
+
+#: templates/profile.php:29
+msgid "Your details"
+msgstr ""
+
+#: templates/profile.php:46
+msgid "Email me about"
+msgstr ""
+
+#: templates/profile.php:47
+msgid "New lessons"
+msgstr ""
+
+#: templates/profile.php:48
+msgid "Reminders and live sessions"
+msgstr ""
+
+#: templates/profile.php:49
+msgid "Announcements from the team"
+msgstr ""
+
+#: templates/profile.php:50
+msgid "Account and security emails are always sent."
+msgstr ""
+
+#: templates/profile.php:52
+msgid "Save"
+msgstr ""
+
+#: templates/profile.php:58
+msgid "My device"
+msgstr ""
+
+#: templates/profile.php:60
+msgid "Staff accounts are not tied to a device."
+msgstr ""
+
+#: templates/profile.php:63
+msgid "this device"
+msgstr ""
+
+#. translators: %s: date
+#: templates/profile.php:66
+#, php-format
+msgid "Registered %s"
+msgstr ""
+
+#: templates/profile.php:70
+msgid "Changing your device"
+msgstr ""
+
+#. translators: %s: date
+#: templates/profile.php:80
+#, php-format
+msgid "until %s"
+msgstr ""
+
+#: templates/profile.php:85
+msgid "Orders and invoices"
+msgstr ""
+
+#: templates/profile.php:90
+msgid "We will email you a secure link to choose a new password."
+msgstr ""
+
+#: templates/profile.php:95
+msgid "Change password"
+msgstr ""
+
+#: templates/programme.php:40
+msgid "Your access is paused. Lessons are visible but cannot be opened until it is resumed."
+msgstr ""
+
+#: templates/programme.php:45
+msgid "More lessons"
+msgstr ""
+
+#. translators: 1: done, 2: total
+#: templates/programme.php:54
+#, php-format
+msgid "%1$d/%2$d done"
+msgstr ""
+
+#: templates/programme.php:87
+msgid "Lessons are being prepared. Please check back soon."
+msgstr ""
+
+#: templates/programme.php:93
+msgid "Extra talks, recipes and recordings"
+msgstr ""
+
+#: templates/resources.php:14
+msgid "Charts, worksheets and guides from your lessons. Files open when their lesson opens."
+msgstr ""
+
+#: templates/resources.php:17
+msgid "No downloads yet."
+msgstr ""
+
+#: templates/set-password.php:15
+msgid "This link has expired"
+msgstr ""
+
+#: templates/set-password.php:16
+msgid "Password links work for 24 hours and only once. Ask for a new one below."
+msgstr ""
+
+#: templates/set-password.php:17
+msgid "Send me a new link"
+msgstr ""
+
+#: templates/set-password.php:20
+msgid "Use at least 8 characters. A short sentence you will remember works well."
+msgstr ""
+
+#: templates/set-password.php:26
+msgid "New password"
+msgstr ""
+
+#: templates/set-password.php:31
+msgid "Type it again"
+msgstr ""
+
+#: templates/set-password.php:33
+msgid "Save and continue"
+msgstr ""
+
+#: templates/set-password.php:35
+msgid "The device you continue on becomes your registered device for the programme."
+msgstr ""

@@ -1,0 +1,59 @@
+/* Nirog Bhumi Academy — admin screens. Kept close to standard WordPress styling. */
+
+.nba-admin .nba-intro { font-size: 14px; color: #50575e; max-width: 860px; }
+.nba-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin: 16px 0 20px; }
+.nba-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #82ad5c; border-radius: 4px; text-decoration: none; color: #1d2327; }
+.nba-card:hover { border-color: #314936; }
+.nba-card-value { font-size: 28px; font-weight: 600; line-height: 1.1; color: #314936; }
+.nba-card-label { color: #50575e; }
+.nba-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; align-items: start; }
+.nba-panel { background: #fff; border: 1px solid #dcdcde; border-radius: 4px; padding: 4px 18px 16px; margin: 0 0 16px; }
+.nba-panel h2 { font-size: 16px; }
+.nba-narrow { max-width: 820px; }
+.nba-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
+.nba-table td { vertical-align: middle; }
+.nba-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #f0f0f1; color: #3c434a; }
+.nba-badge-active { background: #e4efd7; color: #2d4f18; }
+.nba-badge-paused { background: #fbf4dc; color: #6b4f00; }
+.nba-badge-pending { background: #e6eefb; color: #2f569e; }
+.nba-badge-revoked, .nba-badge-expired { background: #f6e3df; color: #7e2a1f; }
+.nba-badge-review { background: #fff0c2; color: #6b4f00; }
+.nba-bar { display: inline-block; vertical-align: middle; width: 90px; height: 7px; background: #f0f0f1; border-radius: 999px; overflow: hidden; }
+.nba-bar span { display: block; height: 100%; background: #82ad5c; }
+.nba-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 4px; }
+.nba-actions form { display: inline-flex; gap: 4px; align-items: center; margin: 0; }
+.button.nba-danger { color: #b32d2e; border-color: #b32d2e; }
+.nba-note { background: #fcf9e8; border-left: 4px solid #dba617; padding: 8px 12px; }
+.nba-health { list-style: none; margin: 0; padding: 0; }
+.nba-health li { padding: 4px 0; }
+.nba-health li.ok { color: #2e7d32; }
+.nba-health li.bad { color: #b32d2e; font-weight: 600; }
+.nba-list li { padding: 6px 0; border-bottom: 1px solid #f0f0f1; }
+.nba-doc-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 16px 0; }
+.nba-doc-list .nba-card span { color: #50575e; }
+.nba-doc { max-width: 820px; background: #fff; border: 1px solid #dcdcde; padding: 8px 28px 20px; font-size: 14px; line-height: 1.65; }
+.nba-doc table { border-collapse: collapse; width: 100%; }
+.nba-doc th, .nba-doc td { border: 1px solid #dcdcde; padding: 6px 8px; text-align: left; vertical-align: top; }
+.nba-doc pre { background: #f6f7f7; padding: 10px; overflow-x: auto; }
+.nba-doc blockquote { border-left: 4px solid #82ad5c; margin: 1em 0; padding: 4px 12px; background: #f6f7f7; }
+
+/* Edit screens */
+.nba-fields .nba-field { display: grid; grid-template-columns: 200px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f1; }
+.nba-fields .nba-field > label { font-weight: 600; padding-top: 6px; }
+.nba-fields .nba-field:last-child { border-bottom: 0; }
+@media (max-width: 782px) { .nba-fields .nba-field { grid-template-columns: 1fr; } }
+
+/* Curriculum builder */
+.nba-cb-modules, .nba-cb-lessons { list-style: none; margin: 0; padding: 0; }
+.nba-cb-module { background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px; margin: 0 0 10px; padding: 8px 10px; }
+.nba-cb-module-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.nba-cb-module-title { font-size: 14px; }
+.nba-cb-lessons { min-height: 28px; margin: 8px 0 2px 18px; }
+.nba-cb-lesson { background: #fff; border: 1px solid #dcdcde; border-radius: 3px; padding: 6px 8px; margin: 0 0 5px; display: flex; gap: 8px; align-items: center; }
+.nba-cb-handle { cursor: grab; color: #8c8f94; user-select: none; }
+.nba-cb-meta { color: #646970; font-size: 12px; }
+.nba-cb-placeholder { height: 30px; background: #e4efd7; border: 1px dashed #82ad5c; margin: 0 0 5px; }
+.nba-cb-status { margin-left: 8px; color: #2e7d32; }
+.nba-resources-list { margin: 0 0 8px; }
+.nba-resources-list li { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px solid #f0f0f1; padding: 4px 0; }
+.nba-resource-remove { color: #b32d2e !important; font-size: 16px; text-decoration: none; }

@@ -7,6 +7,22 @@ programmes) as paid, protected online courses.
 
 ---
 
+## Decisions and status (24 November 2026)
+
+| Question | Decision |
+| --- | --- |
+| Hosting | Hostinger shared plan → self-hosted encrypted HLS, one file per quality level to stay within file-count limits; external video service remains a drop-in option. |
+| Devices | Strictly one device (setting `max_devices = 1`, can be raised later). Self-service change once every 30 days. |
+| Yoga programme | Direct purchase. |
+| Lesson release | Configurable per programme: all at once, self-paced, or batch. The LMS serves every programme, not only Yoga. |
+| Access length | 1 year (365 days), per-programme setting. |
+| Language | English and Hindi. |
+| Participant area | "Nirog Bhumi Academy" at `/academy/` (both are settings). |
+
+**Status:** version 1.0.0 of the plugin is built in `wp-plugins/nirog-academy/` (installable ZIP: `nirog-academy.zip` in the repository root). Phase 1 is complete, plus batches, reports, CSV export and the Hindi interface from Phase 2. Not yet built: web push notifications, certificates, practice log/streaks, a Hindi translation of the documentation. All 30 integration checks and all 11 browser end-to-end checks pass.
+
+---
+
 ## 0. Summary
 
 We will build **Nirog Bhumi Academy** (`nirog-academy`), a separate WordPress
