@@ -17,7 +17,7 @@ No. Videos are streamed so the programme stays protected. Worksheets and charts 
 
 # How long do I have access?
 
-Usually one year from your start date. Your exact date is on your dashboard.
+Usually one year from your start date. Your exact date is on your **Today** page.
 
 # Can I share my login with family?
 

@@ -1,7 +1,7 @@
 ---
 id: participant-notifications
 title: Notifications, emails and language
-summary: The bell, email reminders, and switching between English and Hindi.
+summary: The Inbox, email reminders, and switching between English and Hindi.
 audience: participant
 order: 50
 last_reviewed: 2026-11-24
@@ -9,11 +9,11 @@ related: participant-progress
 ---
 # In short
 
-The bell at the top shows new lessons, live session reminders and messages from our team. You can choose which emails you receive, and switch the Academy between **English** and **हिन्दी**.
+**Inbox** at the top shows new lessons, live session reminders and messages from our team. You can choose which emails you receive, and switch the Academy between **English** and **हिन्दी**.
 
 # Choose your emails
 
-1. Open **Profile**.
+1. Open **Account**.
 2. Under **Email me about**, tick or untick: New lessons, Reminders and live sessions, Announcements.
 3. Press **Save**.
 
@@ -21,8 +21,8 @@ Emails about your account and security (password, device changes) are always sen
 
 # Change language
 
-- Press **EN** or **हिं** at the top of any page, or
-- choose a language in **Profile** and press **Save**.
+- Press **English** or **हिंदी** at the top of any page (on a phone: **Menu**), or
+- choose a language in **Account** and press **Save**.
 
 Lesson titles and notes appear in Hindi where our team has added a Hindi version; otherwise they stay in English.
 
@@ -31,4 +31,4 @@ Lesson titles and notes appear in Hindi where our team has added a Hindi version
 | What you see | What to do |
 | --- | --- |
 | Emails go to Spam | Mark one as "Not spam" and add our address to your contacts. |
-| No live session reminder | Check that **Reminders and live sessions** is ticked in Profile. |
+| No live session reminder | Check that **Reminders and live sessions** is ticked in Account. |

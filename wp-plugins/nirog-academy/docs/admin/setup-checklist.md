@@ -40,7 +40,7 @@ In **Academy → Settings** set: support email, WhatsApp number, devices per par
 
 # 5. Build the first programme
 
-Follow [Creating a programme](create-a-programme.md) and [Preparing and uploading videos](prepare-and-upload-videos.md). Add the **health and safety acknowledgement** text — written and approved by your clinical team.
+Open **Academy → Course Studio** and follow [Building a programme in the Course Studio](create-a-programme.md), [Booklets](booklets.md) and [Preparing and uploading videos](prepare-and-upload-videos.md). Add the **health and safety note** in the programme's Settings tab — written and approved by your clinical team.
 
 # 6. Connect it to payment
 

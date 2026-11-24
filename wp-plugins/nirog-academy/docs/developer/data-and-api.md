@@ -38,7 +38,8 @@ All endpoints require a logged-in user and the `X-WP-Nonce` header (`wp_rest`). 
 | Method | Route | Body | Returns |
 | --- | --- | --- | --- |
 | POST | `/lessons/{id}/progress` | position, duration, ranges [[start,end]…], stream | status, watched_pct, completed. 409 `{stop:true}` if another stream owns playback. |
-| POST | `/lessons/{id}/complete` | — | completed, summary. 400 if a media lesson has not been watched enough. |
+| POST | `/lessons/{id}/pages` | page, total | Booklet page seen; status, watched_pct, completed |
+| POST | `/lessons/{id}/complete` | — | completed, summary. 400 if a video/audio/booklet has not been watched or read enough. |
 | POST | `/lessons/{id}/note` | body | saved |
 | POST | `/stream/claim` | stream | ok |
 | GET | `/notifications` | — | unread, items |
@@ -48,7 +49,13 @@ Progress credit is capped by elapsed time between reports (×1.5 + 10 s, max 180
 
 # Media endpoints (query string on the home URL)
 
-`?nba_stream=playlist|key|file|res` with `m` (media), `l` (lesson), `r` (playlist path), `a` (attachment), `u` (user), `e` (expiry), `s` (HMAC). Each request re-verifies user, signature, expiry and the gate.
+`?nba_stream=playlist|key|file|res|booklet` with `m` (media), `l` (lesson), `r` (playlist path), `a` (attachment), `u` (user), `e` (expiry), `s` (HMAC). Each request re-verifies user, signature, expiry and the gate.
+
+# Course Studio API — `/wp-json/nirog-academy/v1/studio/`
+
+Requires `edit_nba_items`. `GET/POST programmes`, `GET/POST/DELETE programmes/{id}`, `POST programmes/{id}/order`, `POST programmes/{id}/weeks`, `POST/DELETE weeks/{id}`, `POST programmes/{id}/items`, `POST/DELETE items/{id}`, `POST items/{id}/booklet` (multipart PDF), `POST items/{id}/files` and `DELETE items/{id}/files/{file}`, `POST programmes/{id}/live`, `POST/DELETE live/{id}`, `GET/POST media`, `POST media/import`, `POST media/{id}`.
+
+Lesson meta added for booklets: `_nba_file` (relative path in the private files folder), `_nba_file_name`, `_nba_pages`, `_nba_allow_download`. Live sessions: `_nba_module_id` places a session inside a week.
 
 # Actions
 

@@ -9,7 +9,7 @@ related: participant-watching-lessons
 ---
 # In short
 
-The ring on your dashboard shows how many lessons you have completed. Lessons open day by day — from the day you joined, or from your batch's start date. Your access lasts for the period of your programme (usually one year), shown as **Access until** on your dashboard.
+The line under your name on the **Today** page shows how many lessons you have done. Lessons open day by day — from the day you joined, or from your batch's start date. Your access lasts for the period of your programme (usually one year), shown as **Access until** on your **Today** page.
 
 # When do lessons open?
 
@@ -23,12 +23,13 @@ Locked lessons show the date they open. New lessons open at midnight (India time
 # How progress is counted
 
 - A video or audio lesson is complete when you have played about 90% of it.
-- A reading lesson is complete when you press **Mark as complete**.
+- A booklet is complete when you have read it to the end.
+- A reading lesson is complete when you press **Mark as done**.
 - Bonus items do not count towards your programme progress.
 
 # Access
 
-- Your **Access until** date is on your dashboard and on your Profile.
+- Your **Access until** date is on your **Today** page and in Account.
 - We remind you 7 days before it ends.
 - If you need a break (illness, travel), contact us. We can **pause** your access and add the paused days back.
 

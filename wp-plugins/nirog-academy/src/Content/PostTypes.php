@@ -25,7 +25,7 @@ final class PostTypes {
       'publicly_queryable' => false,
       'exclude_from_search' => true,
       'show_ui' => true,
-      'show_in_menu' => 'nirog-academy',
+      'show_in_menu' => false, // Managed in Academy → Studio; classic screens stay reachable by URL.
       'show_in_nav_menus' => false,
       'show_in_admin_bar' => false,
       'show_in_rest' => false,

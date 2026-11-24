@@ -14,10 +14,10 @@ Live sessions are listed under **Live**. The **Join now** button appears 15 minu
 # Steps
 
 1. Open **Live** from the menu.
-2. Press **Add to Google Calendar** so you do not forget.
+2. Press **Add to calendar** so you do not forget.
 3. On the day, open **Live** again. From 15 minutes before the start, press **Join now**.
 
-We remind you the day before and shortly before the session (if reminders are on in Profile).
+We remind you the day before and shortly before the session (if reminders are on in Account).
 
 # If this doesn't work
 

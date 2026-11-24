@@ -20,6 +20,7 @@ defined('ABSPATH') || exit;
  *   /?nba_stream=key       decryption key
  *   /?nba_stream=file      private audio / MP4 file (Range supported)
  *   /?nba_stream=res       lesson download (PDF etc.)
+ *   /?nba_stream=booklet   booklet PDF for the in-page reader
  */
 final class Stream {
   public function register(): void {
@@ -106,6 +107,23 @@ final class Stream {
     return null;
   }
 
+  /**
+   * Signed link to a lesson's booklet PDF, for the in-page reader.
+   */
+  public function booklet_url(int $lesson_id): string {
+    return $this->url('booklet', ['l' => $lesson_id]);
+  }
+
+  /** @return array{path: string, name: string, size: int}|null */
+  public function booklet_file(int $lesson_id): ?array {
+    $relative = (string) get_post_meta($lesson_id, '_nba_file', true);
+    $path = $relative ? Storage::resolve('files', $relative) : null;
+    if (!$path || !is_file($path)) {
+      return null;
+    }
+    return ['path' => $path, 'name' => (string) get_post_meta($lesson_id, '_nba_file_name', true) ?: wp_basename($path), 'size' => (int) filesize($path)];
+  }
+
   public function resource_url(int $lesson_id, int $attachment_id): string {
     return $this->url('res', ['l' => $lesson_id, 'a' => $attachment_id]);
   }
@@ -125,7 +143,7 @@ final class Stream {
     $kind = $p['nba_stream'];
     $user_id = get_current_user_id();
 
-    if (!in_array($kind, ['playlist', 'key', 'file', 'res'], true)) {
+    if (!in_array($kind, ['playlist', 'key', 'file', 'res', 'booklet'], true)) {
       $this->fail(404);
     }
     if ((int) $p['e'] < time()) {
@@ -142,6 +160,13 @@ final class Stream {
 
     if ($kind === 'res') {
       $this->send_resource($lesson_id, (int) $p['a']);
+    }
+    if ($kind === 'booklet') {
+      $file = $this->booklet_file($lesson_id);
+      if (!$file) {
+        $this->fail(404);
+      }
+      Storage::send_file($file['path'], $file['name'], true);
     }
 
     $media_id = (int) $p['m'];

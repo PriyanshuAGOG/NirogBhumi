@@ -82,6 +82,7 @@ final class Plugin {
     $this->stream->register();
     Scheduler::register();
     Routes::register();
+    \NirogBhumi\Academy\Rest\StudioRoutes::register();
     Router::register();
     Auth::register();
 

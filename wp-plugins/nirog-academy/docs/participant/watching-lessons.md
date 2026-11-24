@@ -1,7 +1,7 @@
 ---
 id: participant-watching-lessons
-title: Watching lessons
-summary: Playing videos and audio, picking up where you stopped, and completing lessons.
+title: Lessons, booklets and your Library
+summary: Playing videos and audio, reading booklets, picking up where you stopped, and finding everything later.
 audience: participant
 order: 30
 last_reviewed: 2026-11-24
@@ -9,31 +9,41 @@ related: participant-progress, participant-troubleshooting
 ---
 # In short
 
-Open a lesson and press play. The Academy remembers where you stopped. A video or audio lesson is marked complete when you have watched most of it (about 90%). Reading lessons have a **Mark as complete** button.
+Open **Today** and press the big button — it takes you to your next lesson, or back to where you stopped. Videos and audio remember your place. Booklets open right inside the Academy and remember the page. Everything you have opened is also in your **Library**.
 
-# Steps
+# Videos and audio
 
-1. From your dashboard press **Continue where you left off**, or open **Programme** and choose a lesson.
-2. Read the **Before you start** note if there is one. It tells you who should skip or change a practice.
-3. Press play. Use the player's controls for full screen, speed and volume.
-4. When you finish, the lesson shows **Completed**. Press **Next lesson** to continue.
+1. Press play. Use full screen, speed and volume in the player.
+2. Read the **Before you start** box if there is one — it tells you who should skip or change a practice.
+3. The lesson shows **Completed** when you have watched most of it (about 90%). Skipping ahead does not count.
+4. Audio practices (Yoga Nidra, pranayama) keep playing when you lock your phone.
 
-# Good to know
+Quality adjusts to your internet speed. On slow mobile data the picture may look softer — that is normal.
 
-- **Resume:** if you stop halfway, the lesson starts again from the same place next time.
-- **Skipping ahead does not complete a lesson.** Only the parts you actually played count.
-- **Audio lessons** (for example Yoga Nidra) keep playing when you lock your phone screen.
-- **Quality** adjusts to your internet speed automatically. On slow mobile data the picture may look softer — that is normal.
-- **My notes** on each lesson are private. Only you can see them.
-- **Downloads** (charts, worksheets) are listed next to the lesson and in **Downloads**.
-- Your name appears faintly on the video. This protects the programme from being copied.
+# Booklets
+
+1. Open the booklet from its week, from **Today**, or from **Library → Booklets**.
+2. Scroll down, or use **→** and **←** to turn pages. Use **+**, **−** and **Fit** to change the size.
+3. The booklet is done when you have read it to the end. Next time, it opens on the page where you stopped.
+
+Some booklets have a **Download** button; others can only be read inside the Academy.
+
+# Your Library
+
+- **Booklets** — every weekly booklet, with "Read", "Continue reading" or the date it opens.
+- **Bonus** — extra talks, recipes and recordings, grouped by topic.
+- **Downloads** — charts and worksheets from your lessons.
+
+# Notes
+
+Every lesson has **My notes**. Only you can see them. They save by themselves.
 
 # If this doesn't work
 
 | What you see | What to do |
 | --- | --- |
-| "This lesson opens on …" | Lessons open day by day. Come back on that date. |
-| "Complete … first" | This programme goes in order. Finish the previous lesson. |
-| "Playback stopped because this account started playing somewhere else" | Your account can play one video at a time. Close the other tab or device. |
+| "Opens on …" | Lessons open day by day. Come back on that date. |
+| "Finish the previous lesson first" | This programme goes in order. |
+| "Playback stopped because this account started playing somewhere else" | Your account plays one video at a time. Close the other tab. |
 | "Reload to continue watching" | The page was open a long time. Reload it. |
-| The video does not start | See [Troubleshooting](troubleshooting.md). |
+| The booklet does not open | Reload the page. Make sure your browser is up to date. |

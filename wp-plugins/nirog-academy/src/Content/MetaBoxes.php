@@ -260,6 +260,7 @@ final class MetaBoxes {
       'video' => __('Video', 'nirog-academy'),
       'audio' => __('Audio', 'nirog-academy'),
       'reading' => __('Reading (uses the main text above)', 'nirog-academy'),
+      'booklet' => __('Booklet (PDF)', 'nirog-academy'),
     ], (string) self::meta($id, '_nba_type', 'video')));
     $media = self::media_options();
     self::row(__('Video or audio', 'nirog-academy'), self::select('nba_media_id', $media, (int) self::meta($id, '_nba_media_id', 0)), __('Choose from Academy → Video Library.', 'nirog-academy'));
@@ -425,7 +426,7 @@ final class MetaBoxes {
         update_post_meta($post_id, '_nba_placement', ($p['nba_placement'] ?? '') === 'bonus' ? 'bonus' : 'curriculum');
         update_post_meta($post_id, '_nba_module_id', $int('nba_module_id'));
         update_post_meta($post_id, '_nba_category', $text('nba_category'));
-        update_post_meta($post_id, '_nba_type', in_array($p['nba_type'] ?? '', ['video', 'audio', 'reading'], true) ? $p['nba_type'] : 'video');
+        update_post_meta($post_id, '_nba_type', in_array($p['nba_type'] ?? '', ['video', 'audio', 'reading', 'booklet'], true) ? $p['nba_type'] : 'video');
         update_post_meta($post_id, '_nba_media_id', $int('nba_media_id'));
         update_post_meta($post_id, '_nba_media_id_hi', $int('nba_media_id_hi'));
         update_post_meta($post_id, '_nba_duration_min', max(0, $int('nba_duration_min')));

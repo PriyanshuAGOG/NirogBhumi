@@ -32,20 +32,19 @@ A 20-minute lesson takes a few minutes to convert and is roughly 300–400 MB in
 1. hPanel → **Files → File Manager** (or an SFTP app such as FileZilla).
 2. Open `public_html/wp-content/uploads/nirog-academy/media/`.
 3. Upload the **whole folder** (zip it, upload, then "Extract" in File Manager).
-4. WordPress → **Academy → Import Videos → Find new videos**.
-5. The video appears in **Academy → Video Library** with status **Ready**. The key has been moved to a private folder.
+4. **Academy → Course Studio → Video library → Find newly uploaded videos** (or Academy → Import Videos).
+5. The video appears in the Studio's **Video library** with status **Ready**. The key has been moved to a private folder.
 
 # Add it to a lesson
 
-Open the lesson → **Video or audio** → choose the video → **Update**.
+In the Course Studio, open the lesson → **From the video library** → choose the video. It saves automatically.
 
 # Other sources
 
-In **Video Library → Add new** you can also use:
+In the Studio's **Video library → Or link a video** you can also add:
 
 - **YouTube (unlisted)** — free and fast, but *not protected*: anyone with the link can watch. Use only for free previews.
 - **External video service** — an HLS or MP4 link from a paid service such as Bunny Stream, if hosting bandwidth becomes a problem. Lessons do not need to change; only the Video Library entry.
-- **Private file** — an MP3 or MP4 uploaded to `uploads/nirog-academy/files/`.
 
 # Hosting limits (Hostinger)
 

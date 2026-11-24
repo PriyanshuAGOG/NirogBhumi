@@ -211,6 +211,31 @@ $n1 = nba()->notifications->create($u, 'test', 'Hello', '', '', 'dedupe-test');
 $n2 = nba()->notifications->create($u, 'test', 'Hello again', '', '', 'dedupe-test');
 $check('notification dedupe keys prevent repeats', $n1 > 0 && $n2 === 0);
 
+// ---------------------------------------------------------------- booklets
+$bk = $post(['post_type' => PostTypes::LESSON, 'post_title' => 'Week 1 booklet', 'menu_order' => 3], ['_nba_programme_id' => $prog, '_nba_module_id' => $mod, '_nba_release_day' => 0, '_nba_type' => 'booklet', '_nba_file' => 'booklets/does-not-matter.pdf']);
+nba()->curriculum->flush($prog);
+$r1 = nba()->progress->page_view($u2, $bk, $prog, 1, 10);
+$check('booklet: one page of ten is not complete', !$r1['completed'] && $r1['watched_pct'] === 10);
+for ($pg = 2; $pg <= 9; $pg++) {
+  $r1 = nba()->progress->page_view($u2, $bk, $prog, $pg, 10);
+}
+$check('booklet: nine of ten pages completes it (90%)', $r1['completed']);
+$check('booklet: page count remembered for the library', (int) get_post_meta($bk, '_nba_pages', true) === 10);
+
+// ---------------------------------------------------------------- studio
+$studio_item = NirogBhumi\Academy\Studio\Studio::create_item($prog, ['type' => 'booklet', 'week' => $mod]);
+$created_posts[] = (int) $studio_item;
+$check('studio: new item starts as a hidden draft in its week', get_post_status((int) $studio_item) === 'draft' && (int) get_post_meta((int) $studio_item, '_nba_module_id', true) === $mod);
+NirogBhumi\Academy\Studio\Studio::update_item((int) $studio_item, ['title' => 'Renamed', 'day' => 5, 'status' => 'publish', 'type' => 'not-a-type']);
+$check('studio: edits save and bad values are cleaned', get_the_title((int) $studio_item) === 'Renamed' && (int) get_post_meta((int) $studio_item, '_nba_release_day', true) === 5 && get_post_meta((int) $studio_item, '_nba_type', true) === 'video');
+NirogBhumi\Academy\Studio\Studio::reorder($prog, [['id' => $mod, 'items' => [(int) $studio_item, $l0]]], [$l7]);
+$tree = nba()->curriculum->tree($prog);
+$check('studio: drag and drop order is saved', ($tree['lessons'][0] ?? 0) === (int) $studio_item && in_array($l7, $tree['bonus'], true));
+wp_set_current_user($u2);
+$denied = rest_do_request(new WP_REST_Request('GET', '/nirog-academy/v1/studio/programmes'));
+$check('studio: participants cannot use the Studio API', in_array($denied->get_status(), [401, 403], true), (string) $denied->get_status());
+wp_set_current_user(0);
+
 // ---------------------------------------------------------------- cleanup
 foreach ($created_users as $id) {
   $wpdb->delete(Installer::table('enrollments'), ['user_id' => $id]);

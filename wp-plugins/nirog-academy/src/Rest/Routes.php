@@ -34,6 +34,16 @@ final class Routes {
       ],
     ]);
 
+    register_rest_route(self::NS, '/lessons/(?P<id>\d+)/pages', [
+      'methods' => 'POST',
+      'permission_callback' => $logged_in,
+      'callback' => [self::class, 'pages'],
+      'args' => $lesson_arg + [
+        'page' => ['type' => 'integer', 'required' => true, 'minimum' => 1],
+        'total' => ['type' => 'integer', 'required' => true, 'minimum' => 1],
+      ],
+    ]);
+
     register_rest_route(self::NS, '/lessons/(?P<id>\d+)/complete', [
       'methods' => 'POST',
       'permission_callback' => $logged_in,
@@ -100,6 +110,19 @@ final class Routes {
     }
     $result = nba()->progress->heartbeat($user_id, $lesson_id, $programme_id, (float) $r['position'], (float) $r['duration'], $ranges);
     return new \WP_REST_Response($result);
+  }
+
+  public static function pages(\WP_REST_Request $r): \WP_REST_Response|\WP_Error {
+    $user_id = get_current_user_id();
+    if (!RateLimiter::hit('pages', (string) $user_id, 120, MINUTE_IN_SECONDS)) {
+      return new \WP_Error('nba_rate', 'Slow down', ['status' => 429]);
+    }
+    $lesson_id = (int) $r['id'];
+    $programme_id = self::guard($lesson_id);
+    if (is_wp_error($programme_id)) {
+      return $programme_id;
+    }
+    return new \WP_REST_Response(nba()->progress->page_view($user_id, $lesson_id, $programme_id, (int) $r['page'], (int) $r['total']));
   }
 
   public static function complete(\WP_REST_Request $r): \WP_REST_Response|\WP_Error {

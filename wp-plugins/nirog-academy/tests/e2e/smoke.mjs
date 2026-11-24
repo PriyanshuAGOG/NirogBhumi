@@ -61,14 +61,14 @@ try {
   await shot(pa, '01-dashboard-desktop');
 
   await pa.goto(`${BASE}/academy/programme/${PROGRAMME}/`);
-  check('programme page shows modules', (await pa.locator('.nba-module').count()) > 0);
+  check('programme page shows weeks', (await pa.locator('.nba-week').count()) > 0);
   await shot(pa, '02-programme');
 
   await pa.goto(`${BASE}/academy/lesson/${LESSON}/`);
   if (pa.url().includes('/orientation/')) {
     await shot(pa, '03-orientation');
     await pa.check('input[name=accept]');
-    await pa.click('.nba-orientation .nba-btn');
+    await pa.click('form:has(input[value=ack]) button');
     await pa.waitForURL((u) => u.pathname.includes('/lesson/'));
   }
   check('lesson page opens after acknowledgement', pa.url().includes(`/lesson/${LESSON}`), pa.url());

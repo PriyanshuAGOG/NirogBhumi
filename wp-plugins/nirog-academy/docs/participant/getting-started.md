@@ -9,14 +9,14 @@ related: participant-your-device, participant-watching-lessons
 ---
 # In short
 
-After you join a programme, we email you a link to choose your password. Use it on the phone or computer you will practise with, because that becomes your registered device. Then press **Start your first lesson** on your dashboard.
+After you join a programme, we email you a link to choose your password. Use it on the phone or computer you will practise with, because that becomes your registered device. Then press **Start the lesson** on your **Today** page.
 
 # Steps
 
 1. Open the email titled **Welcome to …** from Nirog Bhumi.
 2. Press **Choose your password**. The button works for 24 hours.
 3. Type a password of at least 8 characters, twice, and press **Save and continue**.
-4. You are now on your **dashboard**. Press **Start your first lesson**.
+4. You are now on your **Today** page. Press **Start the lesson**.
 5. The first time, you will see a short **health and safety note**. Read it, tick the box and continue.
 
 # Logging in later

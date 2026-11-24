@@ -8,15 +8,16 @@ It is separate from the `nirog-bhumi` theme and carries the website's design tok
 
 **For participants** (`/academy/`)
 - Login with password or a one-time email link; branded "choose your password" and reset flows.
-- Dashboard: continue where you left off, progress ring, lessons opened today, next live session, team messages.
-- Programme page with modules and lessons: completed, in progress, available, or locked with the date it opens.
+- Today page: continue where you left off, this week's lessons, booklet, next live session, team messages.
+- Programme page by week: lessons, booklets and live sessions — done, in progress, open, or locked with the date it opens.
 - Lesson page: protected video or audio player that resumes where you stopped, safety note, downloads, private notes, moving watermark.
-- Bonus library, downloads, live sessions (join button 15 minutes before), notifications, profile, help center.
+- Booklets read inside the Academy, page by page, with the participant's name on each page.
+- Library (booklets, bonus, downloads), live sessions (join button 15 minutes before), inbox, account, help center.
 - English and हिन्दी.
-- Mobile-first, with a bottom tab bar on phones.
+- Designed in the Nirog Bhumi website's style; works on phones first.
 
 **For the team** (WordPress → Academy)
-- Programmes → modules → lessons with drag-and-drop ordering; bonus items; live sessions.
+- **Course Studio**: build programmes in one screen — weeks, recorded lessons, audio practices, booklets (PDF), readings, bonus content and live sessions — with drag and drop and autosave.
 - Lesson release: all at once, self-paced day by day, or by batch.
 - Batches with start dates, places and coaches; automatic placement of new buyers.
 - Enrollments: automatic from paid WooCommerce/Razorpay orders, payment links after consultation, manual or complimentary access, pause, extend, revoke; refunds close access automatically.
@@ -51,9 +52,9 @@ The plugin and every component it uses are free. Running costs are the ones you 
 
 ## Tests
 
-- `tests/integration/run.php` — 30 checks of enrollment, release dates, the access gate, pause/extend/expiry, devices, batches, WooCommerce grant/refund and anti-cheat progress. Run with `wp eval-file` on staging.
+- `tests/integration/run.php` — 37 checks of enrollment, release dates, the access gate, pause/extend/expiry, devices, batches, WooCommerce grant/refund, anti-cheat progress, booklet reading and the Studio. Run with `wp eval-file` on staging.
 - `tests/e2e/smoke.mjs` — Playwright: login, orientation, encrypted playback, progress, second-device block, copied-link refusal, email-code device change.
 
 ## Licence
 
-GPL-2.0-or-later. Bundles hls.js 1.5.20 (Apache-2.0, see `assets/vendor/hls.js-LICENSE.txt`).
+GPL-2.0-or-later. Bundles hls.js 1.5.20 (Apache-2.0), PDF.js 4.10.38 (Apache-2.0), SortableJS 1.15.6 (MIT) and htm 3.1.1 (Apache-2.0); licences are in `assets/vendor/`.

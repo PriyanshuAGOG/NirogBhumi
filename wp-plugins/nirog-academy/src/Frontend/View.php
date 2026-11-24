@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  */
 final class View {
   public static function locate(string $name): string {
-    $name = sanitize_file_name($name);
+    $name = implode('/', array_map('sanitize_file_name', explode('/', $name)));
     $theme = locate_template('nirog-academy/' . $name . '.php');
     return $theme ?: NBA_DIR . 'templates/' . $name . '.php';
   }
@@ -30,6 +30,34 @@ final class View {
       include $__file;
     })($file, $vars);
     return (string) ob_get_clean();
+  }
+
+  /**
+   * Print a partial template (templates/parts/…).
+   */
+  public static function include(string $name, array $vars = []): void {
+    echo self::capture($name, $vars); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- templates escape their own output.
+  }
+
+  /**
+   * A week's display title without a repeated "Week 3:" prefix, because the
+   * week number is already shown next to it. Falls back to "Week 3".
+   */
+  public static function week_title(int $module_id, int $index): string {
+    $title = $module_id ? \NirogBhumi\Academy\Support\I18n::field($module_id, 'title') : '';
+    $clean = trim((string) preg_replace('/^\s*(week|सप्ताह|हफ़्ता|हफ्ता)\s*\d+\s*[:\-–—·.]?\s*/iu', '', $title));
+    /* translators: %d: week number */
+    return $clean !== '' ? $clean : sprintf(__('Week %d', 'nirog-academy'), $index);
+  }
+
+  /** @return array<string, string> Item type → label shown to participants. */
+  public static function type_labels(): array {
+    return [
+      'video' => __('Video', 'nirog-academy'),
+      'audio' => __('Audio', 'nirog-academy'),
+      'booklet' => __('Booklet', 'nirog-academy'),
+      'reading' => __('Reading', 'nirog-academy'),
+    ];
   }
 
   /**

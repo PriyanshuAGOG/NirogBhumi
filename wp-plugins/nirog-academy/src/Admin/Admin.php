@@ -16,6 +16,9 @@ final class Admin {
   public static function register(): void {
     add_action('admin_menu', [self::class, 'menu']);
     add_action('admin_enqueue_scripts', [self::class, 'assets']);
+    add_action('admin_enqueue_scripts', [StudioPage::class, 'assets']);
+    add_action('current_screen', [StudioPage::class, 'quiet_screen']);
+    add_action('load-edit.php', [StudioPage::class, 'redirect_lists']);
     add_action('admin_init', [self::class, 'register_settings']);
     add_action('admin_notices', [self::class, 'notices']);
     add_filter('parent_file', [self::class, 'highlight_menu']);
@@ -35,17 +38,19 @@ final class Admin {
   }
 
   public static function menu(): void {
+    $can_edit = current_user_can('edit_nba_items');
     add_menu_page(
       __('Academy', 'nirog-academy'),
       __('Academy', 'nirog-academy'),
       'nba_view_participants',
       self::SLUG,
-      [Pages::class, 'overview'],
+      $can_edit ? [StudioPage::class, 'render'] : [Pages::class, 'overview'],
       'dashicons-welcome-learn-more',
       26
     );
     $pages = [
-      [self::SLUG, __('Overview', 'nirog-academy'), 'nba_view_participants', 'overview'],
+      [self::SLUG, $can_edit ? __('Course Studio', 'nirog-academy') : __('Overview', 'nirog-academy'), 'nba_view_participants', $can_edit ? 'studio' : 'overview'],
+      ['nba-overview', __('Overview', 'nirog-academy'), 'nba_view_participants', 'overview'],
       ['nba-enrollments', __('Enrollments', 'nirog-academy'), 'nba_manage_enrollments', 'enrollments'],
       ['nba-participant', __('Participant', 'nirog-academy'), 'nba_view_participants', 'participant'],
       ['nba-batches', __('Batches', 'nirog-academy'), 'edit_nba_items', 'batches'],
@@ -65,7 +70,11 @@ final class Admin {
           $title_with_count .= ' <span class="awaiting-mod">' . (int) $pending . '</span>';
         }
       }
-      add_submenu_page($slug === 'nba-participant' ? '' : self::SLUG, $title, $title_with_count, $cap, $slug, [Pages::class, $method]);
+      if ($slug === 'nba-overview' && !$can_edit) {
+        continue;
+      }
+      $callback = $method === 'studio' ? [StudioPage::class, 'render'] : [Pages::class, $method];
+      add_submenu_page($slug === 'nba-participant' ? '' : self::SLUG, $title, $title_with_count, $cap, $slug, $callback);
     }
   }
 
@@ -79,6 +88,9 @@ final class Admin {
 
   public static function assets(string $hook): void {
     $screen = get_current_screen();
+    if ($hook === 'toplevel_page_' . self::SLUG && current_user_can('edit_nba_items')) {
+      return; // The Studio loads its own assets.
+    }
     $ours = str_contains($hook, 'nba-') || str_contains($hook, self::SLUG)
       || ($screen && in_array($screen->post_type, [PostTypes::PROGRAMME, PostTypes::LESSON, PostTypes::MEDIA, PostTypes::LIVE], true));
     if (!$ours) {

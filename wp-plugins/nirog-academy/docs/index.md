@@ -16,7 +16,7 @@ Participant articles are shown in the Academy Help Center (`/academy/help/`). Ad
 | --- | --- | --- |
 | participant-getting-started | getting-started.md | First login, choosing a password, logging in later |
 | participant-your-device | your-device.md | The one-device rule and changing device |
-| participant-watching-lessons | watching-lessons.md | Playing lessons, resume, completion, notes, downloads |
+| participant-watching-lessons | watching-lessons.md | Videos, audio, booklets, the Library, notes |
 | participant-progress | progress.md | Progress, when lessons open, access length, pauses |
 | participant-notifications | notifications.md | Bell, email choices, English/Hindi |
 | participant-live-sessions | live-sessions.md | Joining and re-watching live sessions |
@@ -28,7 +28,8 @@ Participant articles are shown in the Academy Help Center (`/academy/help/`). Ad
 | id | File | Answers |
 | --- | --- | --- |
 | admin-setup-checklist | setup-checklist.md | Install to launch, in order |
-| admin-create-a-programme | create-a-programme.md | Programmes, modules, lessons, bonus, live sessions |
+| admin-create-a-programme | create-a-programme.md | The Course Studio: weeks, lessons, booklets, bonus, live sessions |
+| admin-booklets | booklets.md | Weekly PDF booklets: preparing, adding, reading, protection |
 | admin-prepare-and-upload-videos | prepare-and-upload-videos.md | Encoding, uploading, importing videos |
 | admin-enrollments-and-payments | enrollments-and-payments.md | WooCommerce, payment links, manual access, refunds |
 | admin-batches-and-release | batches-and-release.md | Self-paced vs batch, opening days |

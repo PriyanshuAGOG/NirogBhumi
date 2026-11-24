@@ -17,7 +17,7 @@ defined('ABSPATH') || exit;
  * templates/. All views are private, uncached and not indexed.
  */
 final class Router {
-  public const VIEWS = ['dashboard', 'login', 'logout', 'set-password', 'forgot', 'device', 'help', 'bonus', 'resources', 'live', 'profile', 'notifications', 'programme', 'lesson', 'orientation'];
+  public const VIEWS = ['dashboard', 'login', 'logout', 'set-password', 'forgot', 'device', 'help', 'library', 'bonus', 'resources', 'live', 'profile', 'notifications', 'programme', 'lesson', 'orientation'];
   private const PUBLIC_VIEWS = ['login', 'logout', 'set-password', 'forgot', 'help'];
 
   public static function register(): void {
@@ -94,6 +94,9 @@ final class Router {
       'rest' => esc_url_raw(rest_url('nirog-academy/v1/')),
       'nonce' => wp_create_nonce('wp_rest'),
       'hls' => NBA_URL . 'assets/vendor/hls.light.min.js?ver=1.5.20',
+      'pdfjs' => NBA_URL . 'assets/vendor/pdfjs/pdf.min.js?ver=4.10.38',
+      'pdfWorker' => NBA_URL . 'assets/vendor/pdfjs/pdf.worker.min.js?ver=4.10.38',
+      'watermark' => self::watermark_text(),
       'i18n' => [
         'saved' => __('Saved', 'nirog-academy'),
         'saving' => __('Saving…', 'nirog-academy'),
@@ -102,6 +105,10 @@ final class Router {
         'expired' => __('This page has been open a long time. Reload to continue watching.', 'nirog-academy'),
         'error' => __('Something went wrong. Check your connection and try again.', 'nirog-academy'),
         'notWatched' => __('Watch the lesson to the end to complete it.', 'nirog-academy'),
+        'notRead' => __('Read the booklet to the last page to complete it.', 'nirog-academy'),
+        'page' => __('Page %1$d of %2$d', 'nirog-academy'),
+        'loadingBooklet' => __('Opening the booklet…', 'nirog-academy'),
+        'bookletError' => __('The booklet could not be opened. Reload the page to try again.', 'nirog-academy'),
       ],
     ]);
   }
@@ -163,8 +170,7 @@ final class Router {
       'programme' => self::programme($user_id),
       'lesson' => self::lesson($user_id),
       'orientation' => self::orientation($user_id),
-      'bonus' => self::bonus($user_id),
-      'resources' => self::resources($user_id),
+      'library', 'bonus', 'resources' => self::library($user_id),
       'live' => self::live($user_id),
       'profile' => self::profile($user_id),
       'notifications' => self::notifications($user_id),
@@ -291,60 +297,116 @@ final class Router {
 
   // ------------------------------------------------------------ views
 
-  private static function dashboard(int $user_id): never {
-    $programmes = [];
-    foreach (self::visible_enrollments($user_id) as $enrollment) {
-      $pid = (int) $enrollment->programme_id;
-      $summary = nba()->progress->summary($user_id, $pid);
-      $continue = $summary['resume_lesson'] ?: $summary['next_lesson'];
-      $programmes[] = [
-        'id' => $pid,
-        'enrollment' => $enrollment,
-        'summary' => $summary,
-        'continue' => $continue,
-        'continue_state' => $continue ? self::lesson_state($user_id, $continue, nba()->progress->for_programme($user_id, $pid)) : null,
-        'element' => (string) get_post_meta($pid, '_nba_element', true) ?: 'earth',
+  /**
+   * Week sections for a programme: items with their state, plus live
+   * sessions linked to that week.
+   *
+   * @return array<int, array{id:int, index:int, items:array, live:\WP_Post[], done:int, total:int}>
+   */
+  public static function weeks(int $user_id, int $programme_id, ?object $enrollment): array {
+    $tree = nba()->curriculum->tree($programme_id);
+    $rows = nba()->progress->for_programme($user_id, $programme_id);
+    $live_by_week = [];
+    foreach (array_merge(
+      nba()->curriculum->live_sessions($programme_id, $enrollment ? (int) $enrollment->cohort_id : 0, true, 50),
+      nba()->curriculum->live_sessions($programme_id, $enrollment ? (int) $enrollment->cohort_id : 0, false, 50)
+    ) as $session) {
+      $live_by_week[(int) get_post_meta($session->ID, '_nba_module_id', true)][] = $session;
+    }
+    $weeks = [];
+    foreach ($tree['modules'] as $i => $module) {
+      $items = [];
+      foreach ($module['lessons'] as $lesson_id) {
+        $items[] = ['id' => $lesson_id, 'state' => self::lesson_state($user_id, $lesson_id, $rows)];
+      }
+      $live = $live_by_week[$module['id']] ?? [];
+      usort($live, static fn($a, $b) => strcmp((string) get_post_meta($a->ID, '_nba_starts_at', true), (string) get_post_meta($b->ID, '_nba_starts_at', true)));
+      $weeks[] = [
+        'id' => $module['id'],
+        'index' => $i + 1,
+        'items' => $items,
+        'live' => $live,
+        'done' => count(array_filter($items, static fn($x) => $x['state']['state'] === 'completed')),
+        'total' => count($items),
       ];
     }
+    return $weeks;
+  }
 
-    $today = [];
-    $next_live = null;
-    foreach ($programmes as $p) {
-      $enrollment = $p['enrollment'];
-      if (!empty($enrollment->staff_view) || $enrollment->status !== 'active') {
-        continue;
+  private static function dashboard(int $user_id): never {
+    $enrollments = self::visible_enrollments($user_id);
+    $primary = $enrollments[0] ?? null;
+    $data = [
+      'user' => wp_get_current_user(),
+      'enrollment' => $primary,
+      'others' => array_slice($enrollments, 1),
+      'programme_id' => 0,
+      'summary' => null,
+      'next' => 0,
+      'next_state' => null,
+      'next_progress' => null,
+      'day' => 0,
+      'week' => null,
+      'booklet' => 0,
+      'next_live' => null,
+      'announcement' => null,
+    ];
+
+    if ($primary) {
+      $pid = (int) $primary->programme_id;
+      $data['programme_id'] = $pid;
+      $summary = nba()->progress->summary($user_id, $pid);
+      $data['summary'] = $summary;
+      $next = $summary['resume_lesson'] ?: $summary['next_lesson'];
+      $rows = nba()->progress->for_programme($user_id, $pid);
+      if ($next) {
+        $data['next'] = $next;
+        $data['next_state'] = self::lesson_state($user_id, $next, $rows);
+        $data['next_progress'] = $rows[$next] ?? null;
       }
-      $base = nba()->enrollments->drip_base($enrollment);
+      $base = empty($primary->staff_view) ? nba()->enrollments->drip_base($primary) : null;
       if ($base !== null && Time::ts($base) <= time()) {
-        $day = Time::days_between($base, Time::now());
-        foreach (nba()->curriculum->tree($p['id'])['lessons'] as $lesson_id) {
-          if ((int) get_post_meta($lesson_id, '_nba_release_day', true) === $day) {
-            $today[] = $lesson_id;
+        $data['day'] = Time::days_between($base, Time::now()) + 1;
+      }
+
+      // The week to show: the one holding the next lesson, else the last week.
+      $weeks = self::weeks($user_id, $pid, empty($primary->staff_view) ? $primary : null);
+      foreach ($weeks as $w) {
+        foreach ($w['items'] as $item) {
+          if ($item['id'] === $next) {
+            $data['week'] = $w;
           }
         }
       }
-      foreach (nba()->curriculum->live_sessions($p['id'], (int) $enrollment->cohort_id, true, 1) as $session) {
-        if (!$next_live || Time::ts((string) get_post_meta($session->ID, '_nba_starts_at', true)) < Time::ts((string) get_post_meta($next_live->ID, '_nba_starts_at', true))) {
-          $next_live = $session;
+      $data['week'] = $data['week'] ?? ($weeks ? end($weeks) : null);
+
+      // This week's booklet, else the most recent open booklet.
+      $candidates = $data['week'] ? array_column($data['week']['items'], 'id') : [];
+      $all = array_merge($candidates, array_reverse(nba()->curriculum->tree($pid)['lessons']));
+      foreach ($all as $lid) {
+        if (get_post_meta($lid, '_nba_type', true) === 'booklet' && nba()->gate->check_lesson($user_id, $lid)->allowed) {
+          $data['booklet'] = $lid;
+          break;
+        }
+      }
+
+      foreach ($enrollments as $e) {
+        foreach (nba()->curriculum->live_sessions((int) $e->programme_id, (int) ($e->cohort_id ?? 0), true, 1) as $session) {
+          if (!$data['next_live'] || Time::ts((string) get_post_meta($session->ID, '_nba_starts_at', true)) < Time::ts((string) get_post_meta($data['next_live']->ID, '_nba_starts_at', true))) {
+            $data['next_live'] = $session;
+          }
         }
       }
     }
 
-    $announcement = null;
     foreach (nba()->notifications->list($user_id, 20) as $n) {
       if ($n->type === 'announcement') {
-        $announcement = $n;
+        $data['announcement'] = $n;
         break;
       }
     }
 
-    View::page('dashboard', [
-      'user' => wp_get_current_user(),
-      'programmes' => $programmes,
-      'today' => array_slice(array_unique($today), 0, 4),
-      'next_live' => $next_live,
-      'announcement' => $announcement,
-    ], ['title' => __('Dashboard', 'nirog-academy')]);
+    View::page('dashboard', $data, ['title' => __('Today', 'nirog-academy')]);
   }
 
   private static function programme(int $user_id): never {
@@ -356,23 +418,12 @@ final class Router {
     if (!$access->allowed) {
       self::deny($access);
     }
-    $tree = nba()->curriculum->tree($programme->ID);
-    $rows = nba()->progress->for_programme($user_id, $programme->ID);
-    $modules = [];
-    foreach ($tree['modules'] as $module) {
-      $lessons = [];
-      foreach ($module['lessons'] as $lesson_id) {
-        $lessons[] = ['id' => $lesson_id, 'state' => self::lesson_state($user_id, $lesson_id, $rows)];
-      }
-      $done = count(array_filter($lessons, static fn($l) => $l['state']['state'] === 'completed'));
-      $modules[] = ['id' => $module['id'], 'lessons' => $lessons, 'done' => $done];
-    }
     View::page('programme', [
       'programme' => $programme,
       'enrollment' => $access->enrollment,
-      'modules' => $modules,
+      'weeks' => self::weeks($user_id, $programme->ID, $access->enrollment),
       'summary' => nba()->progress->summary($user_id, $programme->ID),
-      'has_bonus' => (bool) $tree['bonus'],
+      'bonus_count' => count(nba()->curriculum->tree($programme->ID)['bonus']),
     ], ['title' => I18n::field($programme->ID, 'title')]);
   }
 
@@ -392,14 +443,31 @@ final class Router {
       $r['url'] = nba()->stream->resource_url($lesson->ID, $r['id']);
       $resources[] = $r;
     }
-    $user = wp_get_current_user();
-    $phone = function_exists('WC') ? (string) get_user_meta($user_id, 'billing_phone', true) : '';
-    $watermark = nba()->settings->int('watermark') ? trim($user->display_name . ' · ' . ($phone ? '••' . substr(preg_replace('/\D/', '', $phone), -4) : self::mask_email($user->user_email))) : '';
+    $watermark = self::watermark_text();
 
+    $module_id = nba()->curriculum->module_of($lesson->ID);
+    $week_index = 0;
+    foreach (nba()->curriculum->tree($programme_id)['modules'] as $i => $m) {
+      if ($m['id'] === $module_id) {
+        $week_index = $i + 1;
+      }
+    }
+    $type = (string) get_post_meta($lesson->ID, '_nba_type', true) ?: 'video';
+    $booklet = null;
+    if ($type === 'booklet' && ($file = nba()->stream->booklet_file($lesson->ID))) {
+      $booklet = [
+        'url' => nba()->stream->booklet_url($lesson->ID),
+        'name' => $file['name'],
+        'download' => get_post_meta($lesson->ID, '_nba_allow_download', true) === '1',
+      ];
+    }
     View::page('lesson', [
       'lesson' => $lesson,
+      'type' => $type,
+      'booklet' => $booklet,
+      'week_index' => $week_index,
       'programme_id' => $programme_id,
-      'module_id' => nba()->curriculum->module_of($lesson->ID),
+      'module_id' => $module_id,
       'player' => nba()->stream->player_config($lesson->ID),
       'progress' => nba()->progress->get($user_id, $lesson->ID),
       'note' => nba()->progress->note($user_id, $lesson->ID),
@@ -410,6 +478,16 @@ final class Router {
       'watermark' => $watermark,
       'is_bonus' => get_post_meta($lesson->ID, '_nba_placement', true) === 'bonus',
     ], ['title' => I18n::field($lesson->ID, 'title')]);
+  }
+
+  /** Name and phone ending shown faintly over videos and booklet pages. */
+  public static function watermark_text(): string {
+    $user = wp_get_current_user();
+    if (!$user->ID || !nba()->settings->int('watermark')) {
+      return '';
+    }
+    $phone = (string) get_user_meta($user->ID, 'billing_phone', true);
+    return trim($user->display_name . ' · ' . ($phone ? '••' . substr(preg_replace('/\D/', '', $phone), -4) : self::mask_email($user->user_email)));
   }
 
   private static function mask_email(string $email): string {
@@ -438,43 +516,55 @@ final class Router {
     ], ['title' => __('Before you begin', 'nirog-academy')]);
   }
 
-  private static function bonus(int $user_id): never {
-    $groups = [];
-    foreach (self::visible_enrollments($user_id) as $enrollment) {
-      $pid = (int) $enrollment->programme_id;
-      $rows = nba()->progress->for_programme($user_id, $pid);
-      foreach (nba()->curriculum->tree($pid)['bonus'] as $lesson_id) {
-        $category = (string) get_post_meta($lesson_id, '_nba_category', true) ?: __('More', 'nirog-academy');
-        $groups[$category][] = ['id' => $lesson_id, 'state' => self::lesson_state($user_id, $lesson_id, $rows)];
-      }
+  private static function library(int $user_id): never {
+    $tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+    $view = (string) get_query_var('nba_view');
+    if ($view === 'bonus') {
+      $tab = 'bonus';
+    } elseif ($view === 'resources') {
+      $tab = 'downloads';
     }
-    ksort($groups);
-    View::page('bonus', ['groups' => $groups], ['title' => __('Bonus library', 'nirog-academy')]);
-  }
+    $tab = in_array($tab, ['booklets', 'bonus', 'downloads'], true) ? $tab : 'booklets';
 
-  private static function resources(int $user_id): never {
-    $sections = [];
+    $booklets = [];
+    $bonus = [];
+    $downloads = [];
     foreach (self::visible_enrollments($user_id) as $enrollment) {
       $pid = (int) $enrollment->programme_id;
       $tree = nba()->curriculum->tree($pid);
-      $items = [];
-      foreach (array_merge($tree['lessons'], $tree['bonus']) as $lesson_id) {
-        $files = nba()->curriculum->resources($lesson_id);
-        if (!$files) {
-          continue;
-        }
-        $open = nba()->gate->check_lesson($user_id, $lesson_id)->allowed;
-        foreach ($files as $f) {
-          $f['lesson'] = $lesson_id;
-          $f['url'] = $open ? nba()->stream->resource_url($lesson_id, $f['id']) : '';
-          $items[] = $f;
+      $rows = nba()->progress->for_programme($user_id, $pid);
+      $week_of = [];
+      foreach ($tree['modules'] as $i => $m) {
+        foreach ($m['lessons'] as $lid) {
+          $week_of[$lid] = $i + 1;
         }
       }
-      if ($items) {
-        $sections[] = ['programme_id' => $pid, 'items' => $items];
+      foreach (array_merge($tree['lessons'], $tree['bonus']) as $lid) {
+        $state = null;
+        if (get_post_meta($lid, '_nba_type', true) === 'booklet') {
+          $state = self::lesson_state($user_id, $lid, $rows);
+          $booklets[] = ['id' => $lid, 'state' => $state, 'week' => $week_of[$lid] ?? 0, 'pages' => (int) get_post_meta($lid, '_nba_pages', true)];
+        }
+        foreach (nba()->curriculum->resources($lid) as $f) {
+          $open = nba()->gate->check_lesson($user_id, $lid)->allowed;
+          $f['lesson'] = $lid;
+          $f['week'] = $week_of[$lid] ?? 0;
+          $f['url'] = $open ? nba()->stream->resource_url($lid, $f['id']) : '';
+          $downloads[] = $f;
+        }
+      }
+      foreach ($tree['bonus'] as $lid) {
+        $category = (string) get_post_meta($lid, '_nba_category', true) ?: __('More', 'nirog-academy');
+        $bonus[$category][] = ['id' => $lid, 'state' => self::lesson_state($user_id, $lid, $rows)];
       }
     }
-    View::page('resources', ['sections' => $sections], ['title' => __('Downloads', 'nirog-academy')]);
+    ksort($bonus);
+    View::page('library', [
+      'tab' => $tab,
+      'booklets' => $booklets,
+      'bonus' => $bonus,
+      'downloads' => $downloads,
+    ], ['title' => __('Library', 'nirog-academy')]);
   }
 
   private static function live(int $user_id): never {

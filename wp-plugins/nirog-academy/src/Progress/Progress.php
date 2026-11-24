@@ -119,8 +119,12 @@ final class Progress {
       return true;
     }
     $type = (string) get_post_meta($lesson_id, '_nba_type', true) ?: 'video';
-    $has_media = nba()->stream->trackable(nba()->stream->media_for_lesson($lesson_id));
-    if ($type !== 'reading' && $has_media && (!$row || (int) $row->watched_pct < nba()->settings->int('completion_threshold'))) {
+    $threshold = nba()->settings->int('completion_threshold');
+    if ($type === 'booklet' && nba()->stream->booklet_file($lesson_id) && (!$row || (int) $row->watched_pct < $threshold)) {
+      return new \WP_Error('nba_not_read', __('Read the booklet to the last page to complete it.', 'nirog-academy'));
+    }
+    $has_media = in_array($type, ['video', 'audio'], true) && nba()->stream->trackable(nba()->stream->media_for_lesson($lesson_id));
+    if ($has_media && (!$row || (int) $row->watched_pct < $threshold)) {
       return new \WP_Error('nba_not_watched', __('Watch the lesson to the end to complete it.', 'nirog-academy'));
     }
     $wpdb->replace($this->table(), [
@@ -138,6 +142,43 @@ final class Progress {
     $this->touch($user_id);
     $this->after_completion($user_id, $lesson_id, $programme_id);
     return true;
+  }
+
+  /**
+   * Booklet reading: one bucket per page. Complete when most pages were seen.
+   *
+   * @return array{status: string, watched_pct: int, completed: bool}
+   */
+  public function page_view(int $user_id, int $lesson_id, int $programme_id, int $page, int $total): array {
+    global $wpdb;
+    $total = max(1, min(2000, $total));
+    $page = max(1, min($total, $page));
+    $row = $this->get($user_id, $lesson_id);
+    $map = str_pad(substr($row && $row->watched ? (string) $row->watched : '', 0, $total), $total, '0');
+    $map[$page - 1] = '1';
+    $pct = (int) floor(substr_count($map, '1') * 100 / $total);
+    $was_complete = $row && $row->status === 'completed';
+    $now_complete = $was_complete || $pct >= nba()->settings->int('completion_threshold') || ($total <= 3 && $page === $total);
+    $wpdb->replace($this->table(), [
+      'user_id' => $user_id,
+      'lesson_id' => $lesson_id,
+      'programme_id' => $programme_id,
+      'status' => $now_complete ? 'completed' : 'in_progress',
+      'position_sec' => $page,
+      'duration_sec' => $total,
+      'watched' => $map,
+      'watched_pct' => $pct,
+      'completed_at' => $was_complete ? $row->completed_at : ($now_complete ? Time::now() : null),
+      'updated_at' => Time::now(),
+    ]);
+    if ((int) get_post_meta($lesson_id, '_nba_pages', true) !== $total) {
+      update_post_meta($lesson_id, '_nba_pages', $total);
+    }
+    $this->touch($user_id);
+    if ($now_complete && !$was_complete) {
+      $this->after_completion($user_id, $lesson_id, $programme_id);
+    }
+    return ['status' => $now_complete ? 'completed' : 'in_progress', 'watched_pct' => $pct, 'completed' => $now_complete];
   }
 
   private function after_completion(int $user_id, int $lesson_id, int $programme_id): void {

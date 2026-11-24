@@ -23,7 +23,7 @@ final class Demo {
     }
     $meta = [
       '_nba_summary' => 'SAMPLE: a self-paced daily yoga practice, released week by week.',
-      '_nba_title_hi' => 'मधुमेह के लिए योग (नमूना)',
+      '_nba_title_hi' => 'डायबिटीज़ के लिए योग (सैंपल)',
       '_nba_access_days' => 365,
       '_nba_drip_mode' => 'enrollment',
       '_nba_cohort_assignment' => 'auto',

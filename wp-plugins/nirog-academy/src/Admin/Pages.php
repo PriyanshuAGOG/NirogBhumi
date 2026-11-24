@@ -154,7 +154,7 @@ final class Pages {
 
     echo '<p class="nba-quicklinks"><a class="button button-primary" href="' . esc_url(admin_url('admin.php?page=nba-enrollments&tab=enroll')) . '">' . esc_html__('Enroll someone', 'nirog-academy') . '</a> ';
     echo '<a class="button" href="' . esc_url(admin_url('admin.php?page=nba-enrollments&tab=offer')) . '">' . esc_html__('Send a payment link', 'nirog-academy') . '</a> ';
-    echo '<a class="button" href="' . esc_url(admin_url('post-new.php?post_type=' . PostTypes::PROGRAMME)) . '">' . esc_html__('New programme', 'nirog-academy') . '</a> ';
+    echo '<a class="button" href="' . esc_url(admin_url('admin.php?page=nirog-academy')) . '">' . esc_html__('Open Course Studio', 'nirog-academy') . '</a> ';
     echo '<a class="button" href="' . esc_url(Router::url()) . '" target="_blank" rel="noopener">' . esc_html__('View the Academy', 'nirog-academy') . '</a></p>';
     self::footer();
   }
