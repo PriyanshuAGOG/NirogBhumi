@@ -3,7 +3,7 @@
  * Plugin Name:       Nirog Bhumi Academy
  * Plugin URI:        https://nirogbhumi.com/academy/
  * Description:       Programmes, protected lessons, progress tracking, one-device access and notifications for Nirog Bhumi participants. Sells programmes through WooCommerce.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Nirog Bhumi
@@ -16,7 +16,7 @@
 
 defined('ABSPATH') || exit;
 
-define('NBA_VERSION', '1.2.0');
+define('NBA_VERSION', '1.3.0');
 define('NBA_DB_VERSION', 2);
 define('NBA_FILE', __FILE__);
 define('NBA_DIR', plugin_dir_path(__FILE__));

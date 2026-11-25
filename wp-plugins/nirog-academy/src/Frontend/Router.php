@@ -28,27 +28,9 @@ final class Router {
       return $vars;
     });
     add_action('template_redirect', [self::class, 'dispatch'], 1);
-    add_action('wp_enqueue_scripts', [self::class, 'assets'], 100);
-    // Styles some plugins add late (for example WooCommerce blocks) are removed too.
-    add_action('wp_print_styles', [self::class, 'strip_foreign_assets'], 1);
-    add_action('wp_print_footer_scripts', [self::class, 'strip_foreign_assets'], 1);
-  }
-
-  public static function strip_foreign_assets(): void {
-    if (!self::current_view()) {
-      return;
-    }
-    global $wp_styles, $wp_scripts;
-    foreach ((array) ($wp_styles->queue ?? []) as $handle) {
-      if (!str_starts_with($handle, 'nba-')) {
-        wp_dequeue_style($handle);
-      }
-    }
-    foreach ((array) ($wp_scripts->queue ?? []) as $handle) {
-      if (!str_starts_with($handle, 'nba-') && $handle !== 'wp-emoji') {
-        wp_dequeue_script($handle);
-      }
-    }
+    // Academy pages are a self-contained space: they do not print the theme's
+    // head/footer, so WordPress must not add its admin toolbar either.
+    add_filter('show_admin_bar', static fn ($show) => self::current_view() ? false : $show, 100);
   }
 
   public static function slug(): string {
@@ -79,18 +61,28 @@ final class Router {
     return in_array($view, self::VIEWS, true) ? $view : '';
   }
 
-  public static function assets(): void {
-    if (!self::current_view()) {
-      return;
+  /**
+   * Printed in the Academy <head>. The Academy does not call wp_head(): the
+   * theme, other plugins and the admin toolbar never print on these pages,
+   * so nothing outside the plugin can change how they look (and the plugin
+   * never changes how the rest of the site looks).
+   */
+  public static function head(): void {
+    echo '<link rel="stylesheet" href="' . esc_url(NBA_URL . 'assets/css/academy.css?ver=' . NBA_VERSION) . '">' . "\n";
+    if (function_exists('wp_site_icon')) {
+      wp_site_icon();
     }
-    // The Academy is its own calm space: drop theme and plugin front-end styles.
-    self::strip_foreign_assets();
-    remove_action('wp_head', 'print_emoji_detection_script', 7);
-    remove_action('wp_print_styles', 'print_emoji_styles');
-    wp_enqueue_style('nba-academy', NBA_URL . 'assets/css/academy.css', [], NBA_VERSION);
-    wp_register_script('nba-hls', NBA_URL . 'assets/vendor/hls.light.min.js', [], '1.5.20', true);
-    wp_enqueue_script('nba-academy', NBA_URL . 'assets/js/academy.js', [], NBA_VERSION, true);
-    wp_localize_script('nba-academy', 'NBA', [
+  }
+
+  /** Printed before </body>. */
+  public static function foot(): void {
+    echo '<script>var NBA = ' . wp_json_encode(self::script_config(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES) . ';</script>' . "\n";
+    echo '<script src="' . esc_url(NBA_URL . 'assets/js/academy.js?ver=' . NBA_VERSION) . '"></script>' . "\n";
+  }
+
+  /** @return array<string,mixed> */
+  public static function script_config(): array {
+    return [
       'rest' => esc_url_raw(rest_url('nirog-academy/v1/')),
       'nonce' => wp_create_nonce('wp_rest'),
       'hls' => NBA_URL . 'assets/vendor/hls.light.min.js?ver=1.5.20',
@@ -112,7 +104,7 @@ final class Router {
         'loadingBooklet' => __('Opening the booklet…', 'nirog-academy'),
         'bookletError' => __('The booklet could not be opened. Reload the page to try again.', 'nirog-academy'),
       ],
-    ]);
+    ];
   }
 
   public static function dispatch(): void {
@@ -188,7 +180,8 @@ final class Router {
    * True while the Academy is Closed and this visitor is not staff.
    */
   public static function is_locked_for(int $user_id): bool {
-    return nba()->settings->get('launch_mode') === 'closed' && !Roles::is_staff($user_id);
+    // The demo participant made by the team can look around before launch.
+    return nba()->settings->get('launch_mode') === 'closed' && !Roles::is_staff($user_id) && !\NirogBhumi\Academy\Admin\Demo::is_demo_user($user_id);
   }
 
   public static function request_url(): string {

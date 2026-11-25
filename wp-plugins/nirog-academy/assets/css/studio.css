@@ -270,3 +270,14 @@ body.nba-studio-screen #wpfooter { display: none; }
 .st-choice-2 .st-choice strong { font-size: 16px; }
 .nba-studio textarea.st-team-notes { background: #f1f5fb; border-color: #c7d4ee; }
 .st-row-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 4px 0 8px; }
+
+/* ------------------------------------------------------------------ demo programme */
+
+.st-demo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: end; margin-top: 40px; padding: 28px 30px; border: 1px solid var(--line); border-radius: 12px; background: var(--white, #fffdf8); }
+.st-demo .st-h2 { margin: 4px 0 10px; }
+.st-demo .st-muted { max-width: 68ch; margin: 0; }
+.st-demo code { background: var(--soft); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.st-demo-steps { margin: 6px 0 14px; padding-left: 20px; line-height: 1.9; }
+.st-demo-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
+@media (max-width: 900px) { .st-demo { grid-template-columns: 1fr; } .st-demo-actions { flex-direction: row; flex-wrap: wrap; } }
+.st-demo-url { word-break: break-all; }

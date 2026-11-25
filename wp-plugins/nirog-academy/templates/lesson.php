@@ -168,7 +168,7 @@ $config = $player ? [
     <div>
       <?php if ($content !== '') : ?>
         <div class="nba-prose"><?php echo wp_kses_post(wpautop($content)); ?></div>
-      <?php elseif (!$resources && $type !== 'reading') : ?>
+      <?php elseif (!$resources && !in_array($type, ['reading', 'booklet'], true)) : ?>
         <p class="nba-muted"><?php esc_html_e('Take your time with this practice. Come back to it as often as you like.', 'nirog-academy'); ?></p>
       <?php endif; ?>
     </div>

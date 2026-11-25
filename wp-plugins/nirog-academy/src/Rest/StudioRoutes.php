@@ -21,6 +21,29 @@ final class StudioRoutes {
     add_action('rest_api_init', [self::class, 'routes']);
   }
 
+  /** @return array<string,mixed> */
+  public static function demo_info(): array {
+    $demo = \NirogBhumi\Academy\Admin\Demo::class;
+    if (!$demo::exists()) {
+      return ['exists' => false, 'canManage' => current_user_can('nba_manage_academy')];
+    }
+    $state = $demo::state();
+    $programme_id = (int) $state['programme'];
+    return [
+      'exists' => true,
+      'canManage' => current_user_can('nba_manage_academy'),
+      'programme' => $programme_id,
+      'login' => (string) ($state['login'] ?? ''),
+      'password' => (string) ($state['password'] ?? ''),
+      // While the Academy is Closed its own login page is hidden too, so the
+      // WordPress login is used; it lands in the Academy afterwards.
+      'loginUrl' => \NirogBhumi\Academy\Admin\Demo::login_url(),
+      'academyUrl' => \NirogBhumi\Academy\Frontend\Router::url(),
+      'programmeUrl' => \NirogBhumi\Academy\Frontend\Router::programme_url($programme_id),
+      'open' => nba()->settings->get('launch_mode') !== 'closed',
+    ];
+  }
+
   public static function can_edit(): bool {
     return current_user_can('edit_nba_items');
   }
@@ -35,6 +58,21 @@ final class StudioRoutes {
 
   public static function routes(): void {
     self::route('/programmes', 'GET', static fn() => rest_ensure_response(Studio::programmes()));
+    self::route('/demo', 'GET', static fn() => rest_ensure_response(self::demo_info()));
+    self::route('/demo', 'POST', static function () {
+      if (!current_user_can('nba_manage_academy')) {
+        return new \WP_Error('nba_forbidden', __('Only an administrator can load the demo.', 'nirog-academy'), ['status' => 403]);
+      }
+      $id = \NirogBhumi\Academy\Admin\Demo::create();
+      return is_wp_error($id) ? $id : rest_ensure_response(self::demo_info());
+    });
+    self::route('/demo', 'DELETE', static function () {
+      if (!current_user_can('nba_manage_academy')) {
+        return new \WP_Error('nba_forbidden', __('Only an administrator can remove the demo.', 'nirog-academy'), ['status' => 403]);
+      }
+      \NirogBhumi\Academy\Admin\Demo::remove();
+      return rest_ensure_response(self::demo_info());
+    });
     self::route('/programmes', 'POST', static function (\WP_REST_Request $r) {
       $id = Studio::create_programme(sanitize_text_field((string) $r['title']));
       return is_wp_error($id) ? $id : rest_ensure_response(Studio::programme($id));

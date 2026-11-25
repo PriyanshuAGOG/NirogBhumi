@@ -1,0 +1,4 @@
+# Demo files are copied into the protected Academy folders when the demo is loaded.
+<Files "*.key">
+  Require all denied
+</Files>

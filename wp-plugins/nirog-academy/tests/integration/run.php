@@ -283,6 +283,43 @@ foreach ($created_posts as $id) {
 }
 update_option(NirogBhumi\Academy\Support\Settings::OPTION, $old_settings);
 
+// ---------------------------------------------------------------- demo
+// Only when no demo is loaded, so a demo the team is using is never removed.
+$demo = NirogBhumi\Academy\Admin\Demo::class;
+if (!$demo::exists()) {
+  global $wpdb;
+  $count = static fn() => [
+    (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts}"),
+    (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->users}"),
+    (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . Installer::table('enrollments')),
+  ];
+  $before = $count();
+  $demo_id = $demo::create();
+  $state = $demo::state();
+  $demo_user = (int) ($state['users'][0] ?? 0);
+  $check('demo: programme is created and published', is_int($demo_id) && get_post_status($demo_id) === 'publish');
+  $lessons = get_posts(['post_type' => PostTypes::LESSON, 'numberposts' => -1, 'meta_key' => '_nba_programme_id', 'meta_value' => $demo_id, 'fields' => 'ids']);
+  $check('demo: has 16 lessons, booklets and readings', count($lessons) === 16, (string) count($lessons));
+  $booklets = array_filter($lessons, static fn($id) => get_post_meta($id, '_nba_type', true) === 'booklet');
+  $check('demo: booklets have a private PDF and a cover', count($booklets) === 3 && !array_filter($booklets, static fn($id) => !NirogBhumi\Academy\Support\Storage::resolve('files', (string) get_post_meta($id, '_nba_file', true)) || !(int) get_post_meta($id, '_nba_cover_id', true)));
+  $videos = array_filter($lessons, static fn($id) => in_array(get_post_meta($id, '_nba_type', true), ['video', 'audio'], true));
+  $check('demo: every video and audio has playable media', !array_filter($videos, static fn($id) => !nba()->stream->hls_status((int) get_post_meta($id, '_nba_media_id', true))['ok']));
+  $check('demo: participant is enrolled nine days ago', $demo_user && ($e = nba()->enrollments->current($demo_user, $demo_id)) && abs(Time::ts($e->starts_at) - (time() - 9 * DAY_IN_SECONDS)) < 2 * HOUR_IN_SECONDS);
+  nba()->settings->update(['launch_mode' => 'closed']);
+  $check('demo: participant can use the Academy while it is closed', !NirogBhumi\Academy\Frontend\Router::is_locked_for($demo_user));
+  $first = array_values(array_filter($lessons, static fn($id) => (int) get_post_meta($id, '_nba_release_day', true) === 0 && get_post_meta($id, '_nba_type', true) === 'video'))[0] ?? 0;
+  $closed_result = (new NirogBhumi\Academy\Access\Gate())->check_lesson($demo_user, $first, false);
+  $check('demo: lessons are not held back by the launch lock', $first && $closed_result->code !== 'launch', $closed_result->code);
+  nba()->settings->update(['launch_mode' => 'open']);
+  $check('demo: participant is not limited to one device', nba()->devices->is_exempt($demo_user));
+  $check('demo: participant is never emailed', !nba()->notifications->email($demo_user, 'x', 'x', ['x']));
+  $gate = new NirogBhumi\Academy\Access\Gate();
+  $week3 = array_values(array_filter($lessons, static fn($id) => (int) get_post_meta($id, '_nba_release_day', true) === 14))[0] ?? 0;
+  $check('demo: week 3 is still locked for the participant', $week3 && !$gate->check_lesson($demo_user, $week3, false)->allowed);
+  $demo::remove();
+  $check('demo: removing leaves nothing behind', $count() === $before && !get_userdata($demo_user) && !$demo::exists(), json_encode([$before, $count()]));
+}
+
 $failed = count(array_filter($results, static fn($ok) => !$ok));
 echo "\n" . (count($results) - $failed) . '/' . count($results) . " checks passed\n";
 if ($failed && defined('WP_CLI')) {

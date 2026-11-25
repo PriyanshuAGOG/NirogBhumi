@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 — 2026-11-25
+
+- **Demo programme**: one button (Course Studio or Settings) loads a complete, published demo — four weeks of sample videos, audio, booklets and readings, bonus content, a downloadable worksheet, live sessions of every kind (starting soon, later this week, YouTube Live, past with recording), Hindi names, an Inbox message and a demo participant whose access started nine days ago. One button removes everything it created. The demo participant can log in while the Academy is closed, may use several devices and never gets emails.
+- **Fixed: the bottom of Academy pages for logged-in admins.** Academy pages no longer print WordPress's admin toolbar or any theme/plugin head and footer code, which showed up as an unstyled list below the footer. Academy pages are now fully self-contained. The team sees a small team bar instead (open/closed status, Course Studio, Live desk, Dashboard).
+- Live sessions in week lists match the rest of the design (no blue tint); past sessions show "Recording" or "Done" in grey, cancelled ones are struck through.
+- Booklet pages no longer show the generic "Take your time with this practice" line; the booklet card on Today has room for its title.
+
+
 ## 1.2.0 — 2026-11-25
 
 - **Launch lock**: while the Academy is Closed, every Academy address shows "page not found" to everyone except staff, and no participant emails are sent. Welcome emails for enrollments made meanwhile are held and sent when the Academy opens.

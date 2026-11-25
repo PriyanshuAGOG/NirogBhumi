@@ -763,10 +763,21 @@ final class Pages {
 
     self::health();
 
-    echo '<div class="nba-panel nba-narrow"><h2>' . esc_html__('Sample programme', 'nirog-academy') . '</h2><p>' . esc_html__('Creates a draft programme with three modules of placeholder lessons, so you can see how everything fits together. You can delete it afterwards.', 'nirog-academy') . '</p>';
-    self::form('demo');
-    submit_button(__('Create sample programme', 'nirog-academy'), 'secondary', '', false);
-    echo '</form></div>';
+    echo '<div class="nba-panel nba-narrow"><h2>' . esc_html__('Demo programme', 'nirog-academy') . '</h2>';
+    if (Demo::exists()) {
+      $state = Demo::state();
+      echo '<p>' . esc_html__('The demo programme is loaded. To see it as a participant, open this address in a private window and log in with the demo participant:', 'nirog-academy') . ' <a href="' . esc_url(Demo::login_url()) . '" target="_blank" rel="noopener">' . esc_html(Demo::login_url()) . '</a></p>';
+      echo '<p><strong>' . esc_html__('Username', 'nirog-academy') . ':</strong> <code>' . esc_html((string) ($state['login'] ?? '')) . '</code> &nbsp; <strong>' . esc_html__('Password', 'nirog-academy') . ':</strong> <code>' . esc_html((string) ($state['password'] ?? '')) . '</code></p>';
+      self::form('demo_remove');
+      submit_button(__('Remove demo programme', 'nirog-academy'), 'delete', '', false, ['onclick' => "return confirm('" . esc_js(__('Remove the demo programme, its files and the demo participant?', 'nirog-academy')) . "');"]);
+      echo '</form>';
+    } else {
+      echo '<p>' . esc_html__('Loads a complete, published demo programme: four weeks of videos, audio, booklets and readings, bonus content, live sessions and a demo participant. Everything can be removed again with one button.', 'nirog-academy') . '</p>';
+      self::form('demo');
+      submit_button(__('Load demo programme', 'nirog-academy'), 'secondary', '', false);
+      echo '</form>';
+    }
+    echo '</div>';
     self::footer();
   }
 

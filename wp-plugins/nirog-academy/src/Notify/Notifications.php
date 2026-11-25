@@ -104,6 +104,10 @@ final class Notifications {
     if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
       return false;
     }
+    // The demo participant has a made-up address: never email it.
+    if (\NirogBhumi\Academy\Admin\Demo::is_demo_user($user_id)) {
+      return false;
+    }
     $html = $this->render_email($user->first_name ?: $user->display_name, $heading, $paragraphs, $button_label, $button_url);
     return $this->send_raw($user->user_email, $subject, $html);
   }
@@ -176,6 +180,9 @@ final class Notifications {
       $paragraphs[] = __('Important: your programme works on one device. The first phone or computer you log in from becomes your device, so please use the one you plan to practise with.', 'nirog-academy');
       if ($needs_password) {
         $paragraphs[] = __('Start by choosing your password. The button below works for 24 hours; after that, use "Forgot password" on the login page.', 'nirog-academy');
+      }
+      if ($enrollment->source === 'demo') {
+        return; // Demo enrollments get the Inbox message only, no email.
       }
       $this->email(
         $user_id,

@@ -28,6 +28,7 @@ Participant articles are shown in the Academy Help Center (`/academy/help/`). Ad
 | id | File | Answers |
 | --- | --- | --- |
 | admin-setup-checklist | setup-checklist.md | Install to launch, in order |
+| admin-demo-programme | demo-programme.md | Load a full demo programme and demo participant; remove it with one button |
 | admin-create-a-programme | create-a-programme.md | The Course Studio: weeks, lessons, booklets, bonus, live sessions |
 | admin-booklets | booklets.md | Weekly PDF booklets: preparing, covers, the flipbook reader, protection |
 | admin-live-sessions | live-sessions.md | Live classes: Zoom/Meet or YouTube Live, host and team roles, Live desk, cancel, recordings |

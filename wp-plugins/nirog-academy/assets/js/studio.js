@@ -233,7 +233,56 @@
           </li>`;
         })}
       </ol>
+      <${DemoPanel} onChange=${function () { api('programmes').then(setList); }} />
     </main>`;
+  }
+
+  /* ------------------------------------------------------------------ demo programme */
+
+  function DemoPanel(props) {
+    var d = useState(null), demo = d[0], setDemo = d[1];
+    var b = useState(false), busy = b[0], setBusy = b[1];
+    var e = useState(''), error = e[0], setError = e[1];
+    useEffect(function () { api('demo').then(setDemo).catch(function () {}); }, []);
+    if (!demo || (!demo.exists && !demo.canManage)) { return null; }
+
+    var run = function (method) {
+      if (method === 'DELETE' && !window.confirm('Remove the demo programme, its files and the demo participant? Your own programmes are not touched.')) { return; }
+      setBusy(true); setError('');
+      api('demo', { method: method }).then(function (r) { setDemo(r); setBusy(false); props.onChange(); })
+        .catch(function (err) { setError(err.message); setBusy(false); });
+    };
+
+    if (!demo.exists) {
+      return html`<section className="st-demo">
+        <div>
+          <p className="st-eyebrow">Try everything first</p>
+          <h2 className="st-h2">Load the demo programme</h2>
+          <p className="st-muted">A complete, published programme to click through: four weeks of videos, audio practices, booklets and readings, bonus content, live sessions of every kind and a demo participant whose access started nine days ago. Remove it with one button when you are done. Your website, theme and shop are not touched.</p>
+          ${error ? html`<p className="st-error">${error}</p>` : null}
+        </div>
+        <button className="st-btn" disabled=${busy} onClick=${function () { run('POST'); }}>${busy ? 'Loading… (about 10 seconds)' : 'Load demo programme'}</button>
+      </section>`;
+    }
+
+    return html`<section className="st-demo is-loaded">
+      <div>
+        <p className="st-eyebrow">Demo programme is loaded</p>
+        <h2 className="st-h2">See it as a participant</h2>
+        <ol className="st-demo-steps">
+          <li>Open a private (incognito) window, or another browser or your phone.</li>
+          <li>Go to <a className="st-demo-url" href=${demo.loginUrl} target="_blank" rel="noopener">${demo.loginUrl}</a></li>
+          <li>Log in with username <code>${demo.login}</code> and password <code>${demo.password}</code></li>
+        </ol>
+        <p className="st-muted">Weeks 1–2 are open and weeks 3–4 open on later days, as a real participant would see. The demo participant gets no emails, may use several devices, and can log in even while the Academy is closed. You are enrolled too, so <a href=${demo.academyUrl} target="_blank" rel="noopener">opening the Academy</a> in this browser also works.</p>
+        ${error ? html`<p className="st-error">${error}</p>` : null}
+      </div>
+      <div className="st-demo-actions">
+        <a className="st-btn" href=${'#/programme/' + demo.programme + '/weeks'}>Open in the Studio</a>
+        <a className="st-btn st-btn-quiet" href=${demo.programmeUrl} target="_blank" rel="noopener">View in the Academy</a>
+        ${demo.canManage ? html`<button className="st-btn st-btn-quiet st-danger" disabled=${busy} onClick=${function () { run('DELETE'); }}>${busy ? 'Removing…' : 'Remove demo'}</button>` : null}
+      </div>
+    </section>`;
   }
 
   /* ------------------------------------------------------------------ programme editor */

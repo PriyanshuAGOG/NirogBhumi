@@ -40,6 +40,8 @@ In **Academy → Settings** set: support email, WhatsApp number, devices per par
 
 # 5. Build the first programme
 
+Want to see everything first? In **Academy → Course Studio** press **Load demo programme** and log in with the demo participant in a private window — see [The demo programme](demo-programme.md). Remove it before launch.
+
 Open **Academy → Course Studio** and follow [Building a programme in the Course Studio](create-a-programme.md), [Booklets](booklets.md) and [Preparing and uploading videos](prepare-and-upload-videos.md). Add the **health and safety note** in the programme's Settings tab — written and approved by your clinical team.
 
 # 6. Connect it to payment
@@ -53,6 +55,7 @@ Follow [Enrollments and payments](enrollments-and-payments.md): link the WooComm
 3. On a second device log in with the same account: you should see "Your programme is on another device".
 4. Make a real low-value Razorpay payment for the product and refund it. Access should open, then close.
 5. Set it back to **Closed** until launch day.
+6. Remove the demo programme if you loaded it (Course Studio → **Remove demo**).
 
 # 8. Launch
 

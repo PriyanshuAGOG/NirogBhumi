@@ -61,7 +61,7 @@ $live = $live ?? [];
     $url = $past && $recording ? Router::lesson_url($recording) : \NirogBhumi\Academy\Live\LiveSessions::url($session->ID);
     ?>
     <li>
-      <a class="nba-item nba-item-live<?php echo $past ? ' is-completed' : ''; ?>" href="<?php echo esc_url($url); ?>">
+      <a class="nba-item nba-item-live<?php echo $past ? ' is-past' : ''; ?><?php echo $cancelled ? ' is-cancelled' : ''; ?>" href="<?php echo esc_url($url); ?>">
         <span class="nba-item-no"><?php esc_html_e('Live', 'nirog-academy'); ?></span>
         <span>
           <span class="nba-item-title"><?php echo esc_html($session->post_title); ?></span>

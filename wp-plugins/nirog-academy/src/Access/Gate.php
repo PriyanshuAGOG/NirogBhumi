@@ -59,7 +59,9 @@ final class Gate {
     // 1. Launch switch.
     $mode = (string) nba()->settings->get('launch_mode');
     $is_preview = get_post_meta($lesson_id, '_nba_preview', true) === '1';
-    if (!$is_staff && $mode === 'closed') {
+    // Same rule as the page router: staff and the demo participant may look
+    // around before launch.
+    if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
       return AccessResult::deny('launch', __('The Academy opens soon. We will email you when it is ready.', 'nirog-academy'));
     }
 
@@ -167,7 +169,7 @@ final class Gate {
     if (Roles::is_staff($user_id)) {
       return AccessResult::allow($programme_id);
     }
-    if (nba()->settings->get('launch_mode') === 'closed') {
+    if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
       return AccessResult::deny('launch', __('The Academy opens soon. We will email you when it is ready.', 'nirog-academy'));
     }
     $enrollment = nba()->enrollments->current($user_id, $programme_id);

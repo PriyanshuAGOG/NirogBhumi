@@ -34,6 +34,10 @@ final class Devices {
   }
 
   public function is_exempt(int $user_id): bool {
+    // The demo participant is shared by the team on phones and computers.
+    if (\NirogBhumi\Academy\Admin\Demo::is_demo_user($user_id)) {
+      return true;
+    }
     return Roles::is_staff($user_id) && nba()->settings->int('staff_device_exempt') === 1;
   }
 

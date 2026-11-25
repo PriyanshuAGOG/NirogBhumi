@@ -82,13 +82,24 @@ final class Commands {
   }
 
   /**
-   * Create the sample programme.
+   * Load the demo programme (or remove it with --remove).
+   *
+   * ## OPTIONS
+   *
+   * [--remove]
+   * : Remove the demo programme, its files and the demo participant.
    */
-  public function sample(): void {
+  public function sample(array $args, array $assoc): void {
+    if (!empty($assoc['remove'])) {
+      Demo::remove();
+      \WP_CLI::success('Demo programme removed.');
+      return;
+    }
     $id = Demo::create();
     if (is_wp_error($id)) {
       \WP_CLI::error($id->get_error_message());
     }
-    \WP_CLI::success("Sample programme #$id created as a draft.");
+    $state = Demo::state();
+    \WP_CLI::success(sprintf('Demo programme #%d is ready. Demo participant: %s / %s', $id, $state['login'] ?? '', $state['password'] ?? ''));
   }
 }

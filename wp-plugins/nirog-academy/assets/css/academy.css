@@ -157,8 +157,10 @@ a.nba-item:hover .nba-item-title { text-decoration: underline; text-decoration-c
 .nba-item-bar span { position: absolute; left: 0; top: 0; height: 2px; background: var(--nb-green); }
 .nba-kind { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--nb-ink); }
 .nba-lang-hi_IN .nba-kind { letter-spacing: .04em; font-size: 12px; }
-.nba-item-live { background: rgba(135, 168, 232, .08); }
-.nba-item-live .nba-item-no { color: #2f569e; font-family: var(--nb-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .14em; }
+.nba-item-live .nba-item-no { color: var(--nb-green); font-family: var(--nb-sans); font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.nba-item-live .nba-item-state { color: var(--nb-ink); font-weight: 600; }
+.nba-item-live.is-past .nba-item-state, .nba-item-live.is-cancelled .nba-item-state { color: var(--nb-muted); font-weight: 400; }
+.nba-item-live.is-cancelled .nba-item-title { text-decoration: line-through; text-decoration-color: var(--nb-line); }
 
 /* ------------------------------------------------------------------ programme */
 
@@ -226,7 +228,7 @@ a.nba-item:hover .nba-item-title { text-decoration: underline; text-decoration-c
 .nba-tabs sup { font-size: 11px; margin-left: 3px; }
 .nba-covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 48px clamp(24px, 3vw, 40px); }
 .nba-book-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--nb-ink); }
-.nba-book-card.is-small { max-width: 220px; }
+.nba-book-card.is-small { max-width: 340px; }
 .nba-book-plain, .nba-b3-plain { display: flex; height: 100%; padding: 18px 14px; align-items: flex-end; font-family: var(--nb-serif); font-size: 17px; line-height: 1.2; color: var(--nb-ink); background: var(--nb-white); }
 a.nba-book-card:hover .nba-book-title { text-decoration: underline; text-decoration-color: var(--nb-line); text-underline-offset: 4px; }
 
@@ -402,3 +404,15 @@ a.nba-list-row:hover .nba-h3 { text-decoration: underline; text-decoration-color
 }
 @media (prefers-reduced-motion: reduce) { .nba-body * { transition: none !important; } .nba-b3-obj { transform: rotateY(12deg) !important; } }
 @media print { .nba-head, .nba-foot, .nba-player, .nba-flipbook { display: none !important; } }
+
+/* ------------------------------------------------------------------ team bar
+   Shown only to the team, in place of WordPress's admin toolbar. */
+
+.nba-staffbar { background: var(--nb-dark); color: #e9efe6; font-size: 13px; line-height: 1.4; }
+.nba-staffbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; min-height: 34px; padding-top: 6px; padding-bottom: 6px; }
+.nba-staffbar-state { display: inline-flex; align-items: center; gap: 8px; }
+.nba-staffbar-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--nb-fire); flex: none; }
+.nba-staffbar-state.is-open::before { background: var(--nb-earth); }
+.nba-staffbar-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.nba-staffbar a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.35); }
+.nba-staffbar a:hover { border-bottom-color: #fff; }

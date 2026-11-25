@@ -40,7 +40,7 @@ It is separate from the `nirog-bhumi` theme and carries the website's design tok
 
 ## Install
 
-Upload `nirog-academy.zip` in **Plugins → Add New → Upload Plugin** and activate. Then follow `docs/admin/setup-checklist.md` (also in WordPress under **Academy → Help**). The Academy starts **Closed** (staff only) until you open it in **Academy → Settings**.
+Upload `nirog-academy.zip` in **Plugins → Add New → Upload Plugin** and activate. Then follow `docs/admin/setup-checklist.md` (also in WordPress under **Academy → Help**). The Academy starts **Closed** (staff only) until you open it in **Academy → Settings**. To try every feature first, press **Load demo programme** in the Course Studio (see `docs/admin/demo-programme.md`).
 
 ## Running costs
 

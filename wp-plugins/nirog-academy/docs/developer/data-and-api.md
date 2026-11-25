@@ -67,4 +67,4 @@ Lesson meta added for booklets: `_nba_file` (relative path in the private files 
 
 # WP-CLI
 
-`wp academy import-videos`, `wp academy enroll <email> <programme-id>`, `wp academy device-reset <email>`, `wp academy run-daily`, `wp academy sample`.
+`wp academy import-videos`, `wp academy enroll <email> <programme-id>`, `wp academy device-reset <email>`, `wp academy run-daily`, `wp academy sample` (load the demo programme; `--remove` removes it).

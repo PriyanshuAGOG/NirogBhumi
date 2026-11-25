@@ -26,6 +26,7 @@ final class Handlers {
     'import' => 'nba_manage_academy',
     'export' => 'nba_view_reports',
     'demo' => 'nba_manage_academy',
+    'demo_remove' => 'nba_manage_academy',
     'live_remind' => 'nba_view_participants',
   ];
 
@@ -250,7 +251,12 @@ final class Handlers {
     if (is_wp_error($programme_id)) {
       Admin::redirect('nba-settings', $programme_id->get_error_message(), true);
     }
-    wp_safe_redirect(admin_url('post.php?action=edit&post=' . $programme_id));
+    wp_safe_redirect(admin_url('admin.php?page=nirog-academy#/'));
     exit;
+  }
+
+  private static function do_demo_remove(): void {
+    Demo::remove();
+    Admin::redirect('nba-settings', __('The demo programme, its files and the demo participant have been removed.', 'nirog-academy'));
   }
 }

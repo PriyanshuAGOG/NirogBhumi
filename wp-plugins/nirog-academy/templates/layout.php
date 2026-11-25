@@ -39,6 +39,8 @@ $flash_notice = Actions::flash('notice');
 $flash_error = Actions::flash('error');
 $lang = I18n::current();
 $support_email = (string) nba()->settings->get('support_email');
+$is_staff = \NirogBhumi\Academy\Install\Roles::is_staff($user_id);
+$is_open = nba()->settings->get('launch_mode') !== 'closed';
 $whatsapp = (string) nba()->settings->get('support_whatsapp');
 $brand = static function () use ($logo, $area): void {
   if ($logo) {
@@ -62,10 +64,22 @@ $lang_links = static function () use ($lang): void {
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#f8f6ef">
 <title><?php echo esc_html(($title ? $title . ' · ' : '') . $area); ?></title>
-<?php wp_head(); ?>
+<?php Router::head(); ?>
 </head>
 <body class="nba-body nba-view-<?php echo esc_attr($view); ?><?php echo $bare ? ' nba-bare' : ''; ?> nba-lang-<?php echo esc_attr($lang); ?>">
 <a class="nba-skip" href="#nba-main"><?php esc_html_e('Skip to content', 'nirog-academy'); ?></a>
+<?php if ($is_staff) : ?>
+<div class="nba-staffbar" role="region" aria-label="<?php esc_attr_e('Team', 'nirog-academy'); ?>">
+  <div class="nba-wrap nba-staffbar-inner">
+    <span class="nba-staffbar-state<?php echo $is_open ? ' is-open' : ''; ?>"><?php echo esc_html($is_open ? __('Academy is open', 'nirog-academy') : __('Academy is closed — only the team can see this', 'nirog-academy')); ?></span>
+    <span class="nba-staffbar-links">
+      <?php if (current_user_can('edit_nba_items')) : ?><a href="<?php echo esc_url(admin_url('admin.php?page=nirog-academy')); ?>"><?php esc_html_e('Course Studio', 'nirog-academy'); ?></a><?php endif; ?>
+      <a href="<?php echo esc_url(admin_url('admin.php?page=nba-live-desk')); ?>"><?php esc_html_e('Live desk', 'nirog-academy'); ?></a>
+      <a href="<?php echo esc_url(admin_url('admin.php?page=nba-overview')); ?>"><?php esc_html_e('Dashboard', 'nirog-academy'); ?></a>
+    </span>
+  </div>
+</div>
+<?php endif; ?>
 
 <header class="nba-head">
   <div class="nba-wrap nba-head-inner">
@@ -134,6 +148,6 @@ $lang_links = static function () use ($lang): void {
     </p>
   </div>
 </footer>
-<?php wp_footer(); ?>
+<?php Router::foot(); ?>
 </body>
 </html>

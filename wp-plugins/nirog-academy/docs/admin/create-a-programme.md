@@ -11,7 +11,7 @@ related: admin-batches-and-release, admin-prepare-and-upload-videos, admin-bookl
 
 Open **Academy → Course Studio**. Every programme is built there: weeks, and inside each week its recorded lessons, audio practices, booklets, readings and live sessions. Bonus content has its own tab. Everything saves automatically ("All changes saved" at the top).
 
-Tip: **Academy → Settings → Create sample programme** builds a draft example you can open in the Studio.
+Tip: **Course Studio → Load demo programme** builds a complete, published example with a demo participant, so you can see every feature first. See "The demo programme".
 
 # The words used
 
