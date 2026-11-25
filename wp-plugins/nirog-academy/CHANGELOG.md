@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-11-25
+
+- **Launch lock**: while the Academy is Closed, every Academy address shows "page not found" to everyone except staff, and no participant emails are sent. Welcome emails for enrollments made meanwhile are held and sent when the Academy opens.
+- **Live sessions for a team**: meeting link (Zoom/Meet/Teams) or YouTube Live played inside the Academy; a page for each session with countdown, Join and recording; host, private team notes, attendance, "send reminder now", cancel/restore with automatic notices. New **Live desk** screen for hosts.
+- **Booklets as books**: 3D books on the shelf (real cover from the PDF's first page, spine coloured from the cover, thickness from page count), a booklet page with a draggable book, and a **flipbook reader** with real page turns (spreads on computers, single pages on phones), All pages, full screen and keyboard.
+- **Design**: header shows only the Nirog Bhumi logo; no green italic accents; Today shows a plain "Up next" panel with the week's progress instead of the decorative arch.
+- Hindi added for all new participant text. Database version 2 (attendance table), upgraded automatically.
+
 ## 1.1.0 — 2026-11-24
 
 - **Course Studio**: a dedicated app inside WordPress (Academy → Course Studio) for building programmes — weeks, recorded lessons, audio practices, booklets, readings, bonus content and live sessions — with drag and drop, a side panel editor, autosave, PDF and worksheet uploads, a video library and programme settings. The old form screens are no longer in the menu.

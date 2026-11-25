@@ -82,6 +82,8 @@ final class AuditLog {
       'announcement.sent' => __('Announcement sent', 'nirog-academy'),
       'settings.updated' => __('Settings updated', 'nirog-academy'),
       'ack.accepted' => __('Safety acknowledgement accepted', 'nirog-academy'),
+      'live.cancelled' => __('Live session cancelled', 'nirog-academy'),
+      'live.reminded' => __('Live session reminder sent', 'nirog-academy'),
     ];
     return $labels[$action] ?? $action;
   }

@@ -61,10 +61,13 @@ final class StudioPage {
       'academyUrl' => Router::url(),
       'mediaFolder' => str_replace(wp_normalize_path(ABSPATH), '/', wp_normalize_path(Storage::dir('media'))),
       'canImport' => current_user_can('nba_manage_academy'),
+      'pdfjs' => NBA_URL . 'assets/vendor/pdfjs/pdf.min.js?ver=4.10.38',
+      'pdfWorker' => NBA_URL . 'assets/vendor/pdfjs/pdf.worker.min.js?ver=4.10.38',
       'links' => [
         'enrollments' => admin_url('admin.php?page=nba-enrollments'),
         'batches' => admin_url('admin.php?page=nba-batches'),
         'overview' => admin_url('admin.php?page=nba-overview'),
+        'liveDesk' => admin_url('admin.php?page=nba-live-desk'),
         'reports' => admin_url('admin.php?page=nba-reports'),
         'settings' => admin_url('admin.php?page=nba-settings'),
         'videoHelp' => admin_url('admin.php?page=nba-help&doc=prepare-and-upload-videos'),

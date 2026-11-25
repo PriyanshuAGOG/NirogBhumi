@@ -36,7 +36,7 @@ final class Auth {
       return;
     }
     if (self::is_participant_only(get_current_user_id())) {
-      wp_safe_redirect(Router::url());
+      wp_safe_redirect(Router::is_locked_for(get_current_user_id()) ? home_url('/') : Router::url());
       exit;
     }
   }
@@ -47,13 +47,13 @@ final class Auth {
 
   public static function login_redirect(string $redirect_to, string $requested, $user): string {
     if ($user instanceof \WP_User && self::is_participant_only($user->ID) && (!$requested || str_contains($requested, 'wp-admin'))) {
-      return Router::url();
+      return Router::is_locked_for($user->ID) ? home_url('/') : Router::url();
     }
     return $redirect_to;
   }
 
   public static function woo_login_redirect(string $redirect, $user): string {
-    if ($user instanceof \WP_User && self::is_participant_only($user->ID) && nba()->enrollments->open_programmes($user->ID)) {
+    if ($user instanceof \WP_User && self::is_participant_only($user->ID) && !Router::is_locked_for($user->ID) && nba()->enrollments->open_programmes($user->ID)) {
       return Router::url();
     }
     return $redirect;

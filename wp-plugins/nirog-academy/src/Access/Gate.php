@@ -43,6 +43,10 @@ final class Gate {
 
   private function evaluate(int $user_id, int $lesson_id, bool $register_device): AccessResult {
     $lesson = get_post($lesson_id);
+    // Staff can open drafts too, so they can check content before publishing.
+    if ($lesson && $lesson->post_type === PostTypes::LESSON && $lesson->post_status === 'draft' && Roles::is_staff($user_id)) {
+      return AccessResult::allow((int) get_post_meta($lesson_id, '_nba_programme_id', true));
+    }
     if (!$lesson || $lesson->post_type !== PostTypes::LESSON || $lesson->post_status !== 'publish') {
       return AccessResult::deny('not_found', __('This lesson is not available.', 'nirog-academy'));
     }

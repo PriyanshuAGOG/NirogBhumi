@@ -15,7 +15,7 @@ if (empty($settings['delete_data_on_uninstall'])) {
 }
 
 global $wpdb;
-foreach (['enrollments', 'cohorts', 'progress', 'devices', 'device_requests', 'notifications', 'notes', 'acknowledgements', 'audit_log'] as $table) {
+foreach (['enrollments', 'cohorts', 'progress', 'devices', 'device_requests', 'notifications', 'notes', 'acknowledgements', 'audit_log', 'attendance'] as $table) {
   $wpdb->query('DROP TABLE IF EXISTS ' . $wpdb->prefix . 'nba_' . $table); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 }
 

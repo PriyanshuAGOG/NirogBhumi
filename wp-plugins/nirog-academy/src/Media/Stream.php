@@ -114,6 +114,14 @@ final class Stream {
     return $this->url('booklet', ['l' => $lesson_id]);
   }
 
+  /**
+   * Link for staff in the Studio (to read the PDF and make its cover).
+   * Uses the same endpoint; staff always pass the access check.
+   */
+  public function booklet_admin_url(int $lesson_id): string {
+    return $this->url('booklet', ['l' => $lesson_id]);
+  }
+
   /** @return array{path: string, name: string, size: int}|null */
   public function booklet_file(int $lesson_id): ?array {
     $relative = (string) get_post_meta($lesson_id, '_nba_file', true);

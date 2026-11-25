@@ -37,7 +37,7 @@ $type_label = View::type_labels();
       __('Day %d', 'nirog-academy'),
       $day
     )); ?><?php endif; ?></span>
-    <h1 class="nba-display"><?php echo esc_html($greeting); ?>, <em><?php echo esc_html($name); ?></em>.</h1>
+    <h1 class="nba-display"><?php echo esc_html($greeting . ', ' . $name); ?></h1>
     <?php if ($summary) : ?>
       <p class="nba-lead"><?php echo esc_html(I18n::field($programme_id, 'title')); ?></p>
       <div class="nba-progress">
@@ -63,7 +63,8 @@ $type_label = View::type_labels();
     $cover = $programme_id ? (string) get_the_post_thumbnail_url($programme_id, 'large') : '';
     ?>
     <section class="nba-next">
-      <div>
+      <div class="nba-next-panel">
+      <div class="nba-next-main">
         <?php if ($enrollment->status === 'paused') : ?>
           <span class="nba-eyebrow"><?php esc_html_e('Access paused', 'nirog-academy'); ?></span>
           <h2><?php esc_html_e('Your access is paused.', 'nirog-academy'); ?></h2>
@@ -124,16 +125,35 @@ $type_label = View::type_labels();
           <a class="nba-btn nba-btn-line" href="<?php echo esc_url(Router::programme_url($programme_id)); ?>"><?php esc_html_e('See the programme', 'nirog-academy'); ?></a>
         <?php endif; ?>
       </div>
-      <div class="nba-arch nba-el-<?php echo esc_attr($element); ?>" aria-hidden="true">
-        <?php if ($cover) : ?>
-          <img src="<?php echo esc_url($cover); ?>" alt="">
-        <?php else : ?>
-          <div class="nba-arch-text">
-            <span class="nba-arch-num"><?php echo esc_html($week ? str_pad((string) $week['index'], 2, '0', STR_PAD_LEFT) : '01'); ?></span>
-            <span class="nba-arch-label"><?php esc_html_e('Week', 'nirog-academy'); ?></span>
-            <?php if ($week && $week['id'] && View::week_title($week['id'], $week['index']) !== sprintf(__('Week %d', 'nirog-academy'), $week['index'])) : ?><span class="nba-arch-sub"><?php echo esc_html(View::week_title($week['id'], $week['index'])); ?></span><?php endif; ?>
-          </div>
-        <?php endif; ?>
+      <?php if ($cover) : ?>
+        <div class="nba-next-photo" style="background-image:url('<?php echo esc_url($cover); ?>')" role="img" aria-label="<?php echo esc_attr(I18n::field($programme_id, 'title')); ?>"></div>
+      <?php elseif ($week) : ?>
+        <aside class="nba-next-side">
+          <span class="nba-eyebrow"><?php echo esc_html(sprintf(
+            /* translators: 1: week number, 2: number of weeks */
+            __('Week %1$d of %2$d', 'nirog-academy'),
+            $week['index'],
+            max($week['index'], (int) $weeks_total)
+          )); ?></span>
+          <h3 class="nba-h3"><?php echo esc_html(View::week_title($week['id'], $week['index'])); ?></h3>
+          <span class="nba-meta"><?php echo esc_html(sprintf(
+            /* translators: 1: done, 2: total */
+            __('%1$d of %2$d done this week', 'nirog-academy'),
+            $week['done'],
+            $week['total']
+          )); ?></span>
+          <?php if ($week['total']) : ?>
+            <div class="nba-progress"><div class="nba-progress-line"><span style="width:<?php echo (int) round($week['done'] * 100 / max(1, $week['total'])); ?>%"></span></div></div>
+          <?php endif; ?>
+          <?php if ($enrollment && !empty($enrollment->ends_at)) : ?>
+            <span class="nba-meta" style="margin-top:auto;padding-top:18px"><?php echo esc_html(sprintf(
+              /* translators: %s: date */
+              __('Access until %s', 'nirog-academy'),
+              Time::human($enrollment->ends_at, 'j M Y')
+            )); ?></span>
+          <?php endif; ?>
+        </aside>
+      <?php endif; ?>
       </div>
     </section>
 
@@ -170,7 +190,7 @@ $type_label = View::type_labels();
               <div>
                 <h3 class="nba-h3"><?php echo esc_html($next_live->post_title); ?></h3>
                 <p class="nba-meta"><?php echo esc_html(wp_date('l, g:i a', $ts)); ?></p>
-                <a class="nba-link" href="<?php echo esc_url(Router::url('live')); ?>"><?php esc_html_e('Details', 'nirog-academy'); ?></a>
+                <a class="nba-link" href="<?php echo esc_url(\NirogBhumi\Academy\Live\LiveSessions::url($next_live->ID)); ?>"><?php esc_html_e('Details', 'nirog-academy'); ?></a>
               </div>
             </div>
           </section>

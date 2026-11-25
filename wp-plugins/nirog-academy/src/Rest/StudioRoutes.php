@@ -136,6 +136,17 @@ final class StudioRoutes {
       }
       return rest_ensure_response(Studio::upload_booklet($item, $files['file']));
     });
+    self::route('/items/(?P<id>\d+)/cover', 'POST', static function (\WP_REST_Request $r) {
+      $item = self::owned((int) $r['id'], PostTypes::LESSON);
+      if (is_wp_error($item)) {
+        return $item;
+      }
+      $files = $r->get_file_params();
+      if (empty($files['file']['tmp_name'])) {
+        return new \WP_Error('nba_no_file', __('No image received.', 'nirog-academy'), ['status' => 400]);
+      }
+      return rest_ensure_response(Studio::upload_cover($item, $files['file'], (int) $r['pages']));
+    });
     self::route('/items/(?P<id>\d+)/files', 'POST', static function (\WP_REST_Request $r) {
       $item = self::owned((int) $r['id'], PostTypes::LESSON);
       if (is_wp_error($item)) {
@@ -179,6 +190,31 @@ final class StudioRoutes {
       }
       wp_trash_post($live);
       return rest_ensure_response(['ok' => true]);
+    });
+
+    self::route('/live/(?P<id>\d+)/attendance', 'GET', static function (\WP_REST_Request $r) {
+      $live = self::owned((int) $r['id'], PostTypes::LIVE);
+      return is_wp_error($live) ? $live : rest_ensure_response(\NirogBhumi\Academy\Live\LiveSessions::attendance($live));
+    });
+    self::route('/live/(?P<id>\d+)/remind', 'POST', static function (\WP_REST_Request $r) {
+      $live = self::owned((int) $r['id'], PostTypes::LIVE);
+      if (is_wp_error($live)) {
+        return $live;
+      }
+      if (get_post_status($live) !== 'publish') {
+        return new \WP_Error('nba_draft', __('Make the session visible to participants first.', 'nirog-academy'), ['status' => 400]);
+      }
+      $sent = \NirogBhumi\Academy\Live\LiveSessions::remind($live, 'now');
+      nba()->audit->log('live.reminded', 0, 'live', $live, ['people' => $sent]);
+      return rest_ensure_response(['sent' => $sent]);
+    });
+    self::route('/live/(?P<id>\d+)/cancel', 'POST', static function (\WP_REST_Request $r) {
+      $live = self::owned((int) $r['id'], PostTypes::LIVE);
+      if (is_wp_error($live)) {
+        return $live;
+      }
+      $notified = \NirogBhumi\Academy\Live\LiveSessions::set_cancelled($live, (bool) $r['cancelled']);
+      return rest_ensure_response(['live' => Studio::live(get_post($live)), 'notified' => $notified]);
     });
 
     // Video library.

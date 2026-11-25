@@ -20,6 +20,8 @@ final class Notifications {
 
   public function register(): void {
     add_action('nba_enrollment_created', [$this, 'on_enrollment_created'], 20, 3);
+    add_action('update_option_' . \NirogBhumi\Academy\Support\Settings::OPTION, [$this, 'on_settings_changed'], 10, 2);
+    add_action('nba_send_pending_welcomes', [$this, 'send_pending_welcomes']);
     add_action('nba_device_changed', [$this, 'on_device_changed'], 10, 2);
     add_action('nba_device_request_created', [$this, 'on_device_request'], 10, 2);
     add_action('nba_device_request_decided', [$this, 'on_device_request_decided'], 10, 3);
@@ -97,6 +99,11 @@ final class Notifications {
     if (!$user || !is_email($user->user_email)) {
       return false;
     }
+    // While the Academy is Closed, participants get no emails: the links
+    // would lead to a page they cannot open yet.
+    if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
+      return false;
+    }
     $html = $this->render_email($user->first_name ?: $user->display_name, $heading, $paragraphs, $button_label, $button_url);
     return $this->send_raw($user->user_email, $subject, $html);
   }
@@ -127,6 +134,13 @@ final class Notifications {
   public function on_enrollment_created(int $enrollment_id, int $user_id, int $programme_id): void {
     $enrollment = nba()->enrollments->get($enrollment_id);
     if (!$enrollment) {
+      return;
+    }
+    if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
+      // Hold the welcome until launch; send_pending_welcomes() sends it.
+      $pending = array_map('intval', (array) get_user_meta($user_id, 'nba_welcome_pending', true));
+      $pending[] = $enrollment_id;
+      update_user_meta($user_id, 'nba_welcome_pending', array_values(array_unique(array_filter($pending))));
       return;
     }
     I18n::with_user_locale($user_id, function () use ($enrollment, $user_id, $programme_id): void {
@@ -173,6 +187,39 @@ final class Notifications {
         $url
       );
     });
+  }
+
+  /**
+   * When the Academy is opened, send the welcome emails held while it was closed.
+   */
+  public function on_settings_changed($old, $new): void {
+    $was = is_array($old) ? ($old['launch_mode'] ?? 'closed') : 'closed';
+    $now = is_array($new) ? ($new['launch_mode'] ?? 'closed') : 'closed';
+    if ($was === 'closed' && $now !== 'closed') {
+      nba()->settings->flush();
+      if (function_exists('as_enqueue_async_action')) {
+        as_enqueue_async_action('nba_send_pending_welcomes', [], 'nirog-academy');
+      } else {
+        wp_schedule_single_event(time() + 5, 'nba_send_pending_welcomes');
+      }
+    }
+  }
+
+  public function send_pending_welcomes(): void {
+    $users = get_users(['meta_key' => 'nba_welcome_pending', 'fields' => 'ID', 'number' => 200]);
+    foreach ($users as $user_id) {
+      $ids = array_map('intval', (array) get_user_meta((int) $user_id, 'nba_welcome_pending', true));
+      delete_user_meta((int) $user_id, 'nba_welcome_pending');
+      foreach ($ids as $enrollment_id) {
+        $e = nba()->enrollments->get($enrollment_id);
+        if ($e && in_array($e->status, ['active', 'pending'], true)) {
+          $this->on_enrollment_created($enrollment_id, (int) $e->user_id, (int) $e->programme_id);
+        }
+      }
+    }
+    if (count($users) === 200) {
+      wp_schedule_single_event(time() + 60, 'nba_send_pending_welcomes');
+    }
   }
 
   public function set_password_url(int $user_id): string {

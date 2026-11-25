@@ -153,6 +153,7 @@ final class Studio {
       'meta_key' => '_nba_starts_at', 'orderby' => 'meta_value', 'order' => 'ASC',
       'meta_query' => [['key' => '_nba_programme_id', 'value' => $id]],
     ]));
+    $data['team'] = \NirogBhumi\Academy\Live\LiveSessions::team();
     $data['cohorts'] = array_map(static fn($c) => ['id' => (int) $c->id, 'name' => $c->name, 'starts' => Time::human($c->starts_at, 'j M Y'), 'members' => (int) $c->members], nba()->cohorts->all($id));
     return $data;
   }
@@ -185,12 +186,15 @@ final class Studio {
       'summary_hi' => (string) get_post_meta($l->ID, '_nba_summary_hi', true),
       'safety_hi' => (string) get_post_meta($l->ID, '_nba_safety_note_hi', true),
       'file' => $file ? ['name' => $file['name'], 'size' => size_format($file['size']), 'pages' => (int) get_post_meta($l->ID, '_nba_pages', true)] : null,
+      'file_url' => $file ? nba()->stream->booklet_admin_url($l->ID) : '',
+      'cover' => (string) wp_get_attachment_image_url((int) get_post_meta($l->ID, '_nba_cover_id', true), 'medium_large'),
       'resources' => $resources,
       'view_url' => $l->post_status === 'publish' ? Router::lesson_url($l->ID) : '',
     ];
   }
 
   public static function live(\WP_Post $s): array {
+    $info = \NirogBhumi\Academy\Live\LiveSessions::info($s);
     return [
       'id' => $s->ID,
       'title' => $s->post_title,
@@ -198,12 +202,20 @@ final class Studio {
       'description' => $s->post_content,
       'starts_at' => Time::utc_to_local_input((string) get_post_meta($s->ID, '_nba_starts_at', true)),
       'starts_label' => Time::human_time((string) get_post_meta($s->ID, '_nba_starts_at', true)),
-      'past' => Time::ts((string) get_post_meta($s->ID, '_nba_starts_at', true)) < time(),
+      'past' => $info['phase'] === 'ended',
+      'phase' => $info['phase'],
       'duration' => (int) get_post_meta($s->ID, '_nba_duration_min', true) ?: 60,
-      'join_url' => (string) get_post_meta($s->ID, '_nba_join_url', true),
-      'week' => (int) get_post_meta($s->ID, '_nba_module_id', true),
-      'cohort' => (int) get_post_meta($s->ID, '_nba_cohort_id', true),
-      'recording' => (int) get_post_meta($s->ID, '_nba_recording_lesson_id', true),
+      'kind' => $info['kind'],
+      'join_url' => $info['link'],
+      'host' => $info['host'],
+      'host_name' => $info['host_name'],
+      'notes' => $info['notes'],
+      'cancelled' => $info['cancelled'],
+      'week' => $info['week'],
+      'cohort' => $info['cohort'],
+      'recording' => $info['recording'],
+      'attended' => \NirogBhumi\Academy\Live\LiveSessions::attendance_count($s->ID),
+      'view_url' => $s->post_status === 'publish' ? \NirogBhumi\Academy\Live\LiveSessions::url($s->ID) : '',
     ];
   }
 
@@ -447,6 +459,10 @@ final class Studio {
     update_post_meta($id, '_nba_module_id', (int) ($data['week'] ?? 0));
     update_post_meta($id, '_nba_cohort_id', (int) ($data['cohort'] ?? 0));
     update_post_meta($id, '_nba_recording_lesson_id', (int) ($data['recording'] ?? 0));
+    update_post_meta($id, '_nba_live_kind', ($data['kind'] ?? '') === 'stream' ? 'stream' : 'meeting');
+    $host = (int) ($data['host'] ?? 0);
+    update_post_meta($id, '_nba_host_id', $host && user_can($host, 'nba_view_participants') ? $host : 0);
+    update_post_meta($id, '_nba_staff_notes', sanitize_textarea_field((string) ($data['notes'] ?? '')));
     if ($start !== $old_start) {
       delete_post_meta($id, '_nba_reminded_24h');
       delete_post_meta($id, '_nba_reminded_15m');
@@ -480,6 +496,35 @@ final class Studio {
     update_post_meta($item_id, '_nba_file', $relative);
     update_post_meta($item_id, '_nba_file_name', sanitize_file_name($file['name']));
     delete_post_meta($item_id, '_nba_pages');
+    return self::item(get_post($item_id));
+  }
+
+  /**
+   * Booklet cover: an image of the first page (made by the Studio in the
+   * browser right after upload) or one the team chooses. Covers are ordinary
+   * images, so they can be shown in lists without the access check.
+   */
+  public static function upload_cover(int $item_id, array $file, int $pages = 0): array|\WP_Error {
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+    $check = wp_check_filetype_and_ext($file['tmp_name'], $file['name'], ['jpg|jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp']);
+    if (empty($check['ext'])) {
+      return new \WP_Error('nba_type', __('Covers must be JPG, PNG or WebP images.', 'nirog-academy'), ['status' => 400]);
+    }
+    $file['name'] = 'booklet-cover-' . $item_id . '.' . $check['ext'];
+    $attachment = media_handle_sideload($file, $item_id, sprintf('Booklet cover: %s', get_the_title($item_id)));
+    if (is_wp_error($attachment)) {
+      return $attachment;
+    }
+    $old = (int) get_post_meta($item_id, '_nba_cover_id', true);
+    if ($old && (int) wp_get_post_parent_id($old) === $item_id) {
+      wp_delete_attachment($old, true);
+    }
+    update_post_meta($item_id, '_nba_cover_id', (int) $attachment);
+    if ($pages > 0) {
+      update_post_meta($item_id, '_nba_pages', min(2000, $pages));
+    }
     return self::item(get_post($item_id));
   }
 

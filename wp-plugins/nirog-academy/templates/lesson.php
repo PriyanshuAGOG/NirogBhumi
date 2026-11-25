@@ -51,12 +51,46 @@ $config = $player ? [
 <article class="nba-wrap nba-page nba-lesson-page" data-lesson="<?php echo (int) $lesson->ID; ?>">
   <a class="nba-crumb" href="<?php echo esc_url($crumb_url); ?>">← <?php echo esc_html($crumb); ?></a>
 
+  <?php if ($type === 'booklet' && $booklet) :
+    $pages = (int) get_post_meta($lesson->ID, '_nba_pages', true);
+    $resume_page = $progress && $progress->status !== 'completed' ? (int) $progress->position_sec : 0; ?>
+    <section class="nba-bookhero">
+      <div class="nba-bookhero-obj"><?php View::include('parts/cover', ['lesson' => $lesson->ID, 'hero' => true]); ?></div>
+      <div>
+        <span class="nba-eyebrow"><?php echo esc_html($labels['booklet'] . ($week_index ? ' · ' . sprintf(
+          /* translators: %d: week number */
+          __('Week %d', 'nirog-academy'),
+          $week_index
+        ) : '')); ?></span>
+        <h1 class="nba-title"><?php echo esc_html(I18n::field($lesson->ID, 'title')); ?></h1>
+        <?php if ($summary) : ?><p class="nba-lead"><?php echo esc_html($summary); ?></p><?php endif; ?>
+        <div class="nba-bookhero-facts">
+          <?php if ($pages) : ?><span><?php echo esc_html(sprintf(
+            /* translators: %d: pages */
+            _n('%d page', '%d pages', $pages, 'nirog-academy'),
+            $pages
+          )); ?></span><?php endif; ?>
+          <?php if ($resume_page > 1) : ?><span><?php echo esc_html(sprintf(
+            /* translators: %d: page number */
+            __('You stopped on page %d.', 'nirog-academy'),
+            $resume_page
+          )); ?></span><?php endif; ?>
+          <span class="nba-done-tag nba-complete-badge"<?php echo $completed ? '' : ' hidden'; ?>><?php echo View::icon('check', 15); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e('Completed', 'nirog-academy'); ?></span>
+        </div>
+        <div class="nba-bookhero-actions">
+          <a class="nba-btn" href="#nba-read"><?php echo esc_html($resume_page > 1 ? __('Continue reading', 'nirog-academy') : __('Start reading', 'nirog-academy')); ?></a>
+          <?php if ($booklet['download']) : ?><a class="nba-link" href="<?php echo esc_url($booklet['url']); ?>" download><?php esc_html_e('Download PDF', 'nirog-academy'); ?></a><?php endif; ?>
+        </div>
+      </div>
+    </section>
+  <?php else : ?>
   <header class="nba-lesson-head">
     <span class="nba-eyebrow"><?php echo esc_html($labels[$type] ?? ''); ?><?php echo $minutes && $type !== 'booklet' ? ' · ' . esc_html(View::minutes($minutes)) : ''; ?></span>
     <h1 class="nba-title"><?php echo esc_html(I18n::field($lesson->ID, 'title')); ?></h1>
     <?php if ($summary) : ?><p class="nba-lead"><?php echo esc_html($summary); ?></p><?php endif; ?>
     <span class="nba-done-tag nba-complete-badge"<?php echo $completed ? '' : ' hidden'; ?>><?php echo View::icon('check', 15); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e('Completed', 'nirog-academy'); ?></span>
   </header>
+  <?php endif; ?>
 
   <?php if ($safety) : ?>
     <aside class="nba-safety" role="note">
@@ -67,26 +101,31 @@ $config = $player ? [
 
   <?php if ($type === 'booklet') : ?>
     <?php if ($booklet) : ?>
-      <div class="nba-reader" data-config="<?php echo esc_attr((string) wp_json_encode([
+      <div class="nba-flipbook" id="nba-read" data-config="<?php echo esc_attr((string) wp_json_encode([
         'lesson' => $lesson->ID,
         'url' => $booklet['url'],
         'resume' => $progress ? max(1, (int) $progress->position_sec) : 1,
+        'read' => $progress && $progress->watched ? (string) $progress->watched : '',
         'completed' => $completed,
       ])); ?>">
-        <div class="nba-reader-bar">
-          <div class="nba-reader-group">
-            <button type="button" data-act="prev" aria-label="<?php esc_attr_e('Previous page', 'nirog-academy'); ?>">←</button>
-            <span class="nba-reader-page" aria-live="polite">…</span>
-            <button type="button" data-act="next" aria-label="<?php esc_attr_e('Next page', 'nirog-academy'); ?>">→</button>
+        <div class="nba-fb-stage-wrap">
+          <div class="nba-fb-stage"></div>
+          <p class="nba-fb-msg"><?php esc_html_e('Opening the booklet…', 'nirog-academy'); ?></p>
+        </div>
+        <div class="nba-fb-bar">
+          <div class="nba-fb-group">
+            <button type="button" data-act="prev" disabled>← <?php esc_html_e('Previous', 'nirog-academy'); ?></button>
+            <span class="nba-fb-count" aria-live="polite"></span>
+            <button type="button" data-act="next" disabled><?php esc_html_e('Next', 'nirog-academy'); ?> →</button>
           </div>
-          <div class="nba-reader-group">
-            <button type="button" data-act="out" aria-label="<?php esc_attr_e('Smaller', 'nirog-academy'); ?>">−</button>
-            <button type="button" data-act="fit"><?php esc_html_e('Fit', 'nirog-academy'); ?></button>
-            <button type="button" data-act="in" aria-label="<?php esc_attr_e('Bigger', 'nirog-academy'); ?>">+</button>
+          <div class="nba-fb-group">
+            <button type="button" data-act="index" aria-expanded="false"><?php esc_html_e('All pages', 'nirog-academy'); ?></button>
+            <button type="button" data-act="full"><?php esc_html_e('Full screen', 'nirog-academy'); ?></button>
             <?php if ($booklet['download']) : ?><a href="<?php echo esc_url($booklet['url']); ?>" download><?php esc_html_e('Download', 'nirog-academy'); ?></a><?php endif; ?>
           </div>
         </div>
-        <div class="nba-reader-pages"><p class="nba-reader-msg"><?php esc_html_e('Opening the booklet…', 'nirog-academy'); ?></p></div>
+        <div class="nba-fb-index" hidden></div>
+        <p class="nba-fb-hint"><?php esc_html_e('Turn pages by dragging a corner, tapping the page edge, or with the arrow keys.', 'nirog-academy'); ?></p>
       </div>
       <p class="nba-player-status nba-reader-status" role="status" aria-live="polite"></p>
     <?php else : ?>
@@ -98,7 +137,7 @@ $config = $player ? [
         <div class="nba-player-frame"><iframe src="<?php echo esc_url($player['src']); ?>" title="<?php echo esc_attr(I18n::field($lesson->ID, 'title')); ?>" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
       <?php elseif ($player['type'] === 'audio') : ?>
         <div class="nba-audio">
-          <span class="nba-arch-sub"><?php esc_html_e('Find a comfortable position and close your eyes.', 'nirog-academy'); ?></span>
+          <p class="nba-lead" style="margin:0"><?php esc_html_e('Find a comfortable position and close your eyes.', 'nirog-academy'); ?></p>
           <audio class="nba-media" controls preload="metadata" controlsList="nodownload"></audio>
           <p class="nba-meta"><?php esc_html_e('You can lock your phone. The audio keeps playing.', 'nirog-academy'); ?></p>
         </div>

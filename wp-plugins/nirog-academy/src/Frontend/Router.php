@@ -70,7 +70,7 @@ final class Router {
   public static function rewrites(): void {
     $s = preg_quote(self::slug(), '#');
     add_rewrite_rule("^$s/?$", 'index.php?nba_view=dashboard', 'top');
-    add_rewrite_rule("^$s/(programme|lesson|help|orientation)/([^/]+)/?$", 'index.php?nba_view=$matches[1]&nba_slug=$matches[2]', 'top');
+    add_rewrite_rule("^$s/(programme|lesson|help|orientation|live)/([^/]+)/?$", 'index.php?nba_view=$matches[1]&nba_slug=$matches[2]', 'top');
     add_rewrite_rule("^$s/([a-z-]+)/?$", 'index.php?nba_view=$matches[1]', 'top');
   }
 
@@ -96,6 +96,7 @@ final class Router {
       'hls' => NBA_URL . 'assets/vendor/hls.light.min.js?ver=1.5.20',
       'pdfjs' => NBA_URL . 'assets/vendor/pdfjs/pdf.min.js?ver=4.10.38',
       'pdfWorker' => NBA_URL . 'assets/vendor/pdfjs/pdf.worker.min.js?ver=4.10.38',
+      'pageflip' => NBA_URL . 'assets/vendor/page-flip.browser.js?ver=2.0.7',
       'watermark' => self::watermark_text(),
       'i18n' => [
         'saved' => __('Saved', 'nirog-academy'),
@@ -107,6 +108,7 @@ final class Router {
         'notWatched' => __('Watch the lesson to the end to complete it.', 'nirog-academy'),
         'notRead' => __('Read the booklet to the last page to complete it.', 'nirog-academy'),
         'page' => __('Page %1$d of %2$d', 'nirog-academy'),
+        'pages' => __('Pages %1$d–%2$d of %3$d', 'nirog-academy'),
         'loadingBooklet' => __('Opening the booklet…', 'nirog-academy'),
         'bookletError' => __('The booklet could not be opened. Reload the page to try again.', 'nirog-academy'),
       ],
@@ -118,8 +120,20 @@ final class Router {
     if (!$view) {
       return;
     }
-    View::send_headers();
     $user_id = get_current_user_id();
+
+    // Launch lock: until the Academy is opened in Settings, every Academy
+    // address looks like an ordinary missing page to anyone who is not staff.
+    // Staff log in through wp-login.php and can use everything.
+    if (self::is_locked_for($user_id)) {
+      global $wp_query;
+      $wp_query->set_404();
+      status_header(404);
+      nocache_headers();
+      header('X-Robots-Tag: noindex, nofollow');
+      return; // WordPress renders the theme's normal "not found" page.
+    }
+    View::send_headers();
 
     // Language switch (?nba_lang=hi_IN).
     if (isset($_GET['nba_lang'], $_GET['_nbalang']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_nbalang'])), 'nba_lang')) {
@@ -157,14 +171,6 @@ final class Router {
       exit;
     }
 
-    if (!Roles::is_staff($user_id) && nba()->settings->get('launch_mode') === 'closed') {
-      View::page('notice', [
-        'icon' => 'calendar',
-        'heading' => __('The Academy opens soon', 'nirog-academy'),
-        'message' => __('Your account is ready. We will email you as soon as the lessons are open.', 'nirog-academy'),
-      ], ['title' => __('Opening soon', 'nirog-academy')]);
-    }
-
     match ($view) {
       'dashboard' => self::dashboard($user_id),
       'programme' => self::programme($user_id),
@@ -176,6 +182,13 @@ final class Router {
       'notifications' => self::notifications($user_id),
       default => self::not_found(),
     };
+  }
+
+  /**
+   * True while the Academy is Closed and this visitor is not staff.
+   */
+  public static function is_locked_for(int $user_id): bool {
+    return nba()->settings->get('launch_mode') === 'closed' && !Roles::is_staff($user_id);
   }
 
   public static function request_url(): string {
@@ -347,6 +360,7 @@ final class Router {
       'next_progress' => null,
       'day' => 0,
       'week' => null,
+      'weeks_total' => 0,
       'booklet' => 0,
       'next_live' => null,
       'announcement' => null,
@@ -371,6 +385,7 @@ final class Router {
 
       // The week to show: the one holding the next lesson, else the last week.
       $weeks = self::weeks($user_id, $pid, empty($primary->staff_view) ? $primary : null);
+      $data['weeks_total'] = count($weeks);
       foreach ($weeks as $w) {
         foreach ($w['items'] as $item) {
           if ($item['id'] === $next) {
@@ -568,6 +583,10 @@ final class Router {
   }
 
   private static function live(int $user_id): never {
+    $slug = (string) get_query_var('nba_slug');
+    if ($slug !== '') {
+      self::live_session($user_id, absint($slug));
+    }
     $upcoming = [];
     $past = [];
     foreach (self::visible_enrollments($user_id) as $enrollment) {
@@ -583,6 +602,32 @@ final class Router {
     uasort($upcoming, $sort);
     uasort($past, static fn($a, $b) => -$sort($a, $b));
     View::page('live', ['upcoming' => array_values($upcoming), 'past' => array_values($past)], ['title' => __('Live sessions', 'nirog-academy')]);
+  }
+
+  /**
+   * One live session: details, join button or embedded stream, recording.
+   */
+  private static function live_session(int $user_id, int $session_id): never {
+    if (!$session_id || !\NirogBhumi\Academy\Live\LiveSessions::can_view($user_id, $session_id)) {
+      self::not_found();
+    }
+    $info = \NirogBhumi\Academy\Live\LiveSessions::info($session_id);
+    // Join: record attendance, then go to the meeting.
+    if (!empty($_GET['join'])) { // phpcs:ignore WordPress.Security.NonceVerification
+      $nonce = isset($_GET['_nbajoin']) ? sanitize_text_field(wp_unslash($_GET['_nbajoin'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+      if (wp_verify_nonce($nonce, 'nba_join_' . $session_id) && in_array($info['phase'], ['open', 'live'], true) && $info['kind'] === 'meeting' && $info['link']) {
+        \NirogBhumi\Academy\Live\LiveSessions::record_join($session_id, $user_id);
+        wp_redirect(esc_url_raw($info['link'])); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- external meeting host chosen by staff.
+        exit;
+      }
+      wp_safe_redirect(\NirogBhumi\Academy\Live\LiveSessions::url($session_id));
+      exit;
+    }
+    // Watching a stream inside the Academy counts as attending.
+    if ($info['kind'] === 'stream' && in_array($info['phase'], ['open', 'live'], true) && !Roles::is_staff($user_id)) {
+      \NirogBhumi\Academy\Live\LiveSessions::record_join($session_id, $user_id);
+    }
+    View::page('live-session', ['info' => $info], ['title' => $info['title']]);
   }
 
   private static function profile(int $user_id): never {

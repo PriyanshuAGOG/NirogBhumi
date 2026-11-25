@@ -9,7 +9,7 @@ related: admin-create-a-programme, admin-prepare-and-upload-videos, admin-securi
 ---
 # In short
 
-Install the plugin, keep the Academy **Closed** while you build and test, then switch it to **Open**. Work through the list below in order.
+Install the plugin, keep the Academy **Closed** while you build and test, then switch it to **Open**. While Closed, every Academy address shows "page not found" to everyone except staff (Administrators and Academy Managers/Coaches, logged in through `wp-admin`), and no participant emails are sent — welcome emails for anyone who buys in the meantime are held and sent automatically when you open. Work through the list below in order.
 
 # 1. Install
 

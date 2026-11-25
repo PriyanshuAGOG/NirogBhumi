@@ -26,6 +26,7 @@ final class Handlers {
     'import' => 'nba_manage_academy',
     'export' => 'nba_view_reports',
     'demo' => 'nba_manage_academy',
+    'live_remind' => 'nba_view_participants',
   ];
 
   public static function dispatch(string $action, string $cap): void {
@@ -231,6 +232,17 @@ final class Handlers {
   public static function csv_safe(mixed $value): string {
     $value = (string) $value;
     return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
+  }
+
+  private static function do_live_remind(): void {
+    $id = (int) self::post('session_id');
+    if (get_post_type($id) !== PostTypes::LIVE || get_post_status($id) !== 'publish') {
+      Admin::redirect('nba-live-desk', __('That session is not visible to participants yet.', 'nirog-academy'), true);
+    }
+    $sent = \NirogBhumi\Academy\Live\LiveSessions::remind($id, 'now');
+    nba()->audit->log('live.reminded', 0, 'live', $id, ['people' => $sent]);
+    /* translators: %d: number of people */
+    Admin::redirect('nba-live-desk', sprintf(_n('Reminder sent to %d person.', 'Reminder sent to %d people.', $sent, 'nirog-academy'), $sent));
   }
 
   private static function do_demo(): void {

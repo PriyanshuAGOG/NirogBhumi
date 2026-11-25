@@ -9,7 +9,7 @@ related: admin-create-a-programme
 ---
 # In short
 
-A booklet is a PDF that participants read inside the Academy, page by page, with their name faintly on each page. It sits in its week like any lesson, appears in the participant's **Library → Booklets**, and counts as done when they have read about 90% of the pages.
+A booklet is a PDF that participants read inside the Academy as a book: on the shelf it appears as a 3D book (its real cover, a spine in the cover's colour, page edges whose thickness follows the page count), and it opens as a flipbook — two-page spreads on computers, one page at a time on phones, with real page turns. Their name sits faintly on each page. It counts as done when they have read about 90% of the pages.
 
 # Prepare the PDF
 
@@ -22,7 +22,7 @@ A booklet is a PDF that participants read inside the Academy, page by page, with
 
 1. **Course Studio → programme → Weeks**, under the right week choose **Add: Booklet**.
 2. Give it a title, e.g. "Week 2 booklet: your food rhythm".
-3. Drop the PDF into the box (or **Choose PDF**). It is stored in a private folder, never as a public link.
+3. Drop the PDF into the box (or **Choose PDF**). It is stored in a private folder, never as a public link. The Studio then draws the first page as the **cover** and counts the pages — this takes a few seconds. To use a different cover, press **Use a different cover image**.
 4. Optional: tick **Also let participants download the PDF**. Leave it off if the booklet should stay inside the Academy.
 5. Set **Opens on day**, then switch on **Visible to participants**.
 
@@ -33,7 +33,10 @@ To update a booklet, open it and **Replace PDF**. Participants see the new versi
 - In the week list: "Booklet · 12 pages".
 - On Today: the current week's booklet as a cover.
 - In **Library → Booklets**: all booklets as covers, with "Read", "Continue reading" or the date it opens.
-- The reader: previous/next page, smaller/bigger/fit, and the page they stopped on is remembered.
+- The booklet's own page: the book large (they can drag it to turn it), title, page count, **Start reading** / **Continue reading**.
+- The flipbook: drag a page corner, tap the page edge, use the arrow keys or the Previous/Next buttons; **All pages** to jump; **Full screen**. The page they stopped on is remembered.
+
+Covers are normal images (so they can show on the shelf quickly); the booklet itself stays private.
 
 # Protection
 

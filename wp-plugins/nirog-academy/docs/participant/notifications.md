@@ -9,7 +9,7 @@ related: participant-progress
 ---
 # In short
 
-**Inbox** at the top shows new lessons, live session reminders and messages from our team. You can choose which emails you receive, and switch the Academy between **English** and **हिन्दी**.
+**Inbox** at the top (the number is how many messages you have not opened yet) shows new lessons, live session reminders and messages from our team. You can choose which emails you receive, and switch the Academy between **English** and **हिन्दी**.
 
 # Choose your emails
 

@@ -236,6 +236,36 @@ $denied = rest_do_request(new WP_REST_Request('GET', '/nirog-academy/v1/studio/p
 $check('studio: participants cannot use the Studio API', in_array($denied->get_status(), [401, 403], true), (string) $denied->get_status());
 wp_set_current_user(0);
 
+// ---------------------------------------------------------------- launch lock
+nba()->settings->update(['launch_mode' => 'closed']);
+$check('closed: participants are locked out', NirogBhumi\Academy\Frontend\Router::is_locked_for($u2));
+$check('closed: staff are not locked out', !NirogBhumi\Academy\Frontend\Router::is_locked_for(1) || !user_can(1, 'edit_nba_items'));
+$check('closed: participant emails are held', nba()->notifications->email($u2, 'x', 'x', ['x']) === false);
+$u5 = $user('nba-test-prelaunch@example.com');
+$pre = nba()->enrollments->create(['user_id' => $u5, 'programme_id' => $prog]);
+$check('closed: welcome email is kept for launch', in_array((int) $pre, array_map('intval', (array) get_user_meta($u5, 'nba_welcome_pending', true)), true));
+nba()->settings->update(['launch_mode' => 'open']);
+nba()->notifications->send_pending_welcomes();
+$check('opening the Academy sends held welcomes', !get_user_meta($u5, 'nba_welcome_pending', true));
+
+// ---------------------------------------------------------------- live sessions
+$live = NirogBhumi\Academy\Studio\Studio::save_live($prog, ['title' => 'Test live', 'starts_at' => wp_date('Y-m-d\TH:i', time() + 600), 'duration' => 30, 'join_url' => 'https://meet.example.com/x', 'kind' => 'meeting', 'status' => 'publish']);
+$created_posts[] = (int) $live;
+$info = NirogBhumi\Academy\Live\LiveSessions::info((int) $live);
+$check('live: join opens 15 minutes before', $info['phase'] === 'open', $info['phase']);
+$outsider = $user('nba-test-outsider@example.com');
+$check('live: people without access cannot see it', !NirogBhumi\Academy\Live\LiveSessions::can_view($outsider, (int) $live));
+$check('live: enrolled participants can see it', NirogBhumi\Academy\Live\LiveSessions::can_view($u2, (int) $live));
+NirogBhumi\Academy\Live\LiveSessions::record_join((int) $live, $u2);
+NirogBhumi\Academy\Live\LiveSessions::record_join((int) $live, $u2);
+$att = NirogBhumi\Academy\Live\LiveSessions::attendance((int) $live);
+$check('live: attendance counts people once, joins twice', count($att) === 1 && $att[0]['joins'] === 2);
+$check('live: reminder reaches the programme audience', NirogBhumi\Academy\Live\LiveSessions::remind((int) $live, 'now') >= 1);
+$told = NirogBhumi\Academy\Live\LiveSessions::set_cancelled((int) $live, true);
+$check('live: cancelling tells participants', $told >= 1 && NirogBhumi\Academy\Live\LiveSessions::info((int) $live)['phase'] === 'cancelled');
+$check('live: cancelling twice does not notify again', NirogBhumi\Academy\Live\LiveSessions::set_cancelled((int) $live, true) === 0);
+$wpdb->delete(Installer::table('attendance'), ['session_id' => (int) $live]);
+
 // ---------------------------------------------------------------- cleanup
 foreach ($created_users as $id) {
   $wpdb->delete(Installer::table('enrollments'), ['user_id' => $id]);

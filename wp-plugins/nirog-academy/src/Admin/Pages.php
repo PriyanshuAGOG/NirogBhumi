@@ -159,6 +159,115 @@ final class Pages {
     self::footer();
   }
 
+  // ------------------------------------------------------------ live desk
+
+  /**
+   * For hosts and the technical team: every session in the coming days with
+   * its link, private notes, host and attendance, in one place.
+   */
+  public static function live_desk(): void {
+    $mine = isset($_GET['mine']) ? (bool) absint($_GET['mine']) : !current_user_can('edit_nba_items');
+    $me = get_current_user_id();
+    $sessions = get_posts([
+      'post_type' => PostTypes::LIVE,
+      'post_status' => ['publish', 'draft'],
+      'numberposts' => 100,
+      'meta_key' => '_nba_starts_at',
+      'orderby' => 'meta_value',
+      'order' => 'ASC',
+      'meta_query' => [['key' => '_nba_starts_at', 'value' => [Time::add_days(Time::now(), -7), Time::add_days(Time::now(), 21)], 'compare' => 'BETWEEN', 'type' => 'DATETIME']],
+    ]);
+    $groups = ['now' => [], 'today' => [], 'soon' => [], 'past' => []];
+    $today_end = (new \DateTimeImmutable('tomorrow', wp_timezone()))->getTimestamp();
+    foreach ($sessions as $s) {
+      $info = \NirogBhumi\Academy\Live\LiveSessions::info($s);
+      if ($mine && $info['host'] !== $me) {
+        continue;
+      }
+      $info['status'] = $s->post_status;
+      $key = match (true) {
+        in_array($info['phase'], ['open', 'live'], true) => 'now',
+        $info['phase'] === 'ended' => 'past',
+        $info['start'] < $today_end => 'today',
+        default => 'soon',
+      };
+      $groups[$key][] = $info;
+    }
+    $groups['past'] = array_reverse($groups['past']);
+
+    self::header(__('Live desk', 'nirog-academy'), __('Everything the host and the technical team need for live sessions: when, the meeting link, private notes and who has joined. Sessions are created and edited in the Course Studio.', 'nirog-academy'));
+    echo '<p><a href="' . esc_url(add_query_arg('mine', $mine ? 0 : 1)) . '">' . esc_html($mine ? __('Show all sessions', 'nirog-academy') : __('Show only sessions I host', 'nirog-academy')) . '</a>';
+    if (current_user_can('edit_nba_items')) {
+      echo ' · <a href="' . esc_url(admin_url('admin.php?page=nirog-academy')) . '">' . esc_html__('Course Studio', 'nirog-academy') . '</a>';
+    }
+    echo '</p>';
+    $titles = [
+      'now' => __('Happening now', 'nirog-academy'),
+      'today' => __('Later today', 'nirog-academy'),
+      'soon' => __('Next three weeks', 'nirog-academy'),
+      'past' => __('Last seven days', 'nirog-academy'),
+    ];
+    $any = false;
+    foreach ($groups as $key => $list) {
+      if (!$list) {
+        continue;
+      }
+      $any = true;
+      echo '<h2>' . esc_html($titles[$key]) . '</h2><div class="nba-desk">';
+      foreach ($list as $i) {
+        $attended = \NirogBhumi\Academy\Live\LiveSessions::attendance_count($i['id']);
+        echo '<article class="nba-desk-row' . ($key === 'now' ? ' is-now' : '') . ($i['cancelled'] ? ' is-cancelled' : '') . '">';
+        echo '<div class="nba-desk-when"><strong>' . esc_html(wp_date('D j M', $i['start'])) . '</strong><br>' . esc_html(wp_date('g:i a', $i['start']) . ' – ' . wp_date('g:i a', $i['end'])) . '</div>';
+        echo '<div class="nba-desk-main"><strong class="nba-desk-title">' . esc_html($i['title']) . '</strong>';
+        $bits = [get_the_title($i['programme']), $i['kind'] === 'stream' ? __('YouTube Live', 'nirog-academy') : __('Meeting', 'nirog-academy'), $i['host_name'] ? sprintf(
+          /* translators: %s: host */
+          __('Host: %s', 'nirog-academy'),
+          $i['host_name']
+        ) : __('No host chosen', 'nirog-academy')];
+        if ($i['cancelled']) {
+          $bits[] = __('CANCELLED', 'nirog-academy');
+        } elseif ($i['status'] !== 'publish') {
+          $bits[] = __('Draft — participants cannot see it', 'nirog-academy');
+        }
+        echo '<div class="description">' . esc_html(implode(' · ', array_filter($bits))) . '</div>';
+        if ($i['notes']) {
+          echo '<div class="nba-desk-notes">' . nl2br(esc_html($i['notes'])) . '</div>';
+        }
+        echo '</div><div class="nba-desk-actions">';
+        if ($i['link']) {
+          echo '<a class="button button-primary" href="' . esc_url($i['link']) . '" target="_blank" rel="noopener">' . esc_html($i['kind'] === 'stream' ? __('Open YouTube', 'nirog-academy') : __('Open meeting', 'nirog-academy')) . '</a> ';
+        } else {
+          echo '<span class="description">' . esc_html__('No link yet', 'nirog-academy') . '</span> ';
+        }
+        echo '<a class="button" href="' . esc_url(\NirogBhumi\Academy\Live\LiveSessions::url($i['id'])) . '" target="_blank" rel="noopener">' . esc_html__('Participant page', 'nirog-academy') . '</a>';
+        if ($key !== 'past' && !$i['cancelled'] && $i['status'] === 'publish') {
+          self::form('live_remind');
+          echo '<input type="hidden" name="session_id" value="' . (int) $i['id'] . '"><button class="button" onclick="return confirm(\'' . esc_js(__('Send a reminder to everyone in this session now?', 'nirog-academy')) . '\')">' . esc_html__('Send reminder', 'nirog-academy') . '</button></form>';
+        }
+        echo '<details><summary>' . esc_html(sprintf(
+          /* translators: %d: number of people */
+          _n('%d joined', '%d joined', $attended, 'nirog-academy'),
+          $attended
+        )) . '</summary><ul>';
+        foreach (\NirogBhumi\Academy\Live\LiveSessions::attendance($i['id']) as $p) {
+          echo '<li>' . self::participant_link($p['user_id'], $p['name']) . ' <span class="description">' . esc_html($p['joined']) . '</span></li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        }
+        echo '</ul></details></div></article>';
+      }
+      echo '</div>';
+    }
+    if (!$any) {
+      echo '<p>' . esc_html($mine ? __('You are not hosting any sessions in the next three weeks.', 'nirog-academy') : __('No sessions in the last week or the next three weeks.', 'nirog-academy')) . '</p>';
+    }
+    echo '<div class="nba-panel nba-narrow" style="margin-top:28px"><h2>' . esc_html__('How a session runs', 'nirog-academy') . '</h2><ol>';
+    echo '<li>' . esc_html__('Before: the session is set up in the Course Studio with a time, a host, the meeting or YouTube link, and team notes. Participants get a reminder the day before.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('15–30 minutes before: a second reminder goes out. The Join button (or the stream) appears on the participant page 15 minutes before the start.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('The host starts the meeting (or the YouTube stream) from their own Zoom, Meet or YouTube account using the link above.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('Participants join through the Academy, which counts attendance here.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('After: add the recording as a lesson in the Studio and link it to the session.', 'nirog-academy') . '</li></ol></div>';
+    self::footer();
+  }
+
   // ------------------------------------------------------------ enrollments
 
   public static function enrollments(): void {
@@ -607,7 +716,7 @@ final class Pages {
 
     echo '<h2>' . esc_html__('Launch', 'nirog-academy') . '</h2><table class="form-table"><tbody>';
     $field(__('Academy status', 'nirog-academy'), self::select($name . '[launch_mode]', [
-      'closed' => __('Closed — only staff can see lessons', 'nirog-academy'),
+      'closed' => __('Closed — hidden: everyone except staff gets "page not found"; participant emails are held', 'nirog-academy'),
       'preview' => __('Preview — participants can log in and watch free preview lessons only', 'nirog-academy'),
       'open' => __('Open — enrolled participants have full access', 'nirog-academy'),
     ], $s['launch_mode']));

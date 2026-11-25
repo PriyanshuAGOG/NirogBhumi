@@ -211,6 +211,9 @@ final class Scheduler {
       ],
     ]);
     foreach ($sessions as $session) {
+      if (get_post_meta($session->ID, '_nba_cancelled', true) === '1') {
+        continue;
+      }
       $starts = Time::ts((string) get_post_meta($session->ID, '_nba_starts_at', true));
       $minutes_left = ($starts - time()) / 60;
       $stage = null;
@@ -223,27 +226,10 @@ final class Scheduler {
         continue;
       }
       update_post_meta($session->ID, '_nba_reminded_' . $stage, Time::now());
-      $programme_id = (int) get_post_meta($session->ID, '_nba_programme_id', true);
-      $cohort_id = (int) get_post_meta($session->ID, '_nba_cohort_id', true);
-      $users = array_unique(array_map(static fn($e) => (int) $e->user_id, nba()->enrollments->all_active($programme_id, $cohort_id)));
-      foreach ($users as $user_id) {
-        I18n::with_user_locale($user_id, static function () use ($user_id, $session, $stage): void {
-          $when = Time::human_time((string) get_post_meta($session->ID, '_nba_starts_at', true));
-          $title = $stage === '15m'
-            /* translators: %s: session title */
-            ? sprintf(__('Starting soon: %s', 'nirog-academy'), $session->post_title)
-            /* translators: %s: session title */
-            : sprintf(__('Tomorrow: %s', 'nirog-academy'), $session->post_title);
-          nba()->notifications->create($user_id, 'live', $title, $when, Router::url('live'), 'live-' . $session->ID . '-' . $stage);
-          if (Notifications::wants($user_id, 'reminders')) {
-            nba()->notifications->email($user_id, $title, $session->post_title, [
-              /* translators: %s: date and time */
-              sprintf(__('Live session: %s', 'nirog-academy'), $when),
-              __('The join button appears on the Live Sessions page 15 minutes before the start.', 'nirog-academy'),
-            ], __('Go to live sessions', 'nirog-academy'), Router::url('live'));
-          }
-        });
+      if ($stage === '15m') {
+        update_post_meta($session->ID, '_nba_reminded_24h', Time::now());
       }
+      \NirogBhumi\Academy\Live\LiveSessions::remind($session->ID, $stage);
     }
   }
 

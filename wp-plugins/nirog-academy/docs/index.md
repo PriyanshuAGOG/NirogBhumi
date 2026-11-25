@@ -29,7 +29,8 @@ Participant articles are shown in the Academy Help Center (`/academy/help/`). Ad
 | --- | --- | --- |
 | admin-setup-checklist | setup-checklist.md | Install to launch, in order |
 | admin-create-a-programme | create-a-programme.md | The Course Studio: weeks, lessons, booklets, bonus, live sessions |
-| admin-booklets | booklets.md | Weekly PDF booklets: preparing, adding, reading, protection |
+| admin-booklets | booklets.md | Weekly PDF booklets: preparing, covers, the flipbook reader, protection |
+| admin-live-sessions | live-sessions.md | Live classes: Zoom/Meet or YouTube Live, host and team roles, Live desk, cancel, recordings |
 | admin-prepare-and-upload-videos | prepare-and-upload-videos.md | Encoding, uploading, importing videos |
 | admin-enrollments-and-payments | enrollments-and-payments.md | WooCommerce, payment links, manual access, refunds |
 | admin-batches-and-release | batches-and-release.md | Self-paced vs batch, opening days |

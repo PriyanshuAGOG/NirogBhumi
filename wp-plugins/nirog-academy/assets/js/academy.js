@@ -78,6 +78,57 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) { setOpen(false); } });
   }
 
+  /* ---------------------------------------------------------------- 3D books */
+
+  // Colour each book's spine from its cover, like a printed book.
+  document.querySelectorAll('.nba-b3').forEach(function (book) {
+    var img = book.querySelector('.nba-b3-front img');
+    if (!img) { return; }
+    var tint = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = 8; c.height = 24;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, Math.max(1, img.naturalWidth * 0.08), img.naturalHeight, 0, 0, 8, 24);
+        var d = ctx.getImageData(0, 0, 8, 24).data, r = 0, g = 0, b = 0, n = d.length / 4;
+        for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+        r = Math.round(r / n * 0.82); g = Math.round(g / n * 0.82); b = Math.round(b / n * 0.82);
+        book.style.setProperty('--b3-spine', 'rgb(' + r + ',' + g + ',' + b + ')');
+        var light = (r * 299 + g * 587 + b * 114) / 1000 > 150;
+        var label = book.querySelector('.nba-b3-spine span');
+        if (label && light) { label.style.color = 'rgba(48,69,53,.85)'; }
+      } catch (e) { /* keep the default spine colour */ }
+    };
+    if (img.complete && img.naturalWidth) { tint(); } else { img.addEventListener('load', tint); }
+  });
+
+  // The large book on a booklet page can be turned by dragging it.
+  var heroBook = document.querySelector('.nba-b3.is-hero');
+  if (heroBook) {
+    var obj = heroBook.querySelector('.nba-b3-obj');
+    var startX = 0, startY = 0, baseY = 22, baseX = 4, rotY = 22, rotX = 4, dragging = false;
+    var set = function () { obj.style.transform = 'rotateY(' + rotY + 'deg) rotateX(' + rotX + 'deg)'; };
+    heroBook.addEventListener('pointerdown', function (e) {
+      dragging = true; startX = e.clientX; startY = e.clientY; baseY = rotY; baseX = rotX;
+      heroBook.classList.add('is-dragging');
+      heroBook.setPointerCapture(e.pointerId);
+    });
+    heroBook.addEventListener('pointermove', function (e) {
+      if (!dragging) { return; }
+      rotY = Math.max(-70, Math.min(160, baseY + (e.clientX - startX) * 0.5));
+      rotX = Math.max(-18, Math.min(18, baseX - (e.clientY - startY) * 0.2));
+      set();
+    });
+    var release = function () {
+      if (!dragging) { return; }
+      dragging = false;
+      heroBook.classList.remove('is-dragging');
+      rotY = 22; rotX = 4; set();
+    };
+    heroBook.addEventListener('pointerup', release);
+    heroBook.addEventListener('pointercancel', release);
+  }
+
   /* ---------------------------------------------------------------- lesson page */
 
   var page = document.querySelector('.nba-lesson-page');
@@ -140,98 +191,178 @@
   var tracker = null;
 
 
-  /* Booklet reader: renders the PDF on screen with PDF.js (bundled locally). */
-  var readerEl = page.querySelector('.nba-reader');
-  if (readerEl) { tracker = initReader(readerEl); }
+  /*
+   * Booklet flipbook: PDF.js draws the pages, page-flip turns them (two-page
+   * spread on wide screens, one page on phones). Pages are drawn only when
+   * they are about to be seen, and every page seen is reported for progress.
+   */
+  var readerEl = page.querySelector('.nba-flipbook');
+  if (readerEl) { tracker = initFlipbook(readerEl); }
 
-  function initReader(root) {
+  function loadClassic(src, globalName) {
+    return new Promise(function (resolve, reject) {
+      if (window[globalName]) { resolve(window[globalName]); return; }
+      var s2 = document.createElement('script');
+      s2.src = src;
+      s2.onload = function () { resolve(window[globalName]); };
+      s2.onerror = reject;
+      document.head.appendChild(s2);
+    });
+  }
+
+  function initFlipbook(root) {
     var conf = JSON.parse(root.dataset.config || '{}');
-    var pagesEl = root.querySelector('.nba-reader-pages');
-    var label = root.querySelector('.nba-reader-page');
+    var stage = root.querySelector('.nba-fb-stage');
+    var msg = root.querySelector('.nba-fb-msg');
+    var count = root.querySelector('.nba-fb-count');
+    var index = root.querySelector('.nba-fb-index');
+    var btnPrev = root.querySelector('[data-act=prev]');
+    var btnNext = root.querySelector('[data-act=next]');
     var status = page.querySelector('.nba-reader-status');
-    var pdf = null, total = 0, current = 1, zoom = 1, ratio = 1.414;
-    var sheets = [], rendered = {}, reportTimer = null, lastReported = 0, pending = Promise.resolve();
+    var pdf = null, flip = null, total = 0, ratio = 1.414;
+    var drawn = {}, seen = {}, queue = [], sending = false;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    (conf.read || '').split('').forEach(function (c, i) { if (c === '1') { seen[i + 1] = true; } });
 
-    function setLabel() { label.textContent = t('page').replace('%1$d', current).replace('%2$d', total); }
-    function baseWidth() { return Math.min(pagesEl.clientWidth - 26, 920); }
-
-    function render(i) {
-      if (rendered[i] || !pdf) { return; }
-      rendered[i] = true;
-      var sheetEl = sheets[i - 1];
-      pdf.getPage(i).then(function (pg) {
+    function draw(n) {
+      if (n < 1 || n > total || drawn[n] || !pdf) { return; }
+      drawn[n] = true;
+      var holder = stage.querySelector('[data-page="' + n + '"]');
+      pdf.getPage(n).then(function (pg) {
         var unit = pg.getViewport({ scale: 1 });
-        var cssWidth = baseWidth() * zoom;
+        var bounds = flip && flip.getBoundsRect ? flip.getBoundsRect() : null;
+        var cssWidth = Math.max((bounds && bounds.pageWidth) || holder.clientWidth || 0, 300);
         var vp = pg.getViewport({ scale: (cssWidth / unit.width) * dpr });
         var canvas = document.createElement('canvas');
         canvas.width = Math.floor(vp.width);
         canvas.height = Math.floor(vp.height);
-        canvas.style.width = cssWidth + 'px';
         canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-        sheetEl.innerHTML = '';
-        sheetEl.style.width = cssWidth + 'px';
-        sheetEl.style.height = '';
-        sheetEl.appendChild(canvas);
+        holder.innerHTML = '';
+        holder.appendChild(canvas);
         if (cfg.watermark) {
           var mark = document.createElement('div');
           mark.className = 'nba-watermark';
           mark.textContent = cfg.watermark;
-          mark.style.left = (8 + (i * 37) % 50) + '%';
-          mark.style.top = (12 + (i * 53) % 70) + '%';
-          sheetEl.appendChild(mark);
+          mark.style.left = (8 + (n * 37) % 46) + '%';
+          mark.style.top = (14 + (n * 53) % 66) + '%';
+          holder.appendChild(mark);
         }
-        var no = document.createElement('span');
-        no.className = 'nba-page-no';
-        no.textContent = i + ' / ' + total;
-        sheetEl.appendChild(no);
         return pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      }).catch(function () { rendered[i] = false; });
+      }).catch(function () { drawn[n] = false; });
     }
 
-    function sizePlaceholders() {
-      var w = baseWidth() * zoom;
-      sheets.forEach(function (sheetEl, idx) {
-        if (!rendered[idx + 1]) { sheetEl.style.width = w + 'px'; sheetEl.style.height = (w * ratio) + 'px'; }
+    function visiblePages() {
+      var i = flip.getCurrentPageIndex() + 1;
+      var spread = flip.getOrientation() === 'landscape';
+      // In a spread the cover sits alone; after it, pages come in pairs.
+      if (!spread || i === 1 || i === total) { return [i]; }
+      var left = i % 2 === 0 ? i : i - 1;
+      return [left, Math.min(total, left + 1)];
+    }
+
+    var sent = {};
+    function report(n) {
+      seen[n] = true;
+      if (sent[n]) { return; } // Each page is reported once per visit.
+      sent[n] = true;
+      queue.push(n);
+      pump();
+    }
+    function pump() {
+      if (sending || !queue.length) { return; }
+      sending = true;
+      var n = queue.shift();
+      api('lessons/' + conf.lesson + '/pages', { page: n, total: total }).then(function (r) {
+        if (r.ok && r.data && r.data.completed) { conf.completed = true; markCompleted(); }
+      }).catch(function () {}).then(function () { sending = false; pump(); });
+    }
+
+    function update() {
+      var vis = visiblePages();
+      vis.forEach(function (n) { report(n); });
+      var first = vis[0], last = vis[vis.length - 1];
+      for (var k = first - 2; k <= last + 3; k++) { draw(k); }
+      count.textContent = vis.length > 1
+        ? t('pages').replace('%1$d', first).replace('%2$d', last).replace('%3$d', total)
+        : t('page').replace('%1$d', first).replace('%2$d', total);
+      btnPrev.disabled = first <= 1;
+      btnNext.disabled = last >= total;
+      Array.prototype.forEach.call(index.children, function (b) {
+        var n = parseInt(b.dataset.page, 10);
+        b.classList.toggle('is-current', vis.indexOf(n) !== -1);
+        b.classList.toggle('is-read', !!seen[n]);
       });
     }
 
-    function report(i) {
-      clearTimeout(reportTimer);
-      reportTimer = setTimeout(function () {
-        if (i === lastReported) { return; }
-        lastReported = i;
-        pending = api('lessons/' + conf.lesson + '/pages', { page: i, total: total }).then(function (r) {
-          if (r.ok && r.data && r.data.completed) { markCompleted(); }
-        }).catch(function () {});
-      }, 700);
-    }
-
-    function goTo(i) {
-      i = Math.max(1, Math.min(total, i));
-      var target = sheets[i - 1];
-      if (target) { pagesEl.scrollTo({ top: target.offsetTop - pagesEl.offsetTop - 12, behavior: 'smooth' }); }
-    }
-
-    function rerender() {
-      rendered = {};
-      sheets.forEach(function (s2) { s2.innerHTML = ''; });
-      sizePlaceholders();
-      render(current);
-      render(Math.min(total, current + 1));
+    function build() {
+      var pages = [];
+      for (var i = 1; i <= total; i++) {
+        var d = document.createElement('div');
+        d.className = 'nba-fb-page';
+        d.dataset.page = String(i);
+        d.dataset.density = (i === 1 || i === total) ? 'hard' : 'soft';
+        stage.appendChild(d);
+        pages.push(d);
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.page = String(i);
+        b.textContent = String(i);
+        index.appendChild(b);
+      }
+      // Fit the book to the window: a page is never taller than the screen.
+      var maxH = Math.max(360, window.innerHeight - (document.fullscreenElement ? 120 : 230));
+      var pageW = Math.floor(maxH / ratio);
+      stage.style.maxWidth = (pageW * 2) + 'px';
+      flip = new window.St.PageFlip(stage, {
+        width: pageW,
+        height: Math.round(pageW * ratio),
+        size: 'stretch',
+        minWidth: 220,
+        maxWidth: pageW,
+        minHeight: Math.round(220 * ratio),
+        maxHeight: maxH,
+        showCover: true,
+        usePortrait: true,
+        mobileScrollSupport: true,
+        maxShadowOpacity: 0.35,
+        flippingTime: 650,
+        drawShadow: true,
+        autoSize: true,
+      });
+      flip.loadFromHTML(pages);
+      flip.on('flip', update);
+      flip.on('changeOrientation', function () { drawn = {}; update(); });
+      msg.hidden = true;
+      if (conf.resume > 1) { flip.turnToPage(Math.min(total, conf.resume) - 1); }
+      // Draw once the book has its final size.
+      requestAnimationFrame(function () { drawn = {}; update(); });
     }
 
     root.addEventListener('click', function (e) {
-      var act = e.target.getAttribute && e.target.getAttribute('data-act');
-      if (!act || !pdf) { return; }
-      if (act === 'prev') { goTo(current - 1); }
-      if (act === 'next') { goTo(current + 1); }
-      if (act === 'in') { zoom = Math.min(2.5, zoom + 0.25); rerender(); }
-      if (act === 'out') { zoom = Math.max(0.5, zoom - 0.25); rerender(); }
-      if (act === 'fit') { zoom = 1; rerender(); }
+      var el = e.target.closest ? e.target.closest('[data-act],[data-page]') : null;
+      if (!el || !flip) { return; }
+      if (el.dataset.page && el.parentNode === index) { flip.flip(parseInt(el.dataset.page, 10) - 1); return; }
+      var act = el.dataset.act;
+      if (act === 'prev') { flip.flipPrev(); }
+      if (act === 'next') { flip.flipNext(); }
+      if (act === 'index') { index.hidden = !index.hidden; el.setAttribute('aria-expanded', index.hidden ? 'false' : 'true'); }
+      if (act === 'full') {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else if (root.requestFullscreen) { root.requestFullscreen().catch(function () {}); }
+      }
+    });
+    var redraw = function () { if (flip) { flip.update(); drawn = {}; update(); } };
+    document.addEventListener('fullscreenchange', function () { setTimeout(redraw, 200); });
+    var resizeTimer = null;
+    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(redraw, 300); });
+    document.addEventListener('keydown', function (e) {
+      if (!flip || /input|textarea|select/i.test((document.activeElement || {}).tagName || '')) { return; }
+      if (e.key === 'ArrowRight') { flip.flipNext(); }
+      if (e.key === 'ArrowLeft') { flip.flipPrev(); }
     });
 
-    import(cfg.pdfjs).then(function (lib) {
+    Promise.all([import(cfg.pdfjs), loadClassic(cfg.pageflip, 'St')]).then(function (libs) {
+      var lib = libs[0];
       lib.GlobalWorkerOptions.workerSrc = cfg.pdfWorker;
       return lib.getDocument({ url: conf.url, withCredentials: true, isEvalSupported: false }).promise;
     }).then(function (doc) {
@@ -241,35 +372,19 @@
         var v = first.getViewport({ scale: 1 });
         ratio = v.height / v.width;
       });
-    }).then(function () {
-      pagesEl.innerHTML = '';
-      for (var i = 1; i <= total; i++) {
-        var sheetEl = document.createElement('div');
-        sheetEl.className = 'nba-page-sheet';
-        sheetEl.dataset.page = String(i);
-        pagesEl.appendChild(sheetEl);
-        sheets.push(sheetEl);
-      }
-      sizePlaceholders();
-      var seen = new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) {
-          var n = parseInt(en.target.dataset.page, 10);
-          if (en.isIntersecting) {
-            render(n);
-            render(Math.min(total, n + 1));
-            if (en.intersectionRatio >= 0.5) { current = n; setLabel(); report(n); }
-          }
-        });
-      }, { root: pagesEl, threshold: [0, 0.5] });
-      sheets.forEach(function (s2) { seen.observe(s2); });
-      setLabel();
-      if (conf.resume > 1) { setTimeout(function () { goTo(conf.resume); }, 150); }
-      if (total <= 1) { report(1); }
-    }).catch(function () {
-      pagesEl.innerHTML = '<p class="nba-reader-msg">' + t('bookletError') + '</p>';
+    }).then(build).catch(function () {
+      msg.hidden = false;
+      msg.textContent = t('bookletError');
     });
 
-    return { flush: function () { clearTimeout(reportTimer); if (current !== lastReported && total) { lastReported = current; return api('lessons/' + conf.lesson + '/pages', { page: current, total: total }); } return pending; } };
+    return {
+      flush: function () {
+        return new Promise(function (resolve) {
+          var wait = function () { if (!sending && !queue.length) { resolve(); } else { setTimeout(wait, 150); } };
+          wait();
+        });
+      },
+    };
   }
 
   if (media && player && player.src) {

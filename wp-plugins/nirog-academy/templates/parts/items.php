@@ -57,7 +57,8 @@ $live = $live ?? [];
     $ts = Time::ts((string) get_post_meta($session->ID, '_nba_starts_at', true));
     $past = $ts + 60 * max(5, (int) get_post_meta($session->ID, '_nba_duration_min', true)) < time();
     $recording = (int) get_post_meta($session->ID, '_nba_recording_lesson_id', true);
-    $url = $past && $recording ? Router::lesson_url($recording) : Router::url('live');
+    $cancelled = get_post_meta($session->ID, '_nba_cancelled', true) === '1';
+    $url = $past && $recording ? Router::lesson_url($recording) : \NirogBhumi\Academy\Live\LiveSessions::url($session->ID);
     ?>
     <li>
       <a class="nba-item nba-item-live<?php echo $past ? ' is-completed' : ''; ?>" href="<?php echo esc_url($url); ?>">
@@ -66,7 +67,7 @@ $live = $live ?? [];
           <span class="nba-item-title"><?php echo esc_html($session->post_title); ?></span>
           <span class="nba-item-meta"><?php echo esc_html(wp_date('l, j M · g:i a', $ts)); ?></span>
         </span>
-        <span class="nba-item-state"><?php echo esc_html($past ? ($recording ? __('Recording', 'nirog-academy') : __('Done', 'nirog-academy')) : __('Details', 'nirog-academy')); ?></span>
+        <span class="nba-item-state"><?php echo esc_html($cancelled ? __('Cancelled', 'nirog-academy') : ($past ? ($recording ? __('Recording', 'nirog-academy') : __('Done', 'nirog-academy')) : __('Details', 'nirog-academy'))); ?></span>
       </a>
     </li>
   <?php endforeach; ?>

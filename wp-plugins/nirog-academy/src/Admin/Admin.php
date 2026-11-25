@@ -51,6 +51,7 @@ final class Admin {
     $pages = [
       [self::SLUG, $can_edit ? __('Course Studio', 'nirog-academy') : __('Overview', 'nirog-academy'), 'nba_view_participants', $can_edit ? 'studio' : 'overview'],
       ['nba-overview', __('Overview', 'nirog-academy'), 'nba_view_participants', 'overview'],
+      ['nba-live-desk', __('Live desk', 'nirog-academy'), 'nba_view_participants', 'live_desk'],
       ['nba-enrollments', __('Enrollments', 'nirog-academy'), 'nba_manage_enrollments', 'enrollments'],
       ['nba-participant', __('Participant', 'nirog-academy'), 'nba_view_participants', 'participant'],
       ['nba-batches', __('Batches', 'nirog-academy'), 'edit_nba_items', 'batches'],
@@ -138,7 +139,7 @@ final class Admin {
     if (nba()->settings->get('launch_mode') === 'closed') {
       echo '<div class="notice notice-info"><p>' . wp_kses_post(sprintf(
         /* translators: %s: settings URL */
-        __('The Academy is <strong>closed</strong>: only staff can see lessons. Open it in <a href="%s">Academy → Settings</a> when you are ready.', 'nirog-academy'),
+        __('The Academy is <strong>closed</strong>: it is hidden from everyone except staff, and participant emails are held until you open it. Open it in <a href="%s">Academy → Settings</a> when you are ready.', 'nirog-academy'),
         esc_url(admin_url('admin.php?page=nba-settings'))
       )) . '</p></div>';
     }

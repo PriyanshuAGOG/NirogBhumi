@@ -300,6 +300,9 @@ final class WooBridge {
 
   public static function account_menu(array $items): array {
     $user_id = get_current_user_id();
+    if (Router::is_locked_for($user_id)) {
+      return $items;
+    }
     if (!$user_id || (!nba()->enrollments->for_user($user_id) && !Roles::is_staff($user_id))) {
       return $items;
     }
@@ -320,6 +323,10 @@ final class WooBridge {
   public static function thank_you(int $order_id): void {
     $order = wc_get_order($order_id);
     if (!$order || !self::programmes_in_order($order)) {
+      return;
+    }
+    if (Router::is_locked_for(get_current_user_id())) {
+      echo '<section class="nba-thankyou" style="margin:24px 0;padding:24px;border:1px solid #d8d0c0;border-radius:8px;background:#f8f6ef"><p>' . esc_html__('Thank you. Your place is confirmed. We will email you your login details when the programme opens.', 'nirog-academy') . '</p></section>';
       return;
     }
     echo '<section class="nba-thankyou" style="margin:24px 0;padding:24px;border:1px solid #d8d0c0;border-radius:8px;background:#f8f6ef">';

@@ -212,6 +212,16 @@ final class Installer {
   KEY created_at (created_at)
 ) $c;";
 
+    $sql[] = 'CREATE TABLE ' . self::table('attendance') . " (
+  session_id bigint(20) unsigned NOT NULL,
+  user_id bigint(20) unsigned NOT NULL,
+  first_joined_at datetime NOT NULL,
+  last_joined_at datetime NOT NULL,
+  joins int(11) NOT NULL DEFAULT 1,
+  PRIMARY KEY  (session_id,user_id),
+  KEY user_id (user_id)
+) $c;";
+
     foreach ($sql as $statement) {
       dbDelta($statement);
     }

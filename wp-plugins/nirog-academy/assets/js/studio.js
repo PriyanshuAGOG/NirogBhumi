@@ -49,6 +49,37 @@
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
   function minutes(sec) { if (!sec) { return '—'; } var m = Math.round(sec / 60); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; }
 
+  /*
+   * Booklet cover: draw the PDF's first page in the browser and upload it as
+   * an image, with the page count. Covers are what participants see on the
+   * shelf, so they always match the real booklet.
+   */
+  function makeCover(itemId, pdfUrl) {
+    return import(CFG.pdfjs).then(function (lib) {
+      lib.GlobalWorkerOptions.workerSrc = CFG.pdfWorker;
+      return lib.getDocument({ url: pdfUrl, withCredentials: true, isEvalSupported: false }).promise;
+    }).then(function (doc) {
+      return doc.getPage(1).then(function (pg) {
+        var unit = pg.getViewport({ scale: 1 });
+        var vp = pg.getViewport({ scale: 900 / unit.width });
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.floor(vp.width);
+        canvas.height = Math.floor(vp.height);
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        return pg.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
+          return new Promise(function (resolve) { canvas.toBlob(function (b) { resolve({ blob: b, pages: doc.numPages }); }, 'image/jpeg', 0.86); });
+        });
+      });
+    }).then(function (res) {
+      var form = new FormData();
+      form.append('file', res.blob, 'cover.jpg');
+      form.append('pages', String(res.pages));
+      return api('items/' + itemId + '/cover', { method: 'POST', form: form });
+    });
+  }
+
   function TypeTag(props) {
     return html`<span className=${'st-tag st-tag-' + props.type}>${(TYPES[props.type] || { short: props.type }).short}</span>`;
   }
@@ -132,7 +163,7 @@
 
     return html`<div className="st-app">
       <header className="st-top">
-        <a className="st-brand" href="#/">Nirog Bhumi <em>Course Studio</em></a>
+        <a className="st-brand" href="#/">Nirog Bhumi <span>Course Studio</span></a>
         <nav className="st-top-nav">
           <a href="#/" className=${route.screen === 'home' || route.screen === 'programme' ? 'is-active' : ''}>Programmes</a>
           <a href="#/library" className=${route.screen === 'library' ? 'is-active' : ''}>Video library</a>
@@ -168,7 +199,7 @@
     return html`<main className="st-page">
       <section className="st-hero">
         <p className="st-eyebrow">${greet}, ${CFG.firstName}</p>
-        <h1>Design your <em>programmes</em></h1>
+        <h1>Your programmes</h1>
         <p className="st-lead">Weeks, recorded lessons, audio practices, booklets, bonus content and live sessions — all in one place. Changes save as you work.</p>
         ${creating
           ? html`<form className="st-inline-form" onSubmit=${create}>
@@ -439,12 +470,12 @@
       return html`<button type="button" key=${l.id} className=${'st-live-row' + (props.sel && props.sel.id === l.id ? ' is-selected' : '') + (l.status !== 'publish' ? ' is-draft' : '')} onClick=${function () { props.setSel({ kind: 'live', id: l.id }); }}>
         <span className="st-live-when">${l.starts_label}</span>
         <span className="st-row-title">${l.title}</span>
-        <span className="st-row-meta">${[weekName(l.week), l.join_url ? 'Join link set' : 'No join link yet', l.recording ? 'Recording linked' : ''].filter(Boolean).join(' · ')}</span>
-        <span className="st-row-status">${l.status === 'publish' ? '' : 'Draft'}</span>
+        <span className="st-row-meta">${[l.kind === 'stream' ? 'YouTube Live' : 'Meeting', l.host_name ? 'Host: ' + l.host_name : 'No host', weekName(l.week), l.join_url ? '' : 'No link yet', l.past && l.attended ? l.attended + ' attended' : '', l.recording ? 'Recording linked' : ''].filter(Boolean).join(' · ')}</span>
+        <span className="st-row-status">${l.cancelled ? 'Cancelled' : l.status === 'publish' ? '' : 'Draft'}</span>
       </button>`;
     };
     return html`<section className="st-weeks">
-      <p className="st-note">Participants see live sessions on their Live page and inside the week they belong to. Reminders go out the day before and shortly before the start. The join button appears 15 minutes before.</p>
+      <p className="st-note">Each session has its own page in the Academy. Participants join from there: a meeting link opens Zoom or Google Meet, a YouTube Live stream plays right on the page. Reminders go out the day before and shortly before the start. Hosts see their sessions, links and team notes on <a href=${CFG.links.liveDesk}>Academy → Live desk</a>.</p>
       <div className="st-split-head"><h2 className="st-h2">Upcoming</h2><button className="st-btn" onClick=${function () { props.addLive(0); }}>Schedule a session</button></div>
       <div className="st-live-list">${upcoming.length ? upcoming.map(row) : html`<p className="st-empty-week">Nothing scheduled.</p>`}</div>
       ${past.length ? html`<h2 className="st-h2">Past</h2><div className="st-live-list">${past.map(row)}</div>` : null}
@@ -483,7 +514,7 @@
     var d = auto[0], set = auto[1], setDraft = auto[2];
     var up = useState(''), uploading = up[0], setUploading = up[1];
     var ue = useState(''), uploadError = ue[0], setUploadError = ue[1];
-    var bookletInput = useRef(null), fileInput = useRef(null);
+    var bookletInput = useRef(null), fileInput = useRef(null), coverInput = useRef(null);
 
     var upload = function (kind, file) {
       if (!file) { return; }
@@ -491,8 +522,13 @@
       var form = new FormData();
       form.append('file', file);
       setUploading(kind); setUploadError('');
-      props.track(api('items/' + it.id + '/' + (kind === 'booklet' ? 'booklet' : 'files'), { method: 'POST', form: form }))
-        .then(function (fresh) { setDraft(function (x) { return Object.assign({}, x, { file: fresh.file, resources: fresh.resources }); }); props.onSaved(fresh); })
+      var endpoint = kind === 'booklet' ? 'booklet' : kind === 'cover' ? 'cover' : 'files';
+      props.track(api('items/' + it.id + '/' + endpoint, { method: 'POST', form: form }))
+        .then(function (fresh) {
+          // After a new PDF, make its cover from the first page.
+          return kind === 'booklet' && fresh.file_url ? makeCover(it.id, fresh.file_url).catch(function () { return fresh; }) : fresh;
+        })
+        .then(function (fresh) { setDraft(function (x) { return Object.assign({}, x, { file: fresh.file, cover: fresh.cover, file_url: fresh.file_url, resources: fresh.resources }); }); props.onSaved(fresh); })
         .catch(function (err) { setUploadError(err.message); })
         .then(function () { setUploading(''); });
     };
@@ -545,9 +581,15 @@
           <div className=${'st-drop' + (d.file ? ' has-file' : '')}
             onDragOver=${function (e) { e.preventDefault(); }}
             onDrop=${function (e) { e.preventDefault(); upload('booklet', e.dataTransfer.files[0]); }}>
-            ${d.file ? html`<div><strong>${d.file.name}</strong><br/><span className="st-muted">${d.file.size}${d.file.pages ? ' · ' + d.file.pages + ' pages' : ''}</span></div>` : html`<div><strong>Drop the booklet PDF here</strong><br/><span className="st-muted">Up to ${CFG.maxUploadLabel}. Stored privately; participants read it inside the Academy.</span></div>`}
+            ${d.file ? html`<div className="st-booklet-file">
+                ${d.cover ? html`<img className="st-cover-thumb" src=${d.cover} alt="Cover" />` : null}
+                <div><strong>${d.file.name}</strong><br/><span className="st-muted">${d.file.size}${d.file.pages ? ' · ' + d.file.pages + ' pages' : ''}</span>
+                ${uploading === 'booklet' ? html`<br/><span className="st-muted">Making the cover from page 1…</span>` : null}</div>
+              </div>` : html`<div><strong>Drop the booklet PDF here</strong><br/><span className="st-muted">Up to ${CFG.maxUploadLabel}. Stored privately; participants read it inside the Academy as a flipbook. The first page becomes the cover.</span></div>`}
             <button type="button" className="st-btn st-btn-quiet" disabled=${uploading === 'booklet'} onClick=${function () { bookletInput.current.click(); }}>${uploading === 'booklet' ? 'Uploading…' : d.file ? 'Replace PDF' : 'Choose PDF'}</button>
             <input type="file" accept="application/pdf" hidden ref=${bookletInput} onChange=${function (e) { upload('booklet', e.target.files[0]); e.target.value = ''; }} />
+            ${d.file ? html`<button type="button" className="st-link" disabled=${uploading === 'cover'} onClick=${function () { coverInput.current.click(); }}>${uploading === 'cover' ? 'Uploading…' : 'Use a different cover image'}</button>` : null}
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden ref=${coverInput} onChange=${function (e) { upload('cover', e.target.files[0]); e.target.value = ''; }} />
           </div>
           ${h(Check, { checked: d.allow_download, label: 'Also let participants download the PDF', onChange: function (v) { set('allow_download', v, true); } })}
         </${Fragment}>` : null}
@@ -592,26 +634,52 @@
 
   function LiveInspector(props) {
     var l = props.live, prog = props.prog;
+    var autoRef = useRef(l);
     var auto = useAutosave(l, function (patch) {
       var body = Object.assign({}, autoRef.current, patch);
       props.track(api('live/' + l.id, { method: 'POST', body: body })).then(props.onSaved).catch(function () {});
     });
-    var d = auto[0], set = auto[1];
-    var autoRef = useRef(d);
+    var d = auto[0], set = auto[1], setDraft = auto[2];
     autoRef.current = d;
+    var as = useState(null), people = as[0], setPeople = as[1];
+    var ms = useState(''), note = ms[0], setNote = ms[1];
     var lessons = [].concat.apply([], prog.weeks.map(function (w) { return w.items; })).concat(prog.bonus);
+
+    useEffect(function () { api('live/' + l.id + '/attendance').then(setPeople).catch(function () { setPeople([]); }); }, []);
+
     var remove = function () {
-      if (!window.confirm('Delete this live session?')) { return; }
+      if (!window.confirm('Delete this live session? Use "Cancel session" instead if participants should be told.')) { return; }
       props.track(api('live/' + l.id, { method: 'DELETE' })).then(props.onDeleted);
     };
+    var remind = function () {
+      if (!window.confirm('Send a reminder to everyone in this session now (inbox, and email for those who want reminders)?')) { return; }
+      props.track(api('live/' + l.id + '/remind', { method: 'POST' })).then(function (r) { setNote('Reminder sent to ' + plural(r.sent, 'person', 'people') + '.'); }).catch(function (e) { setNote(e.message); });
+    };
+    var cancel = function (on) {
+      if (on && !window.confirm('Cancel this session? Everyone in it is told straight away, in the Academy and by email.')) { return; }
+      props.track(api('live/' + l.id + '/cancel', { method: 'POST', body: { cancelled: on } })).then(function (r) {
+        setDraft(function (x) { return Object.assign({}, x, { cancelled: r.live.cancelled, phase: r.live.phase }); });
+        props.onSaved(r.live);
+        setNote(on ? 'Cancelled. ' + plural(r.notified, 'person was', 'people were') + ' told.' : 'Session restored.');
+      });
+    };
+    var kinds = [
+      ['meeting', 'Meeting link', 'Zoom, Google Meet or Teams. Participants press Join and the meeting opens in that app. Two-way — good for Q&A.'],
+      ['stream', 'YouTube Live', 'An unlisted YouTube live stream that plays inside the Academy page. One-way — good for a guided class with many people.'],
+    ];
+    var phaseLabel = { upcoming: 'Scheduled', open: 'Join is open', live: 'Live now', ended: 'Finished', cancelled: 'Cancelled' }[d.phase] || '';
+
     return html`<aside className="st-inspector" aria-label="Edit live session">
       <header className="st-inspector-head">
         <span className="st-tag st-tag-live">Live</span>
-        <span className="st-muted">Live session · #${l.id}</span>
+        <span className="st-muted">${phaseLabel} · #${l.id}</span>
         <button type="button" className="st-close" onClick=${props.onClose} aria-label="Close">×</button>
       </header>
       <textarea className="st-inspector-title" rows="2" value=${d.title} onChange=${function (e) { set('title', e.target.value); }} aria-label="Title"></textarea>
       ${h(Toggle, { on: d.status === 'publish', onLabel: 'Visible to participants', offLabel: 'Draft — hidden, no reminders', onChange: function (on) { set('status', on ? 'publish' : 'draft', true); } })}
+      ${l.view_url ? html`<a className="st-link" href=${l.view_url} target="_blank" rel="noopener">Open the session page ↗</a>` : null}
+      ${d.cancelled ? html`<p className="st-error">This session is cancelled. Participants see "Cancelled".</p>` : null}
+
       <div className="st-section">
         <h3>When</h3>
         <div className="st-grid-2">
@@ -619,11 +687,27 @@
           ${h(Field, { label: 'Length (minutes)' }, html`<input type="number" min="5" value=${d.duration} onChange=${function (e) { set('duration', parseInt(e.target.value || '60', 10)); }} />`)}
         </div>
       </div>
+
       <div className="st-section">
-        <h3>Where</h3>
-        ${h(Field, { label: 'Join link', help: 'Zoom, Google Meet or similar. Participants see it 15 minutes before the start.' }, html`<input type="url" value=${d.join_url} placeholder="https://" onChange=${function (e) { set('join_url', e.target.value); }} />`)}
-        ${h(Field, { label: 'Details (optional)' }, html`<textarea rows="3" value=${d.description} onChange=${function (e) { set('description', e.target.value); }}></textarea>`)}
+        <h3>How people join</h3>
+        <div className="st-choice-cards st-choice-2" role="radiogroup">
+          ${kinds.map(function (k) {
+            return html`<button type="button" key=${k[0]} role="radio" aria-checked=${d.kind === k[0] ? 'true' : 'false'} className=${'st-choice' + (d.kind === k[0] ? ' is-on' : '')} onClick=${function () { set('kind', k[0], true); }}><strong>${k[1]}</strong><span>${k[2]}</span></button>`;
+          })}
+        </div>
+        ${h(Field, { label: d.kind === 'stream' ? 'YouTube live link' : 'Meeting link', help: d.kind === 'stream' ? 'In YouTube Studio, create the stream as Unlisted, allow embedding, and paste its link here.' : 'Participants never see this link before the session; they join through the Academy, which records attendance.' }, html`<input type="url" value=${d.join_url} placeholder="https://" onChange=${function (e) { set('join_url', e.target.value); }} />`)}
+        ${h(Field, { label: 'What participants should know (optional)', help: 'For example: have a mat and a cushion ready.' }, html`<textarea rows="3" value=${d.description} onChange=${function (e) { set('description', e.target.value); }}></textarea>`)}
       </div>
+
+      <div className="st-section">
+        <h3>Team</h3>
+        ${h(Field, { label: 'Host', help: 'Shown to participants ("With …"). Hosts see this session on Academy → Live desk.' }, html`<select value=${d.host} onChange=${function (e) { set('host', parseInt(e.target.value, 10), true); }}>
+          <option value="0">— No host chosen —</option>
+          ${(prog.team || []).map(function (u) { return html`<option key=${u.id} value=${u.id}>${u.name}</option>`; })}
+        </select>`)}
+        ${h(Field, { label: 'Notes for the team (private)', help: 'Only staff see this: meeting ID, passcode, host key, who runs the slides, what to check before going live.' }, html`<textarea className="st-team-notes" rows="4" value=${d.notes} onChange=${function (e) { set('notes', e.target.value); }}></textarea>`)}
+      </div>
+
       <div className="st-section">
         <h3>Who and where it shows</h3>
         <div className="st-grid-2">
@@ -637,9 +721,29 @@
           </select>`)}
         </div>
       </div>
+
+      <div className="st-section">
+        <h3>On the day</h3>
+        <p className="st-muted">Reminders go out automatically the day before and about 15–30 minutes before the start.</p>
+        <div className="st-row-actions">
+          <button type="button" className="st-btn st-btn-quiet" disabled=${d.status !== 'publish' || d.cancelled} onClick=${remind}>Send a reminder now</button>
+          ${d.cancelled
+            ? html`<button type="button" className="st-btn st-btn-quiet" onClick=${function () { cancel(false); }}>Restore session</button>`
+            : html`<button type="button" className="st-link st-danger" onClick=${function () { cancel(true); }}>Cancel session…</button>`}
+        </div>
+        ${note ? html`<p className="st-muted">${note}</p>` : null}
+      </div>
+
+      <div className="st-section">
+        <h3>Attendance ${people ? html`<span className="st-count">${people.length}</span>` : null}</h3>
+        ${people === null ? html`<p className="st-muted">Loading…</p>` : null}
+        ${people && !people.length ? html`<p className="st-muted">Nobody has joined yet. People are counted when they press Join (or open the stream).</p>` : null}
+        ${people && people.length ? html`<ul className="st-files">${people.map(function (p) { return html`<li key=${p.user_id}><span>${p.name}</span><span className="st-muted">${p.joined}</span><span className="st-muted">${p.joins > 1 ? p.joins + '×' : ''}</span></li>`; })}</ul>` : null}
+      </div>
+
       <div className="st-section">
         <h3>After the session</h3>
-        ${h(Field, { label: 'Recording', help: 'Add the recording as a recorded lesson (often in Bonus), then choose it here.' }, html`<select value=${d.recording} onChange=${function (e) { set('recording', parseInt(e.target.value, 10), true); }}>
+        ${h(Field, { label: 'Recording', help: 'Add the recording as a recorded lesson (often in Bonus), then choose it here. Participants then see "Watch the recording".' }, html`<select value=${d.recording} onChange=${function (e) { set('recording', parseInt(e.target.value, 10), true); }}>
           <option value="0">— None yet —</option>
           ${lessons.map(function (x) { return html`<option key=${x.id} value=${x.id}>${x.title}</option>`; })}
         </select>`)}
@@ -754,8 +858,8 @@
 
     return html`<main className="st-page">
       <section className="st-hero st-hero-small">
-        <p className="st-eyebrow">Video library</p>
-        <h1>Every recording, <em>in one place</em></h1>
+        <p className="st-eyebrow">All programmes</p>
+        <h1>Video library</h1>
         <p className="st-lead">Videos here can be used in any lesson, in any programme.</p>
       </section>
       ${error ? html`<p className="st-error">${error}</p>` : null}

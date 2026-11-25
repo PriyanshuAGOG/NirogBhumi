@@ -22,8 +22,8 @@ Quality adjusts to your internet speed. On slow mobile data the picture may look
 
 # Booklets
 
-1. Open the booklet from its week, from **Today**, or from **Library → Booklets**.
-2. Scroll down, or use **→** and **←** to turn pages. Use **+**, **−** and **Fit** to change the size.
+1. Open the booklet from its week, from **Today**, or from **Library → Booklets**, and press **Start reading**.
+2. Turn pages by dragging a page corner, tapping the edge of the page, or with the arrow keys. **All pages** jumps to a page; **Full screen** gives the book the whole screen.
 3. The booklet is done when you have read it to the end. Next time, it opens on the page where you stopped.
 
 Some booklets have a **Download** button; others can only be read inside the Academy.

@@ -42,9 +42,9 @@ $support_email = (string) nba()->settings->get('support_email');
 $whatsapp = (string) nba()->settings->get('support_whatsapp');
 $brand = static function () use ($logo, $area): void {
   if ($logo) {
-    echo '<img src="' . esc_url($logo) . '" alt="' . esc_attr($area) . '" width="113" height="26"><span class="nba-brand-label">' . esc_html__('Academy', 'nirog-academy') . '</span>';
+    echo '<img src="' . esc_url($logo) . '" alt="Nirog Bhumi" width="113" height="26">';
   } else {
-    echo '<span class="nba-brand-text">' . esc_html($area) . '</span>';
+    echo '<span class="nba-brand-text">Nirog Bhumi</span>';
   }
 };
 $lang_links = static function () use ($lang): void {
