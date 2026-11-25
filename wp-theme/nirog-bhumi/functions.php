@@ -24,7 +24,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
-  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.7');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.8');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.1', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');
@@ -1259,6 +1259,7 @@ function nirog_bhumi_handle_consultation_form() {
     'lifestyle' => nirog_bhumi_clean_textarea('lifestyle'),
     'goal' => nirog_bhumi_clean_textarea('goal'),
     'consultation_disclaimer' => isset($_POST['consultation_disclaimer']) ? 'yes' : 'no',
+    'contact_data_consent' => isset($_POST['contact_data_consent']) ? 'yes' : 'no',
     'data_processing_consent' => isset($_POST['data_processing_consent']) ? 'yes' : 'no',
     'followup_consent' => isset($_POST['followup_consent']) ? 'yes' : 'no',
   ];
@@ -1322,6 +1323,18 @@ View in WordPress dashboard: %s", $name, $email, $country_code, $phone, $fields[
   setcookie('nb_consultation_entry', (string) $post_id, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
   setcookie('nb_consultation_prefill', $cookie_value, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
   setcookie('nb_consultation_edit_token', $edit_token, time() + DAY_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true);
+
+  // Two forms now share this one handler: the short "name, email, phone"
+  // form on /consultation/ (stage "contact", the default - goes to
+  // payment, exactly as before this was split into two forms), and the
+  // fuller health/lifestyle form shown on /consultation-calendar/ after
+  // payment is verified (stage "details" - goes back to that same page
+  // instead of to payment, since payment is already done by then).
+  $stage = nirog_bhumi_clean_field('nb_form_stage') ?: 'contact';
+  if ('details' === $stage) {
+    wp_safe_redirect(add_query_arg(['details_saved' => '1'], nirog_bhumi_consultation_calendar_url()));
+    exit;
+  }
 
   wp_safe_redirect(add_query_arg([
     'consultation_saved' => '1',

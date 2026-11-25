@@ -129,3 +129,6 @@
  */
 .nb-comment-form p > label:not(.check){display:block;margin-bottom:8px}
 .nb-comment-form .comment-form-cookies-consent{font-size:13px;line-height:1.55;color:#3a4a3c}
+
+/* "Thanks, saved" banner shown on /consultation-calendar/ after the post-payment details form is submitted - see page-consultation-calendar.php. */
+.consultation-details-saved-note{max-width:1120px;margin:0 auto 16px;padding:12px 16px;background:#eef5ec;border:1px solid #cfe3c8;border-radius:8px;font-size:14px;color:#2f4a31;font-weight:650}
