@@ -281,3 +281,26 @@ body.nba-studio-screen #wpfooter { display: none; }
 .st-demo-actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
 @media (max-width: 900px) { .st-demo { grid-template-columns: 1fr; } .st-demo-actions { flex-direction: row; flex-wrap: wrap; } }
 .st-demo-url { word-break: break-all; }
+.st-yt-thumb { display: block; width: 100%; max-width: 320px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 12px; background: var(--soft); }
+.st-yt-add { display: flex; gap: 8px; margin: -4px 0 14px; }
+.st-yt-add input { flex: 1; min-width: 0; }
+.st-meet { margin: 4px 0 14px; } .st-meet .st-ok { margin: 0; }
+
+/* ------------------------------------------------------------------ at a glance */
+.st-glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 22px 0 10px; }
+.st-glance-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); text-decoration: none; color: var(--ink) !important; }
+.st-glance-card strong { font: 400 30px/1 var(--serif); }
+.st-glance-card span { font-size: 13px; color: var(--muted); }
+.st-glance-card.is-attn { border-color: #d7b84e; background: #fbf6e5; }
+.st-glance-card:hover { border-color: var(--ink); }
+.st-glance-live { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 10px; background: var(--white); padding: 4px 18px 10px; }
+.st-glance-live .st-h2 { margin: 12px 0 6px; font-size: 19px; }
+.st-glance-live ul { list-style: none; margin: 0; padding: 0; }
+.st-glance-live li a { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink) !important; font-size: 14px; }
+.st-glance-when { color: var(--muted); }
+@media (max-width: 900px) { .st-glance { grid-template-columns: repeat(2, minmax(0, 1fr)); } .st-glance-live li a { grid-template-columns: 1fr; gap: 2px; } }
+/* Live rows: title on its own line, details under it, so titles are never cut short. */
+.st-live-row { grid-template-columns: 190px minmax(0, 1fr); row-gap: 2px; align-items: start; }
+.st-live-row .st-row-title { grid-column: 2; font-weight: 600; white-space: normal; }
+.st-live-row .st-row-meta { grid-column: 2; white-space: normal; }
+.st-live-row .st-live-when { grid-row: span 2; }

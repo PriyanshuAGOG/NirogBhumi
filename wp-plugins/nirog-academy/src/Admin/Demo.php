@@ -36,7 +36,7 @@ final class Demo {
     return !empty($state['programme']) && get_post((int) $state['programme']);
   }
 
-  /** Where the demo participant logs in (works while the Academy is Closed). */
+  /** Where the demo participant logs in (works while Nirog Bhumi Courses is Closed). */
   public static function login_url(): string {
     $academy = \NirogBhumi\Academy\Frontend\Router::url();
     return nba()->settings->get('launch_mode') === 'closed' ? wp_login_url($academy) : \NirogBhumi\Academy\Frontend\Router::url('login');
@@ -117,26 +117,34 @@ final class Demo {
     $safety = 'Demo note: if you have knee, back or eye problems, or feel unwell, do the gentler version or rest. Ask your doctor if unsure.';
     $safety_hi = 'डेमो: घुटने, कमर या आँख की तकलीफ़ हो या तबीयत ठीक न लगे, तो आसान तरीका करें या आराम करें। शक हो तो डॉक्टर से पूछें।';
 
+    // Recorded lessons are videos from the Nirog Bhumi YouTube channel
+    // (youtube.com/@NirogBhumi). One protected (encrypted) sample video and
+    // the audio practices show how private recordings play.
     $weeks = [
       ['Getting started', 'शुरुआत', [
         ['reading', 'Welcome — how this programme works', 'स्वागत — यह programme कैसे चलता है', 0, 8, self::welcome_text()],
-        ['video', 'Breath awareness', 'साँस पर ध्यान', 0, 16, '', ['resource' => 'daily-practice-tracker.pdf']],
+        ['video', 'Welcome to Nirog Bhumi', 'Nirog Bhumi में आपका स्वागत है', 0, 628, '', ['yt' => 'WYFKljdZ2f4', 'resource' => 'daily-practice-tracker.pdf']],
+        ['video', 'Reverse diabetes with yoga and meditation', 'योग और ध्यान से डायबिटीज़ रिवर्स करें', 0, 146, '', ['yt' => 'Peu_ogvpVcs']],
         ['booklet', 'Week 1 booklet: Getting started', 'हफ़्ता 1 booklet: शुरुआत', 0, 0, '', ['pdf' => 'week-1', 'pages' => 5, 'download' => true]],
         ['audio', 'Guided relaxation', 'गाइडेड आराम', 1, 20, ''],
       ]],
-      ['Moving gently', 'आराम से चलना-फिरना', [
-        ['video', 'Standing postures', 'खड़े होकर आसन', 7, 16, ''],
+      ['Mudras and meditation', 'मुद्रा और ध्यान', [
+        ['video', 'Gyan Mudra', 'ज्ञान मुद्रा', 7, 26, '', ['yt' => 'fXckGQWwwgk']],
+        ['video', 'Pran Mudra', 'प्राण मुद्रा', 7, 197, '', ['yt' => 'CvTGmPKw4IA']],
         ['booklet', 'Week 2 booklet: Moving gently', 'हफ़्ता 2 booklet: आराम से चलना-फिरना', 7, 0, '', ['pdf' => 'week-2', 'pages' => 4]],
+        ['video', 'Surya Mudra', 'सूर्य मुद्रा', 8, 160, '', ['yt' => 'cfiGf26psQc']],
+        ['video', 'Apana Mudra', 'अपान मुद्रा', 8, 140, '', ['yt' => '5TaSHi39Spw']],
         ['reading', 'A simple rhythm for your day', 'दिन की आसान दिनचर्या', 8, 6, self::rhythm_text()],
-        ['audio', 'Evening wind-down', 'शाम का आराम', 9, 20, ''],
+        ['video', 'Meditation: breaking the craving cycle', 'ध्यान: बार-बार खाने की इच्छा से छुटकारा', 9, 410, '', ['yt' => 'LOCQ7dC8B2U']],
+        ['video', 'Breath awareness (protected video sample)', 'साँस पर ध्यान (सुरक्षित video का नमूना)', 9, 16, '', ['protected' => true]],
       ]],
       ['Rest and recovery', 'आराम और रिकवरी', [
-        ['video', 'Twists and gentle stretches', 'हल्के ट्विस्ट और स्ट्रेच', 14, 16, ''],
+        ['video', 'The most ignored medicine for diabetes: sleep', 'डायबिटीज़ की सबसे अनदेखी दवा: नींद', 14, 192, '', ['yt' => 'k9Ykp48GyiQ']],
         ['audio', 'Yoga Nidra', 'योग निद्रा', 15, 20, ''],
         ['reading', 'Sleep and your routine', 'नींद और आपकी दिनचर्या', 16, 5, self::sleep_text()],
       ]],
       ['Keeping it going', 'आगे भी जारी रखें', [
-        ['video', 'Putting it all together', 'सब एक साथ', 21, 16, ''],
+        ['video', 'Can walking barefoot help control diabetes? The power of earthing', 'क्या नंगे पैर चलना डायबिटीज़ में मदद करता है?', 21, 404, '', ['yt' => 'BvLxMwExP2s']],
         ['reading', 'Your plan after the programme', 'programme के बाद आपका प्लान', 22, 5, self::plan_text()],
       ]],
     ];
@@ -163,13 +171,15 @@ final class Demo {
     // ---------------------------------------------------------- bonus
     $bonus = [
       ['booklet', 'Recipes for steady energy', 'स्थिर ऊर्जा के लिए रेसिपी', 0, 0, '', ['pdf' => 'recipes', 'pages' => 3, 'download' => true, 'category' => 'Recipes']],
-      ['video', 'Q&A recording: your first-week questions', 'Q&A रिकॉर्डिंग: पहले हफ़्ते के सवाल', 0, 16, '', ['category' => 'Q&A recordings']],
+      ['video', 'Diabetes Freedom Mela', 'डायबिटीज़ फ्रीडम मेला', 0, 172, '', ['yt' => 'LtWOfht7Gd4', 'category' => 'Events and recordings']],
+      ['video', 'Introducing Nirog Bhumi Adventures: diabetes and sports', 'Nirog Bhumi Adventures: डायबिटीज़ और खेल', 0, 350, '', ['yt' => 'NpjhU4U-PBw', 'category' => 'Stories']],
+      ['video', 'Health Heroes: overcoming asthma with naturopathy', 'Health Heroes: नेचुरोपैथी से अस्थमा पर जीत', 0, 0, '', ['yt' => 'eJ6VJ40b4iE', 'category' => 'Stories']],
       ['reading', 'Kitchen spices: a short guide', 'रसोई के मसाले: छोटी गाइड', 0, 4, self::spices_text(), ['category' => 'Reading']],
     ];
     $recording = 0;
     foreach ($bonus as $i => $item) {
       $id = self::lesson($programme_id, 0, 900000 + $i, $item, $media, $t);
-      if ($item[0] === 'video') {
+      if ($item[0] === 'video' && !$recording) {
         $recording = $id;
       }
     }
@@ -182,30 +192,30 @@ final class Demo {
     $sessions = [
       [
         'title' => 'Morning practice together (demo)',
-        'description' => 'A short live practice. The Join button opens 15 minutes before the start. (Demo: the link opens Zoom\'s test page.)',
+        'description' => 'A short live practice. The Join button opens 15 minutes before the start. (Demo: the link opens Google Meet. Create a real Meet link with one click once Google is connected.)',
         'start' => (int) (ceil((time() + 10 * MINUTE_IN_SECONDS) / 300) * 300),
-        'kind' => 'meeting', 'url' => 'https://zoom.us/test', 'week' => $week_ids[1],
+        'kind' => 'meeting', 'url' => 'https://meet.google.com/', 'week' => $week_ids[1],
         'notes' => 'Demo team note: host joins 10 minutes early, co-host admits people and watches chat.',
       ],
       [
         'title' => 'Week 2 questions and answers (demo)',
         'description' => 'Bring your questions about the first two weeks.',
         'start' => $tz_today(3, '19:00'),
-        'kind' => 'meeting', 'url' => 'https://zoom.us/test', 'week' => $week_ids[1],
+        'kind' => 'meeting', 'url' => 'https://meet.google.com/', 'week' => $week_ids[1],
         'notes' => 'Demo team note: collect questions from WhatsApp group beforehand.',
       ],
       [
         'title' => 'Sunday live class on YouTube (demo)',
-        'description' => 'Watch inside the Academy — no app needed. (Demo: replace the link with your own YouTube Live link.)',
+        'description' => 'Watch right on the session page — no app needed. (Demo: replace the link with your own YouTube Live link.)',
         'start' => (new \DateTimeImmutable('next sunday 07:00', wp_timezone()))->getTimestamp(),
         'kind' => 'stream', 'url' => 'https://www.youtube.com/watch?v=jfKfPfyJRdk', 'week' => $week_ids[1],
         'notes' => 'Demo team note: set the YouTube stream to Unlisted and allow embedding.',
       ],
       [
-        'title' => 'Welcome call (demo)',
-        'description' => 'Meet the team and ask your first questions.',
+        'title' => 'Diabetes Freedom Mela (demo)',
+        'description' => 'A past live event. Its recording is linked, so participants can watch it afterwards.',
         'start' => $tz_today(-5, '19:00'),
-        'kind' => 'meeting', 'url' => 'https://zoom.us/test', 'week' => $week_ids[0],
+        'kind' => 'meeting', 'url' => 'https://meet.google.com/', 'week' => $week_ids[0],
         'notes' => 'Demo: the recording is linked, so participants see "Recording".',
         'recording' => $recording,
       ],
@@ -276,7 +286,7 @@ final class Demo {
     }
     $wpdb->replace(Installer::table('progress'), [
       'user_id' => $user_id, 'lesson_id' => $lessons[2], 'programme_id' => $programme_id, 'status' => 'in_progress',
-      'position_sec' => 0, 'duration_sec' => 0, 'watched' => '11000', 'watched_pct' => 40, 'completed_at' => null, 'updated_at' => $now,
+      'position_sec' => 58, 'duration_sec' => 146, 'watched' => null, 'watched_pct' => 40, 'completed_at' => null, 'updated_at' => $now,
     ]);
     if (!empty($live_ids[3])) {
       LiveSessions::record_join($live_ids[3], $user_id);
@@ -326,8 +336,15 @@ final class Demo {
       '_nba_title_hi' => $title_hi,
       '_nba_summary' => self::summary($type),
     ];
-    if ($type === 'video' || $type === 'audio') {
+    if (!empty($opts['yt'])) {
+      $meta['_nba_media_id'] = self::youtube_media((string) $opts['yt'], $title, (int) $minutes, $t);
+      $meta['_nba_summary'] = 'From the Nirog Bhumi YouTube channel. Viewing is tracked, and the lesson remembers where you stopped.';
+      $meta['_nba_summary_hi'] = 'Nirog Bhumi के YouTube channel से। आपने कितना देखा, यह याद रहता है।';
+    } elseif ($type === 'video' || $type === 'audio') {
       $meta['_nba_media_id'] = $media[$type] ?? 0;
+    }
+    if (!empty($opts['protected'])) {
+      $meta['_nba_summary'] = 'Demo of a protected video: encrypted, works only on the participant\'s device, with their name moving over the picture. Your paid lessons can be served this way.';
     }
     if (!empty($opts['category'])) {
       $meta['_nba_category'] = $opts['category'];
@@ -345,6 +362,20 @@ final class Demo {
       self::attach_resource($id, $opts['resource'], $t);
     }
     return $id;
+  }
+
+  /** A video-library entry for a YouTube video (reused within one demo). */
+  private static function youtube_media(string $yt, string $title, int $seconds, array &$t): int {
+    static $made = [];
+    if (isset($made[$yt]) && get_post($made[$yt])) {
+      return $made[$yt];
+    }
+    $id = (int) wp_insert_post(['post_type' => PostTypes::MEDIA, 'post_status' => 'publish', 'post_title' => $title . ' (YouTube)']);
+    update_post_meta($id, '_nba_provider', 'youtube');
+    update_post_meta($id, '_nba_youtube_id', $yt);
+    update_post_meta($id, '_nba_duration_sec', $seconds);
+    $t['posts'][] = $id;
+    return $made[$yt] = $id;
   }
 
   private static function summary(string $type): string {
@@ -551,7 +582,7 @@ HTML;
   private static function plan_text(): string {
     return <<<HTML
 <p><em>Demo reading — replace with your own words.</em></p>
-<p>You now have a full routine. Keep the lessons you liked most as your daily practice — they stay open in the Academy while your access lasts.</p>
+<p>You now have a full routine. Keep the lessons you liked most as your daily practice — they stay open on the course pages while your access lasts.</p>
 <ul>
 <li>Pick one morning and one evening practice.</li>
 <li>Keep using the daily practice tracker.</li>

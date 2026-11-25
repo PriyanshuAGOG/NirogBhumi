@@ -103,7 +103,7 @@ final class MetaBoxes {
     self::row(__('Batch assignment', 'nirog-academy'), self::select('nba_cohort_assignment', [
       'auto' => __('Automatic: put new buyers in the next open batch', 'nirog-academy'),
       'manual' => __('Manual: staff choose the batch', 'nirog-academy'),
-    ], (string) self::meta($id, '_nba_cohort_assignment', 'auto')), __('Only used when lesson release is set to Batch. Batches are managed under Academy → Batches.', 'nirog-academy'));
+    ], (string) self::meta($id, '_nba_cohort_assignment', 'auto')), __('Only used when lesson release is set to Batch. Batches are managed under Courses → Batches.', 'nirog-academy'));
     self::row(__('Order', 'nirog-academy'), self::checkbox('nba_sequential', (bool) self::meta($id, '_nba_sequential', 0), __('Participants must complete each lesson before the next one opens', 'nirog-academy')));
     self::row(__('Colour', 'nirog-academy'), self::select('nba_element', [
       'earth' => __('Earth (green)', 'nirog-academy'),
@@ -121,7 +121,7 @@ final class MetaBoxes {
     self::row(
       __('Sold through', 'nirog-academy'),
       $links ? implode(', ', $links) : '<em>' . esc_html__('No WooCommerce product linked yet.', 'nirog-academy') . '</em>',
-      __('To sell this programme, open the WooCommerce product and choose this programme on its "Academy" tab.', 'nirog-academy')
+      __('To sell this programme, open the WooCommerce product and choose this programme on its "Course" tab.', 'nirog-academy')
     );
     echo '</div>';
   }
@@ -263,7 +263,7 @@ final class MetaBoxes {
       'booklet' => __('Booklet (PDF)', 'nirog-academy'),
     ], (string) self::meta($id, '_nba_type', 'video')));
     $media = self::media_options();
-    self::row(__('Video or audio', 'nirog-academy'), self::select('nba_media_id', $media, (int) self::meta($id, '_nba_media_id', 0)), __('Choose from Academy → Video Library.', 'nirog-academy'));
+    self::row(__('Video or audio', 'nirog-academy'), self::select('nba_media_id', $media, (int) self::meta($id, '_nba_media_id', 0)), __('Choose from Courses → Video Library.', 'nirog-academy'));
     self::row(__('Hindi version (optional)', 'nirog-academy'), self::select('nba_media_id_hi', $media, (int) self::meta($id, '_nba_media_id_hi', 0)), __('If set, participants who choose Hindi see this one instead.', 'nirog-academy'));
     self::row(__('Length (minutes)', 'nirog-academy'), self::text('nba_duration_min', (string) self::meta($id, '_nba_duration_min'), 'number', 'min="0" style="width:100px"'));
     self::row(
@@ -314,7 +314,7 @@ final class MetaBoxes {
       'youtube' => __('YouTube (unlisted) — previews only, not protected', 'nirog-academy'),
       'external' => __('External video service (HLS or MP4 link)', 'nirog-academy'),
     ], $provider));
-    self::row(__('HLS folder', 'nirog-academy'), self::text('nba_path', (string) self::meta($id, '_nba_path')), __('Folder name inside wp-content/uploads/nirog-academy/media/. Filled in automatically by Academy → Import Videos.', 'nirog-academy'));
+    self::row(__('HLS folder', 'nirog-academy'), self::text('nba_path', (string) self::meta($id, '_nba_path')), __('Folder name inside wp-content/uploads/nirog-academy/media/. Filled in automatically by Courses → Import Videos.', 'nirog-academy'));
 
     $files = self::list_private_files();
     $file_options = ['' => __('— Choose a file —', 'nirog-academy')];

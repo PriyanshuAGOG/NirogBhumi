@@ -1,4 +1,4 @@
-# Nirog Bhumi Academy
+# Nirog Bhumi Courses
 
 A WordPress plugin that delivers Nirog Bhumi programmes — the Yoga programme, the 99 Day and 6 Month programmes, and any future programme — as paid, protected online courses.
 
@@ -6,24 +6,24 @@ It is separate from the `nirog-bhumi` theme and carries the website's design tok
 
 ## What it does
 
-**For participants** (`/academy/`)
+**For participants** (`/courses/`)
 - Login with password or a one-time email link; branded "choose your password" and reset flows.
 - Today page: continue where you left off, this week's lessons, booklet, next live session, team messages.
 - Programme page by week: lessons, booklets and live sessions — done, in progress, open, or locked with the date it opens.
 - Lesson page: protected video or audio player that resumes where you stopped, safety note, downloads, private notes, moving watermark.
-- Booklets read inside the Academy, page by page, with the participant's name on each page.
+- Booklets read on the course pages, page by page, with the participant's name on each page.
 - Library (booklets, bonus, downloads), live sessions (join button 15 minutes before), inbox, account, help center.
 - English and हिन्दी.
 - Designed in the Nirog Bhumi website's style; works on phones first.
 
-**For the team** (WordPress → Academy)
+**For the team** (WordPress → Courses)
 - **Course Studio**: build programmes in one screen — weeks, recorded lessons, audio practices, booklets (PDF), readings, bonus content and live sessions — with drag and drop and autosave.
 - Lesson release: all at once, self-paced day by day, or by batch.
 - Batches with start dates, places and coaches; automatic placement of new buyers.
 - Enrollments: automatic from paid WooCommerce/Razorpay orders, payment links after consultation, manual or complimentary access, pause, extend, revoke; refunds close access automatically.
 - Participant pages with lesson-by-lesson progress, device and activity log.
 - Device requests, announcements, reports (drop-off per lesson, CSV export), audit log, settings, health check, in-product guides.
-- Roles: Administrator, Academy Manager, Academy Coach, Academy Participant.
+- Roles: Administrator, Course Manager, Course Coach, Course Participant.
 
 **Protection**
 - One access check for every page, API call, download, playlist and video key.
@@ -40,7 +40,7 @@ It is separate from the `nirog-bhumi` theme and carries the website's design tok
 
 ## Install
 
-Upload `nirog-academy.zip` in **Plugins → Add New → Upload Plugin** and activate. Then follow `docs/admin/setup-checklist.md` (also in WordPress under **Academy → Help**). The Academy starts **Closed** (staff only) until you open it in **Academy → Settings**. To try every feature first, press **Load demo programme** in the Course Studio (see `docs/admin/demo-programme.md`).
+Upload `nirog-academy.zip` in **Plugins → Add New → Upload Plugin** and activate. Then follow `docs/admin/setup-checklist.md` (also in WordPress under **Courses → Help**). Nirog Bhumi Courses starts **Closed** (staff only) until you open it in **Courses → Settings**. To try every feature first, press **Load demo programme** in the Course Studio (see `docs/admin/demo-programme.md`).
 
 ## Running costs
 

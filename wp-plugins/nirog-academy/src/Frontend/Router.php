@@ -11,7 +11,7 @@ use NirogBhumi\Academy\Support\Time;
 defined('ABSPATH') || exit;
 
 /**
- * The participant area at /academy/ (the slug is a setting).
+ * The participant area at /courses/ (the slug is a setting).
  *
  * Each view is prepared here (data and access) and drawn by a template in
  * templates/. All views are private, uncached and not indexed.
@@ -25,10 +25,11 @@ final class Router {
     add_filter('query_vars', static function (array $vars): array {
       $vars[] = 'nba_view';
       $vars[] = 'nba_slug';
+      $vars[] = 'nba_legacy';
       return $vars;
     });
     add_action('template_redirect', [self::class, 'dispatch'], 1);
-    // Academy pages are a self-contained space: they do not print the theme's
+    // Courses pages are a self-contained space: they do not print the theme's
     // head/footer, so WordPress must not add its admin toolbar either.
     add_filter('show_admin_bar', static fn ($show) => self::current_view() ? false : $show, 100);
   }
@@ -54,6 +55,10 @@ final class Router {
     add_rewrite_rule("^$s/?$", 'index.php?nba_view=dashboard', 'top');
     add_rewrite_rule("^$s/(programme|lesson|help|orientation|live)/([^/]+)/?$", 'index.php?nba_view=$matches[1]&nba_slug=$matches[2]', 'top');
     add_rewrite_rule("^$s/([a-z-]+)/?$", 'index.php?nba_view=$matches[1]', 'top');
+    // Links from before the rename (/academy/...) go to the new address.
+    if (self::slug() !== 'academy') {
+      add_rewrite_rule('^academy(/.*)?$', 'index.php?nba_legacy=1', 'top');
+    }
   }
 
   public static function current_view(): string {
@@ -62,7 +67,7 @@ final class Router {
   }
 
   /**
-   * Printed in the Academy <head>. The Academy does not call wp_head(): the
+   * Printed on the course pages <head>. Nirog Bhumi Courses does not call wp_head(): the
    * theme, other plugins and the admin toolbar never print on these pages,
    * so nothing outside the plugin can change how they look (and the plugin
    * never changes how the rest of the site looks).
@@ -108,13 +113,20 @@ final class Router {
   }
 
   public static function dispatch(): void {
+    if (get_query_var('nba_legacy')) {
+      $path = (string) wp_parse_url(self::request_url(), PHP_URL_PATH);
+      $rest = (string) preg_replace('~^.*?/academy(/|$)~', '', $path);
+      $query = (string) wp_parse_url(self::request_url(), PHP_URL_QUERY);
+      wp_safe_redirect(self::url($rest) . ($query !== '' ? '?' . $query : ''), 301);
+      exit;
+    }
     $view = self::current_view();
     if (!$view) {
       return;
     }
     $user_id = get_current_user_id();
 
-    // Launch lock: until the Academy is opened in Settings, every Academy
+    // Launch lock: until the Courses are opened in Settings, every Courses
     // address looks like an ordinary missing page to anyone who is not staff.
     // Staff log in through wp-login.php and can use everything.
     if (self::is_locked_for($user_id)) {
@@ -177,7 +189,7 @@ final class Router {
   }
 
   /**
-   * True while the Academy is Closed and this visitor is not staff.
+   * True while Nirog Bhumi Courses is Closed and this visitor is not staff.
    */
   public static function is_locked_for(int $user_id): bool {
     // The demo participant made by the team can look around before launch.
@@ -616,7 +628,7 @@ final class Router {
       wp_safe_redirect(\NirogBhumi\Academy\Live\LiveSessions::url($session_id));
       exit;
     }
-    // Watching a stream inside the Academy counts as attending.
+    // Watching a stream on the course pages counts as attending.
     if ($info['kind'] === 'stream' && in_array($info['phase'], ['open', 'live'], true) && !Roles::is_staff($user_id)) {
       \NirogBhumi\Academy\Live\LiveSessions::record_join($session_id, $user_id);
     }

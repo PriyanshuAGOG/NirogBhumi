@@ -1,6 +1,6 @@
 ---
 id: docs-index
-title: Nirog Bhumi Academy documentation
+title: Nirog Bhumi Courses documentation
 summary: Map of every guide, for people and for AI assistants.
 last_reviewed: 2026-11-24
 ---
@@ -8,7 +8,7 @@ last_reviewed: 2026-11-24
 
 Every article is a self-contained Markdown file with front matter (`id`, `title`, `summary`, `audience`, `related`). Articles use the same words as the screens, avoid "as mentioned above", and follow the pattern **In short → Steps → If this doesn't work → Words used here**. This makes them easy to read and suitable as context for an AI help assistant: retrieve an article by `id`, quote it, and link to it.
 
-Participant articles are shown in the Academy Help Center (`/academy/help/`). Admin articles are shown in WordPress under **Academy → Help**. A Hindi version of any article can be added as `name.hi.md` next to the English file.
+Participant articles are shown in the participants' Help Center (`/courses/help/`). Admin articles are shown in WordPress under **Courses → Help**. A Hindi version of any article can be added as `name.hi.md` next to the English file.
 
 # Participant guides (`participant/`)
 

@@ -7,7 +7,7 @@ order: 90
 last_reviewed: 2026-11-24
 related: admin-setup-checklist, admin-incident-playbook
 ---
-# What the Academy does by itself
+# What Nirog Bhumi Courses does by itself
 
 - Every lesson page, download, video playlist and video key goes through one access check: logged in, registered device, paid and active, inside the access period, lesson released, safety note accepted.
 - Videos are encrypted. The key is sent only after the access check, through links that expire and only work for that logged-in participant.
@@ -17,7 +17,7 @@ related: admin-setup-checklist, admin-incident-playbook
 - Login, login-link, password-reset and device-code requests are rate-limited.
 - Passwords, login links and device codes are stored only as one-way hashes.
 - Participants are kept out of WordPress admin. The public user list is hidden.
-- Sensitive actions are recorded in **Academy → Audit Log**.
+- Sensitive actions are recorded in **Courses → Audit Log**.
 
 # Honest limits
 
@@ -26,11 +26,11 @@ Encryption stops casual downloading and link sharing. It is not studio-grade DRM
 # Free tools to add
 
 1. **Cloudflare (free plan)** in front of the site, or the **Wordfence** free plugin — a web application firewall.
-2. **Two Factor** plugin (by WordPress contributors) — require it for Administrators and Academy Managers.
+2. **Two Factor** plugin (by WordPress contributors) — require it for Administrators and Course Managers.
 3. **UpdraftPlus** (free) — daily database and weekly files backup to Google Drive. **Test a restore** before launch.
 4. Keep WordPress, WooCommerce, Razorpay and the theme up to date.
 
-Do not cache Academy pages in a caching plugin. They already send "no cache" headers; if you use LiteSpeed Cache, add `/academy/` and `nba_stream` to its "Do not cache" lists.
+Do not cache Courses pages in a caching plugin. They already send "no cache" headers; if you use LiteSpeed Cache, add `/courses/` and `nba_stream` to its "Do not cache" lists.
 
 # Server rules
 
@@ -45,4 +45,4 @@ The web server must support HTTP Range requests for `.ts` files (all standard se
 
 # Data protection
 
-The Academy stores progress, device labels (for example "Chrome on Android"), notes and an audit log. Mention these in your privacy policy, keep only what you need (audit log retention is a setting), and remove data when someone asks. Have the policy wording checked by someone qualified in Indian data protection law (DPDP Act, 2023).
+Nirog Bhumi Courses stores progress, device labels (for example "Chrome on Android"), notes and an audit log. Mention these in your privacy policy, keep only what you need (audit log retention is a setting), and remove data when someone asks. Have the policy wording checked by someone qualified in Indian data protection law (DPDP Act, 2023).

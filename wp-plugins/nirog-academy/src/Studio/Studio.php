@@ -215,6 +215,7 @@ final class Studio {
       'cohort' => $info['cohort'],
       'recording' => $info['recording'],
       'attended' => \NirogBhumi\Academy\Live\LiveSessions::attendance_count($s->ID),
+      'meet_auto' => (string) get_post_meta($s->ID, '_nba_gcal_event_id', true) !== '',
       'view_url' => $s->post_status === 'publish' ? \NirogBhumi\Academy\Live\LiveSessions::url($s->ID) : '',
     ];
   }
@@ -242,6 +243,7 @@ final class Studio {
         'status' => $status['message'],
         'used_in' => array_values(array_unique($usage[$m->ID] ?? [])),
         'url' => (string) get_post_meta($m->ID, $provider === 'youtube' ? '_nba_youtube_id' : '_nba_external_url', true),
+        'thumb' => $provider === 'youtube' ? 'https://i.ytimg.com/vi/' . rawurlencode((string) get_post_meta($m->ID, '_nba_youtube_id', true)) . '/mqdefault.jpg' : '',
       ];
     }
     return $out;

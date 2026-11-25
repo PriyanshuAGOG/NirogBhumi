@@ -5,7 +5,7 @@ defined('ABSPATH') || exit;
 
 /**
  * Content types. None of them are public in the WordPress sense: participants
- * only reach content through the Academy routes, which run the access check.
+ * only reach content through Nirog Bhumi Courses routes, which run the access check.
  */
 final class PostTypes {
   public const PROGRAMME = 'nba_programme';
@@ -25,7 +25,7 @@ final class PostTypes {
       'publicly_queryable' => false,
       'exclude_from_search' => true,
       'show_ui' => true,
-      'show_in_menu' => false, // Managed in Academy → Studio; classic screens stay reachable by URL.
+      'show_in_menu' => false, // Managed in Courses → Studio; classic screens stay reachable by URL.
       'show_in_nav_menus' => false,
       'show_in_admin_bar' => false,
       'show_in_rest' => false,

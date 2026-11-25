@@ -63,7 +63,9 @@ $minutes_to_start = (int) ceil(($info['start'] - time()) / 60);
           _n('Starts in %d minute', 'Starts in %d minutes', max(1, $minutes_to_start), 'nirog-academy'),
           max(1, $minutes_to_start)
         )); ?></span>
-        <p class="nba-lead" style="margin:0 0 24px"><?php esc_html_e('The meeting opens in Zoom or Google Meet. Keep your microphone off unless you are asked to speak.', 'nirog-academy'); ?></p>
+        <p class="nba-lead" style="margin:0 0 24px"><?php echo esc_html(str_contains((string) $info['link'], 'meet.google.com')
+          ? __('The session opens in Google Meet. On a phone, install the Google Meet app first. Keep your microphone off unless you are asked to speak.', 'nirog-academy')
+          : __('The meeting opens in Zoom or Google Meet. Keep your microphone off unless you are asked to speak.', 'nirog-academy')); ?></p>
         <a class="nba-btn" href="<?php echo esc_url(LiveSessions::join_url($info['id'])); ?>" target="_blank" rel="noopener"><?php esc_html_e('Join the session', 'nirog-academy'); ?></a>
       </div>
     </section>

@@ -15,7 +15,7 @@ defined('ABSPATH') || exit;
  * protection; this is.
  *
  * Order of checks (stops at the first failure):
- *   1. launch      the Academy is open (or the user is staff)
+ *   1. launch      the Courses are open (or the user is staff)
  *   2. login       the user is logged in
  *   3. device      this browser is the registered device
  *   4. enrollment  an active enrollment exists
@@ -62,7 +62,7 @@ final class Gate {
     // Same rule as the page router: staff and the demo participant may look
     // around before launch.
     if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
-      return AccessResult::deny('launch', __('The Academy opens soon. We will email you when it is ready.', 'nirog-academy'));
+      return AccessResult::deny('launch', __('Your courses open soon. We will email you when they are ready.', 'nirog-academy'));
     }
 
     // 2. Login.
@@ -80,7 +80,7 @@ final class Gate {
       return AccessResult::allow($programme_id);
     }
 
-    // Free preview lessons need only a login (and the Academy to be in preview or open).
+    // Free preview lessons need only a login (and Nirog Bhumi Courses to be in preview or open).
     if ($is_preview) {
       return AccessResult::allow($programme_id);
     }
@@ -170,7 +170,7 @@ final class Gate {
       return AccessResult::allow($programme_id);
     }
     if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
-      return AccessResult::deny('launch', __('The Academy opens soon. We will email you when it is ready.', 'nirog-academy'));
+      return AccessResult::deny('launch', __('Your courses open soon. We will email you when they are ready.', 'nirog-academy'));
     }
     $enrollment = nba()->enrollments->current($user_id, $programme_id);
     if (!$enrollment || !in_array($enrollment->status, ['active', 'paused', 'pending'], true) || ($enrollment->status === 'active' && !nba()->enrollments->is_open($enrollment))) {

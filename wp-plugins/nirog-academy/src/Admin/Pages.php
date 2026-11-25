@@ -83,7 +83,7 @@ final class Pages {
 
   public static function overview(): void {
     global $wpdb;
-    self::header(__('Academy overview', 'nirog-academy'));
+    self::header(__('Overview', 'nirog-academy'));
     $counts = nba()->enrollments->count_by_status();
     $table = Installer::table('enrollments');
     $month = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE created_at >= %s", gmdate('Y-m-01 00:00:00'))); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -155,7 +155,7 @@ final class Pages {
     echo '<p class="nba-quicklinks"><a class="button button-primary" href="' . esc_url(admin_url('admin.php?page=nba-enrollments&tab=enroll')) . '">' . esc_html__('Enroll someone', 'nirog-academy') . '</a> ';
     echo '<a class="button" href="' . esc_url(admin_url('admin.php?page=nba-enrollments&tab=offer')) . '">' . esc_html__('Send a payment link', 'nirog-academy') . '</a> ';
     echo '<a class="button" href="' . esc_url(admin_url('admin.php?page=nirog-academy')) . '">' . esc_html__('Open Course Studio', 'nirog-academy') . '</a> ';
-    echo '<a class="button" href="' . esc_url(Router::url()) . '" target="_blank" rel="noopener">' . esc_html__('View the Academy', 'nirog-academy') . '</a></p>';
+    echo '<a class="button" href="' . esc_url(Router::url()) . '" target="_blank" rel="noopener">' . esc_html__('View as a participant', 'nirog-academy') . '</a></p>';
     self::footer();
   }
 
@@ -263,7 +263,7 @@ final class Pages {
     echo '<li>' . esc_html__('Before: the session is set up in the Course Studio with a time, a host, the meeting or YouTube link, and team notes. Participants get a reminder the day before.', 'nirog-academy') . '</li>';
     echo '<li>' . esc_html__('15–30 minutes before: a second reminder goes out. The Join button (or the stream) appears on the participant page 15 minutes before the start.', 'nirog-academy') . '</li>';
     echo '<li>' . esc_html__('The host starts the meeting (or the YouTube stream) from their own Zoom, Meet or YouTube account using the link above.', 'nirog-academy') . '</li>';
-    echo '<li>' . esc_html__('Participants join through the Academy, which counts attendance here.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('Participants join from their course page, which counts attendance here.', 'nirog-academy') . '</li>';
     echo '<li>' . esc_html__('After: add the recording as a lesson in the Studio and link it to the session.', 'nirog-academy') . '</li></ol></div>';
     self::footer();
   }
@@ -373,7 +373,7 @@ final class Pages {
     }
     echo '<div class="nba-panel nba-narrow"><p>' . esc_html__('For programmes joined after a consultation. This creates an order for the person and emails them a secure Razorpay payment link. Their access opens automatically when the payment succeeds, and your normal invoice is generated.', 'nirog-academy') . '</p>';
     if (!$products) {
-      echo '<p><strong>' . esc_html__('No product is linked to a programme yet. Open the programme\'s WooCommerce product and tick the programme on its Academy tab.', 'nirog-academy') . '</strong></p></div>';
+      echo '<p><strong>' . esc_html__('No product is linked to a programme yet. Open the programme\'s WooCommerce product and tick the programme on its Course tab.', 'nirog-academy') . '</strong></p></div>';
       return;
     }
     self::form('offer');
@@ -704,7 +704,7 @@ final class Pages {
   public static function settings(): void {
     $s = nba()->settings->all();
     $name = Settings::OPTION;
-    self::header(__('Academy settings', 'nirog-academy'));
+    self::header(__('Settings', 'nirog-academy'));
     echo '<form method="post" action="options.php">';
     settings_fields('nba_settings');
     $field = static function (string $label, string $control, string $help = ''): void {
@@ -715,13 +715,14 @@ final class Pages {
     $check = static fn(string $key, string $label) => '<label><input type="checkbox" name="' . esc_attr($name . '[' . $key . ']') . '" value="1"' . checked((int) $s[$key], 1, false) . '> ' . esc_html($label) . '</label>';
 
     echo '<h2>' . esc_html__('Launch', 'nirog-academy') . '</h2><table class="form-table"><tbody>';
-    $field(__('Academy status', 'nirog-academy'), self::select($name . '[launch_mode]', [
+    $field(__('Course status', 'nirog-academy'), self::select($name . '[launch_mode]', [
       'closed' => __('Closed — hidden: everyone except staff gets "page not found"; participant emails are held', 'nirog-academy'),
       'preview' => __('Preview — participants can log in and watch free preview lessons only', 'nirog-academy'),
       'open' => __('Open — enrolled participants have full access', 'nirog-academy'),
     ], $s['launch_mode']));
     $field(__('Name shown to participants', 'nirog-academy'), $text('area_name'));
-    $field(__('Web address', 'nirog-academy'), home_url('/') . ' ' . $text('base_slug') . ' /', __('Changing this changes every Academy link. Avoid changing it after launch.', 'nirog-academy'));
+    $field(__('Log-in page photo', 'nirog-academy'), $text('landing_image', 'url'), __('Optional. Paste the address of an image from Media → Library (Copy URL). Leave empty for the meditation photo.', 'nirog-academy'));
+    $field(__('Web address', 'nirog-academy'), home_url('/') . ' ' . $text('base_slug') . ' /', __('Changing this changes every course link. Avoid changing it after launch.', 'nirog-academy'));
     echo '</tbody></table>';
 
     echo '<h2>' . esc_html__('Access', 'nirog-academy') . '</h2><table class="form-table"><tbody>';
@@ -756,12 +757,13 @@ final class Pages {
 
     echo '<h2>' . esc_html__('Data', 'nirog-academy') . '</h2><table class="form-table"><tbody>';
     $field(__('Keep the audit log for', 'nirog-academy'), $num('audit_retention_days', 30, 3650) . ' ' . esc_html__('days', 'nirog-academy'));
-    $field(__('Uninstall', 'nirog-academy'), $check('delete_data_on_uninstall', __('Delete all Academy data when the plugin is deleted', 'nirog-academy')), __('Leave this off unless you are sure. Enrollments and progress cannot be recovered.', 'nirog-academy'));
+    $field(__('Uninstall', 'nirog-academy'), $check('delete_data_on_uninstall', __('Delete all course data when the plugin is deleted', 'nirog-academy')), __('Leave this off unless you are sure. Enrollments and progress cannot be recovered.', 'nirog-academy'));
     echo '</tbody></table>';
     submit_button();
     echo '</form>';
 
     self::health();
+    self::google_panel();
 
     echo '<div class="nba-panel nba-narrow"><h2>' . esc_html__('Demo programme', 'nirog-academy') . '</h2>';
     if (Demo::exists()) {
@@ -779,6 +781,46 @@ final class Pages {
     }
     echo '</div>';
     self::footer();
+  }
+
+  /** Settings → Google Meet: one-time connection for creating Meet links. */
+  private static function google_panel(): void {
+    $g = \NirogBhumi\Academy\Live\GoogleMeet::class;
+    $s = $g::settings();
+    echo '<div class="nba-panel nba-narrow" id="nba-google"><h2>' . esc_html__('Google Meet', 'nirog-academy') . '</h2>';
+    if ($g::connected()) {
+      echo '<p><span class="nba-pill nba-pill-ok">' . esc_html__('Connected', 'nirog-academy') . '</span> ' . esc_html(sprintf(
+        /* translators: %s: Google account email */
+        __('Meet links are created in the calendar of %s.', 'nirog-academy'),
+        $s['email'] ?: __('the connected Google account', 'nirog-academy')
+      )) . '</p>';
+      echo '<p>' . esc_html__('In Course Studio, open a live session and press "Create Google Meet link". The host is invited by Google Calendar, and when you change the session\'s title or time the calendar event changes too.', 'nirog-academy') . '</p>';
+      self::form('google_disconnect');
+      submit_button(__('Disconnect Google account', 'nirog-academy'), 'secondary', '', false);
+      echo '</form></div>';
+      return;
+    }
+    echo '<p>' . esc_html__('Connect the Google account that should own your live sessions (for example the clinic\'s account). Then every live session can get its own Google Meet link with one click. This is free; it needs a one-time set-up of about 10 minutes, described in Help → "Live sessions with Google Meet".', 'nirog-academy') . '</p>';
+    echo '<ol class="nba-steps">';
+    echo '<li>' . wp_kses_post(__('In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>, signed in with that account: create a project, enable the <strong>Google Calendar API</strong>, set up the <strong>OAuth consent screen</strong> (External, add your own email as a test user, or publish it), and create an <strong>OAuth client ID</strong> of type <strong>Web application</strong>.', 'nirog-academy')) . '</li>';
+    echo '<li>' . esc_html__('Under "Authorised redirect URIs" add exactly this address:', 'nirog-academy') . '<br><code style="user-select:all">' . esc_html($g::redirect_uri()) . '</code></li>';
+    echo '<li>' . esc_html__('Copy the Client ID and Client secret here and save.', 'nirog-academy') . '</li>';
+    echo '<li>' . esc_html__('Press "Connect Google account" and allow access.', 'nirog-academy') . '</li>';
+    echo '</ol>';
+    self::form('google_save');
+    echo '<table class="form-table"><tbody>';
+    echo '<tr><th scope="row"><label for="nba-gid">' . esc_html__('Client ID', 'nirog-academy') . '</label></th><td><input id="nba-gid" class="regular-text" name="client_id" value="' . esc_attr($s['client_id']) . '" autocomplete="off" placeholder="1234-abc.apps.googleusercontent.com"></td></tr>';
+    echo '<tr><th scope="row"><label for="nba-gsecret">' . esc_html__('Client secret', 'nirog-academy') . '</label></th><td><input id="nba-gsecret" class="regular-text" type="password" name="client_secret" value="" autocomplete="new-password" placeholder="' . esc_attr($s['client_secret'] !== '' ? __('Saved — leave empty to keep it', 'nirog-academy') : 'GOCSPX-…') . '"></td></tr>';
+    echo '</tbody></table>';
+    submit_button(__('Save', 'nirog-academy'), 'secondary', '', false);
+    echo '</form>';
+    if ($g::configured()) {
+      echo '<p style="margin-top:16px">';
+      self::form('google_connect');
+      submit_button(__('Connect Google account', 'nirog-academy'), 'primary', '', false);
+      echo '</form></p>';
+    }
+    echo '</div>';
   }
 
   private static function health(): void {
@@ -813,7 +855,7 @@ final class Pages {
       self::footer();
       return;
     }
-    self::header(__('Academy guides', 'nirog-academy'), __('Step-by-step guides for the team. Participant guides are in the Academy Help Center.', 'nirog-academy'));
+    self::header(__('Guides for the team', 'nirog-academy'), __('Step-by-step guides for the team. Participant guides are in the participant Help Center.', 'nirog-academy'));
     echo '<div class="nba-doc-list">';
     foreach ($docs as $doc) {
       echo '<a class="nba-card" href="' . esc_url($resolver($doc['slug'])) . '"><strong>' . esc_html($doc['title']) . '</strong><span>' . esc_html($doc['summary']) . '</span></a>';

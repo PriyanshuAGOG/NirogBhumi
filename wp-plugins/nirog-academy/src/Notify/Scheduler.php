@@ -22,7 +22,7 @@ final class Scheduler {
 
   public static function register(): void {
     add_filter('cron_schedules', static function (array $s): array {
-      $s['nba_15min'] = ['interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Every 15 minutes (Academy)'];
+      $s['nba_15min'] = ['interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Every 15 minutes (Courses)'];
       return $s;
     });
     add_action('init', [self::class, 'ensure_scheduled'], 20);
@@ -160,7 +160,7 @@ final class Scheduler {
         nba()->notifications->create($user_id, 'nudge', __('Your practice is waiting for you', 'nirog-academy'), __('Even ten minutes today keeps the rhythm going.', 'nirog-academy'), Router::url());
         if (Notifications::wants($user_id, 'reminders')) {
           nba()->notifications->email($user_id, __('Your practice is waiting for you', 'nirog-academy'), __('A gentle reminder', 'nirog-academy'), [
-            __('We noticed you have not opened the Academy for a few days. That is completely normal — life gets busy.', 'nirog-academy'),
+            __('We noticed you have not opened your course for a few days. That is completely normal — life gets busy.', 'nirog-academy'),
             __('Even one short lesson today helps you keep the rhythm. Your place is saved, so you can continue exactly where you stopped.', 'nirog-academy'),
           ], __('Continue where I left off', 'nirog-academy'), Router::url());
         }
@@ -194,7 +194,7 @@ final class Scheduler {
         nba()->notifications->email($user_id, __('Your access ends soon', 'nirog-academy'), __('Your access ends soon', 'nirog-academy'), [
           $msg,
           __('Download any worksheets you want to keep, and contact us if you would like to continue.', 'nirog-academy'),
-        ], __('Open the Academy', 'nirog-academy'), Router::url());
+        ], __('Open my course', 'nirog-academy'), Router::url());
       });
     }
   }
@@ -269,7 +269,7 @@ final class Scheduler {
       foreach ($batch as $user_id) {
         nba()->notifications->create($user_id, 'announcement', $post->post_title, wp_strip_all_tags($post->post_content), Router::url('notifications'), 'ann-' . $post->ID);
         if ($email && Notifications::wants($user_id, 'announcements')) {
-          nba()->notifications->email($user_id, $post->post_title, $post->post_title, preg_split('/\n\s*\n/', wp_strip_all_tags($post->post_content)) ?: [], __('Open the Academy', 'nirog-academy'), Router::url());
+          nba()->notifications->email($user_id, $post->post_title, $post->post_title, preg_split('/\n\s*\n/', wp_strip_all_tags($post->post_content)) ?: [], __('Open my course', 'nirog-academy'), Router::url());
         }
       }
       $new_offset = (int) $offset + count($batch);

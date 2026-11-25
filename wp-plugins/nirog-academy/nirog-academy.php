@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Nirog Bhumi Academy
+ * Plugin Name:       Nirog Bhumi Courses
  * Plugin URI:        https://nirogbhumi.com/academy/
  * Description:       Programmes, protected lessons, progress tracking, one-device access and notifications for Nirog Bhumi participants. Sells programmes through WooCommerce.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            Nirog Bhumi
@@ -16,8 +16,8 @@
 
 defined('ABSPATH') || exit;
 
-define('NBA_VERSION', '1.3.0');
-define('NBA_DB_VERSION', 2);
+define('NBA_VERSION', '1.4.0');
+define('NBA_DB_VERSION', 3);
 define('NBA_FILE', __FILE__);
 define('NBA_DIR', plugin_dir_path(__FILE__));
 define('NBA_URL', plugin_dir_url(__FILE__));
@@ -40,7 +40,7 @@ spl_autoload_register(static function (string $class): void {
 
 if (version_compare(PHP_VERSION, '8.1', '<')) {
   add_action('admin_notices', static function (): void {
-    echo '<div class="notice notice-error"><p>' . esc_html__('Nirog Bhumi Academy needs PHP 8.1 or newer. Ask your host to upgrade PHP.', 'nirog-academy') . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__('Nirog Bhumi Courses needs PHP 8.1 or newer. Ask your host to upgrade PHP.', 'nirog-academy') . '</p></div>';
   });
   return;
 }

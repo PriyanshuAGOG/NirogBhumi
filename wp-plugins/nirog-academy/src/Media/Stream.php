@@ -59,11 +59,11 @@ final class Stream {
   }
 
   /**
-   * Whether playback can be measured (YouTube embeds cannot, without loading
-   * YouTube's tracking script).
+   * Whether playback can be measured. YouTube is measured through YouTube's
+   * own player script, the same way as protected videos.
    */
   public function trackable(int $media_id): bool {
-    return $media_id > 0 && $this->provider($media_id) !== 'youtube';
+    return $media_id > 0;
   }
 
   /**
@@ -96,7 +96,7 @@ final class Stream {
         return $base + ['kind' => 'file', 'src' => $this->url('file', ['m' => $media_id, 'l' => $lesson_id])];
       case 'youtube':
         $yt = (string) get_post_meta($media_id, '_nba_youtube_id', true);
-        return $yt ? $base + ['kind' => 'youtube', 'src' => 'https://www.youtube-nocookie.com/embed/' . rawurlencode($yt) . '?rel=0&modestbranding=1&playsinline=1'] : null;
+        return $yt ? $base + ['kind' => 'youtube', 'yt' => $yt, 'src' => 'https://www.youtube-nocookie.com/embed/' . rawurlencode($yt) . '?rel=0&modestbranding=1&playsinline=1'] : null;
       case 'external':
         $url = (string) get_post_meta($media_id, '_nba_external_url', true);
         if (!$url) {
@@ -312,7 +312,7 @@ final class Stream {
   public function hls_status(int $media_id): array {
     $folder = (string) get_post_meta($media_id, '_nba_path', true);
     if ($folder === '') {
-      return ['ok' => false, 'message' => __('No folder set. Use Academy → Import Videos.', 'nirog-academy')];
+      return ['ok' => false, 'message' => __('No folder set. Use Courses → Import Videos.', 'nirog-academy')];
     }
     $dir = $this->hls_dir($media_id);
     if (!$dir) {

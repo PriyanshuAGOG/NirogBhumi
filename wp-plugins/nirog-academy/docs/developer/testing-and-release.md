@@ -22,7 +22,7 @@ wp eval-file wp-content/plugins/nirog-academy/tests/integration/run.php
 
 - WordPress Coding Standards (PHPCS) with the security sniffs; escape on output, sanitise on input, `$wpdb->prepare()` for values.
 - Every form has a nonce; every admin action checks a capability.
-- No external requests from Academy pages (fonts, scripts and icons are local).
+- No external requests from Courses pages (fonts, scripts and icons are local).
 
 # Versioning and releases
 

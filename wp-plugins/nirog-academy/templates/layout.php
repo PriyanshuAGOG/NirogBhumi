@@ -1,6 +1,6 @@
 <?php
 /**
- * Academy page shell: the same plain header and footer language as the
+ * Courses page shell: the same plain header and footer language as the
  * Nirog Bhumi website.
  *
  * @var string $title
@@ -71,7 +71,7 @@ $lang_links = static function () use ($lang): void {
 <?php if ($is_staff) : ?>
 <div class="nba-staffbar" role="region" aria-label="<?php esc_attr_e('Team', 'nirog-academy'); ?>">
   <div class="nba-wrap nba-staffbar-inner">
-    <span class="nba-staffbar-state<?php echo $is_open ? ' is-open' : ''; ?>"><?php echo esc_html($is_open ? __('Academy is open', 'nirog-academy') : __('Academy is closed — only the team can see this', 'nirog-academy')); ?></span>
+    <span class="nba-staffbar-state<?php echo $is_open ? ' is-open' : ''; ?>"><?php echo esc_html($is_open ? __('Courses are open', 'nirog-academy') : __('Courses are closed — only the team can see this', 'nirog-academy')); ?></span>
     <span class="nba-staffbar-links">
       <?php if (current_user_can('edit_nba_items')) : ?><a href="<?php echo esc_url(admin_url('admin.php?page=nirog-academy')); ?>"><?php esc_html_e('Course Studio', 'nirog-academy'); ?></a><?php endif; ?>
       <a href="<?php echo esc_url(admin_url('admin.php?page=nba-live-desk')); ?>"><?php esc_html_e('Live desk', 'nirog-academy'); ?></a>
@@ -127,6 +127,16 @@ $lang_links = static function () use ($lang): void {
 </div>
 <?php endif; ?>
 
+<?php if (!$bare) :
+  $tab_icons = ['dashboard' => 'home', 'programme' => 'play', 'library' => 'book', 'live' => 'live']; ?>
+<nav class="nba-tabbar" aria-label="<?php esc_attr_e('Main', 'nirog-academy'); ?>">
+  <?php foreach ($nav as $key => [$label, $url]) : ?>
+    <a href="<?php echo esc_url($url); ?>"<?php echo $key === $active ? ' aria-current="page"' : ''; ?>><?php echo View::icon($tab_icons[$key] ?? 'home', 22); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html($label); ?></span></a>
+  <?php endforeach; ?>
+  <a href="<?php echo esc_url(Router::url('notifications')); ?>"<?php echo $view === 'notifications' ? ' aria-current="page"' : ''; ?>><?php echo View::icon('bell', 22); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php esc_html_e('Inbox', 'nirog-academy'); ?></span><?php if ($unread) : ?><b class="nba-tab-count"><?php echo (int) min(99, $unread); ?></b><?php endif; ?></a>
+</nav>
+<?php endif; ?>
+
 <main id="nba-main">
   <?php if ($flash_notice || $flash_error) : ?>
     <div class="nba-wrap nba-flash-wrap">
@@ -139,7 +149,7 @@ $lang_links = static function () use ($lang): void {
 
 <footer class="nba-foot">
   <div class="nba-wrap nba-foot-inner">
-    <p><?php esc_html_e('Wellness education only. The Academy does not replace medical advice. Speak with your doctor before changing medicines, food or activity.', 'nirog-academy'); ?></p>
+    <p><?php esc_html_e('Wellness education only. These courses do not replace medical advice. Speak with your doctor before changing medicines, food or activity.', 'nirog-academy'); ?></p>
     <p>
       <a href="<?php echo esc_url(Router::url('help')); ?>"><?php esc_html_e('Help', 'nirog-academy'); ?></a>
       <?php if ($support_email) : ?> · <a href="mailto:<?php echo esc_attr($support_email); ?>"><?php echo esc_html($support_email); ?></a><?php endif; ?>

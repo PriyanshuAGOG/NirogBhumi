@@ -1,5 +1,5 @@
 /*
- * Nirog Bhumi Academy — admin screens.
+ * Nirog Bhumi Courses — admin screens.
  */
 (function ($) {
   'use strict';

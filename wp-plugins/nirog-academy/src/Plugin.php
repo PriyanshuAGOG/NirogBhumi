@@ -52,7 +52,7 @@ final class Plugin {
 
   public function __get(string $name): object {
     if (!isset($this->services[$name])) {
-      throw new \LogicException(sprintf('Unknown Academy service "%s".', $name));
+      throw new \LogicException(sprintf('Unknown Courses service "%s".', $name));
     }
     return $this->services[$name];
   }
@@ -83,6 +83,7 @@ final class Plugin {
     Scheduler::register();
     Routes::register();
     \NirogBhumi\Academy\Rest\StudioRoutes::register();
+    \NirogBhumi\Academy\Live\GoogleMeet::register();
     Router::register();
     Auth::register();
 

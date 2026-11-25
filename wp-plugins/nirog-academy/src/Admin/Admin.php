@@ -7,7 +7,7 @@ use NirogBhumi\Academy\Support\Settings;
 defined('ABSPATH') || exit;
 
 /**
- * The Academy admin menu, assets, curriculum builder AJAX and the
+ * Nirog Bhumi Courses admin menu, assets, curriculum builder AJAX and the
  * admin-post form handlers.
  */
 final class Admin {
@@ -40,8 +40,8 @@ final class Admin {
   public static function menu(): void {
     $can_edit = current_user_can('edit_nba_items');
     add_menu_page(
-      __('Academy', 'nirog-academy'),
-      __('Academy', 'nirog-academy'),
+      __('Courses', 'nirog-academy'),
+      __('Courses', 'nirog-academy'),
       'nba_view_participants',
       self::SLUG,
       $can_edit ? [StudioPage::class, 'render'] : [Pages::class, 'overview'],
@@ -139,7 +139,7 @@ final class Admin {
     if (nba()->settings->get('launch_mode') === 'closed') {
       echo '<div class="notice notice-info"><p>' . wp_kses_post(sprintf(
         /* translators: %s: settings URL */
-        __('The Academy is <strong>closed</strong>: it is hidden from everyone except staff, and participant emails are held until you open it. Open it in <a href="%s">Academy → Settings</a> when you are ready.', 'nirog-academy'),
+        __('Nirog Bhumi Courses is <strong>closed</strong>: it is hidden from everyone except staff, and participant emails are held until you open it. Open it in <a href="%s">Courses → Settings</a> when you are ready.', 'nirog-academy'),
         esc_url(admin_url('admin.php?page=nba-settings'))
       )) . '</p></div>';
     }

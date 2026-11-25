@@ -283,6 +283,59 @@ foreach ($created_posts as $id) {
 }
 update_option(NirogBhumi\Academy\Support\Settings::OPTION, $old_settings);
 
+// ---------------------------------------------------------------- google meet
+// Google is stood in for by canned responses in Google's documented format.
+$g = NirogBhumi\Academy\Live\GoogleMeet::class;
+$old_google = get_option($g::OPTION);
+delete_option($g::OPTION);
+delete_transient('nba_google_at');
+$check('google: not connected by default', !$g::connected());
+$g::save_client('test-client.apps.googleusercontent.com', 'test-secret');
+$stored = get_option($g::OPTION);
+$check('google: client secret is stored encrypted', is_array($stored) && !str_contains((string) $stored['client_secret'], 'test-secret') && $g::settings()['client_secret'] === 'test-secret');
+$calls = [];
+$mock = static function ($pre, $args, $url) use (&$calls) {
+  if (!str_contains($url, 'googleapis.com')) {
+    return $pre;
+  }
+  $calls[] = [$args['method'] ?? 'GET', $url, $args['body'] ?? null];
+  $ok = static fn($body, $code = 200) => ['headers' => [], 'body' => wp_json_encode($body), 'response' => ['code' => $code, 'message' => 'OK'], 'cookies' => [], 'filename' => null];
+  if (str_contains($url, 'oauth2.googleapis.com/token')) {
+    return $ok(['access_token' => 'at-123', 'expires_in' => 3600]);
+  }
+  if (($args['method'] ?? '') === 'POST' && str_contains($url, '/events?')) {
+    return $ok(['id' => 'evt1', 'hangoutLink' => 'https://meet.google.com/abc-defg-hij']);
+  }
+  if (($args['method'] ?? '') === 'DELETE') {
+    return $ok([], 204);
+  }
+  return $ok(['id' => 'evt1']);
+};
+add_filter('pre_http_request', $mock, 10, 3);
+update_option($g::OPTION, array_merge(get_option($g::OPTION), ['refresh' => ''])); // not yet connected
+$session = $post(['post_type' => PostTypes::LIVE, 'post_title' => 'Meet test'], ['_nba_programme_id' => $prog, '_nba_starts_at' => gmdate('Y-m-d H:i:s', time() + DAY_IN_SECONDS), '_nba_duration_min' => 45]);
+$check('google: creating a link needs a connected account', is_wp_error($g::create_for_session($session)));
+$r = new ReflectionMethod($g, 'store');
+$r->setAccessible(true);
+$r->invoke(null, ['refresh' => 'rt-1', 'email' => 'clinic@example.com']);
+$link = $g::create_for_session($session);
+$check('google: Meet link is created and used as the join link', $link === 'https://meet.google.com/abc-defg-hij' && get_post_meta($session, '_nba_join_url', true) === $link && get_post_meta($session, '_nba_gcal_event_id', true) === 'evt1');
+$create = array_values(array_filter($calls, static fn($c) => $c[0] === 'POST' && str_contains($c[1], '/events?')))[0] ?? null;
+$body = $create ? json_decode((string) $create[2], true) : [];
+$check('google: event asks Google for a Meet and has the right length', ($body['conferenceData']['createRequest']['conferenceSolutionKey']['type'] ?? '') === 'hangoutsMeet' && strtotime($body['end']['dateTime']) - strtotime($body['start']['dateTime']) === 45 * 60);
+$before = count($calls);
+$g::sync_session($session);
+$check('google: nothing is sent when nothing changed', count($calls) === $before);
+wp_update_post(['ID' => $session, 'post_title' => 'Meet test renamed']);
+$g::sync_session($session);
+$patch = array_values(array_filter(array_slice($calls, $before), static fn($c) => $c[0] === 'PATCH'))[0] ?? null;
+$check('google: renaming the session updates the calendar event', $patch && str_contains((string) $patch[2], 'Meet test renamed'));
+wp_trash_post($session);
+$check('google: deleting the session removes the calendar event', (bool) array_filter($calls, static fn($c) => $c[0] === 'DELETE' && str_contains($c[1], 'evt1')));
+remove_filter('pre_http_request', $mock, 10);
+$old_google === false ? delete_option($g::OPTION) : update_option($g::OPTION, $old_google);
+delete_transient('nba_google_at');
+
 // ---------------------------------------------------------------- demo
 // Only when no demo is loaded, so a demo the team is using is never removed.
 $demo = NirogBhumi\Academy\Admin\Demo::class;
@@ -299,11 +352,19 @@ if (!$demo::exists()) {
   $demo_user = (int) ($state['users'][0] ?? 0);
   $check('demo: programme is created and published', is_int($demo_id) && get_post_status($demo_id) === 'publish');
   $lessons = get_posts(['post_type' => PostTypes::LESSON, 'numberposts' => -1, 'meta_key' => '_nba_programme_id', 'meta_value' => $demo_id, 'fields' => 'ids']);
-  $check('demo: has 16 lessons, booklets and readings', count($lessons) === 16, (string) count($lessons));
+  $check('demo: has 23 lessons, booklets and readings', count($lessons) === 23, (string) count($lessons));
   $booklets = array_filter($lessons, static fn($id) => get_post_meta($id, '_nba_type', true) === 'booklet');
   $check('demo: booklets have a private PDF and a cover', count($booklets) === 3 && !array_filter($booklets, static fn($id) => !NirogBhumi\Academy\Support\Storage::resolve('files', (string) get_post_meta($id, '_nba_file', true)) || !(int) get_post_meta($id, '_nba_cover_id', true)));
   $videos = array_filter($lessons, static fn($id) => in_array(get_post_meta($id, '_nba_type', true), ['video', 'audio'], true));
-  $check('demo: every video and audio has playable media', !array_filter($videos, static fn($id) => !nba()->stream->hls_status((int) get_post_meta($id, '_nba_media_id', true))['ok']));
+  $playable = static function (int $id): bool {
+    $m = (int) get_post_meta($id, '_nba_media_id', true);
+    return nba()->stream->provider($m) === 'youtube' ? (bool) preg_match('/^[A-Za-z0-9_-]{11}$/', (string) get_post_meta($m, '_nba_youtube_id', true)) : nba()->stream->hls_status($m)['ok'];
+  };
+  $check('demo: every video and audio has playable media', !array_filter($videos, static fn($id) => !$playable((int) $id)));
+  $yt_count = count(array_filter($videos, static fn($id) => nba()->stream->provider((int) get_post_meta($id, '_nba_media_id', true)) === 'youtube'));
+  $check('demo: recorded lessons use the Nirog Bhumi YouTube videos', $yt_count === 12, (string) $yt_count);
+  $config = nba()->stream->player_config((int) array_values(array_filter($videos, static fn($id) => nba()->stream->provider((int) get_post_meta($id, '_nba_media_id', true)) === 'youtube'))[0]);
+  $check('demo: YouTube lessons are tracked', $config && $config['kind'] === 'youtube' && $config['trackable'] && strlen($config['yt']) === 11);
   $check('demo: participant is enrolled nine days ago', $demo_user && ($e = nba()->enrollments->current($demo_user, $demo_id)) && abs(Time::ts($e->starts_at) - (time() - 9 * DAY_IN_SECONDS)) < 2 * HOUR_IN_SECONDS);
   nba()->settings->update(['launch_mode' => 'closed']);
   $check('demo: participant can use the Academy while it is closed', !NirogBhumi\Academy\Frontend\Router::is_locked_for($demo_user));

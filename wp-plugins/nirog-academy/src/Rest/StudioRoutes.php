@@ -4,13 +4,14 @@ namespace NirogBhumi\Academy\Rest;
 use NirogBhumi\Academy\Content\PostTypes;
 use NirogBhumi\Academy\Media\Importer;
 use NirogBhumi\Academy\Studio\Studio;
+use NirogBhumi\Academy\Support\Time;
 
 defined('ABSPATH') || exit;
 
 /**
  * REST API for the Course Studio: /wp-json/nirog-academy/v1/studio/…
  *
- * Every route needs the edit_nba_items capability (Administrator, Academy
+ * Every route needs the edit_nba_items capability (Administrator, Courses
  * Manager) and the wp_rest nonce. Object-level checks make sure an item,
  * week or session belongs to the programme being edited.
  */
@@ -19,6 +20,79 @@ final class StudioRoutes {
 
   public static function register(): void {
     add_action('rest_api_init', [self::class, 'routes']);
+  }
+
+  /**
+   * Title and thumbnail of a YouTube video, from YouTube's public oEmbed
+   * endpoint. Returns null when YouTube cannot be reached (the video is
+   * still added), or an error when YouTube says it cannot be embedded.
+   *
+   * @return array{title:string,thumb:string}|\WP_Error|null
+   */
+  public static function youtube_info(string $yt): array|\WP_Error|null {
+    $res = wp_remote_get('https://www.youtube.com/oembed?format=json&url=' . rawurlencode('https://www.youtube.com/watch?v=' . $yt), ['timeout' => 8]);
+    if (is_wp_error($res)) {
+      return null;
+    }
+    $code = (int) wp_remote_retrieve_response_code($res);
+    if ($code === 401 || $code === 403) {
+      return new \WP_Error('nba_media', __('This video does not allow embedding. In YouTube Studio open the video, Show more, and tick "Allow embedding", then add it again.', 'nirog-academy'), ['status' => 400]);
+    }
+    if ($code === 404 || $code === 400) {
+      return new \WP_Error('nba_media', __('YouTube cannot find this video. If it is Private, change it to Unlisted and add it again.', 'nirog-academy'), ['status' => 400]);
+    }
+    $data = json_decode((string) wp_remote_retrieve_body($res), true);
+    if ($code !== 200 || !is_array($data)) {
+      return null;
+    }
+    return ['title' => (string) ($data['title'] ?? ''), 'thumb' => (string) ($data['thumbnail_url'] ?? '')];
+  }
+
+  /**
+   * What needs the team's attention, for the top of the Studio.
+   *
+   * @return array<string,mixed>
+   */
+  public static function glance(): array {
+    $counts = nba()->enrollments->count_by_status();
+    $sessions = get_posts([
+      'post_type' => PostTypes::LIVE,
+      'post_status' => ['publish', 'draft'],
+      'numberposts' => 8,
+      'meta_key' => '_nba_starts_at',
+      'orderby' => 'meta_value',
+      'order' => 'ASC',
+      'meta_query' => [['key' => '_nba_starts_at', 'value' => [gmdate('Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS), gmdate('Y-m-d H:i:s', time() + 7 * DAY_IN_SECONDS)], 'compare' => 'BETWEEN', 'type' => 'DATETIME']],
+    ]);
+    $live = [];
+    foreach ($sessions as $s) {
+      $info = \NirogBhumi\Academy\Live\LiveSessions::info($s);
+      if ($info['phase'] === 'ended' || $info['cancelled']) {
+        continue;
+      }
+      $live[] = [
+        'id' => $s->ID,
+        'title' => $s->post_title,
+        'programme' => (int) get_post_meta($s->ID, '_nba_programme_id', true),
+        'when' => Time::human_time((string) get_post_meta($s->ID, '_nba_starts_at', true)),
+        'phase' => $info['phase'],
+        'has_link' => $info['link'] !== '',
+        'draft' => $s->post_status !== 'publish',
+      ];
+    }
+    return [
+      'active' => (int) ($counts['active'] ?? 0),
+      'waiting' => (int) ($counts['pending'] ?? 0),
+      'devices' => count(nba()->devices->requests('pending')),
+      'live' => array_slice($live, 0, 5),
+      'open' => nba()->settings->get('launch_mode') !== 'closed',
+      'links' => [
+        'enrollments' => admin_url('admin.php?page=nba-enrollments'),
+        'devices' => admin_url('admin.php?page=nba-devices'),
+        'liveDesk' => admin_url('admin.php?page=nba-live-desk'),
+        'settings' => admin_url('admin.php?page=nba-settings'),
+      ],
+    ];
   }
 
   /** @return array<string,mixed> */
@@ -35,8 +109,8 @@ final class StudioRoutes {
       'programme' => $programme_id,
       'login' => (string) ($state['login'] ?? ''),
       'password' => (string) ($state['password'] ?? ''),
-      // While the Academy is Closed its own login page is hidden too, so the
-      // WordPress login is used; it lands in the Academy afterwards.
+      // While Nirog Bhumi Courses is Closed its own login page is hidden too, so the
+      // WordPress login is used; it lands on the course pages afterwards.
       'loginUrl' => \NirogBhumi\Academy\Admin\Demo::login_url(),
       'academyUrl' => \NirogBhumi\Academy\Frontend\Router::url(),
       'programmeUrl' => \NirogBhumi\Academy\Frontend\Router::programme_url($programme_id),
@@ -59,6 +133,7 @@ final class StudioRoutes {
   public static function routes(): void {
     self::route('/programmes', 'GET', static fn() => rest_ensure_response(Studio::programmes()));
     self::route('/demo', 'GET', static fn() => rest_ensure_response(self::demo_info()));
+    self::route('/glance', 'GET', static fn() => rest_ensure_response(self::glance()));
     self::route('/demo', 'POST', static function () {
       if (!current_user_can('nba_manage_academy')) {
         return new \WP_Error('nba_forbidden', __('Only an administrator can load the demo.', 'nirog-academy'), ['status' => 403]);
@@ -219,7 +294,18 @@ final class StudioRoutes {
         return $live;
       }
       $saved = Studio::save_live((int) get_post_meta($live, '_nba_programme_id', true), (array) $r->get_json_params(), $live);
+      if (!is_wp_error($saved)) {
+        \NirogBhumi\Academy\Live\GoogleMeet::sync_session($saved);
+      }
       return is_wp_error($saved) ? $saved : rest_ensure_response(Studio::live(get_post($saved)));
+    });
+    self::route('/live/(?P<id>\d+)/meet', 'POST', static function (\WP_REST_Request $r) {
+      $live = self::owned((int) $r['id'], PostTypes::LIVE);
+      if (is_wp_error($live)) {
+        return $live;
+      }
+      $link = \NirogBhumi\Academy\Live\GoogleMeet::create_for_session($live);
+      return is_wp_error($link) ? $link : rest_ensure_response(Studio::live(get_post($live)));
     });
     self::route('/live/(?P<id>\d+)', 'DELETE', static function (\WP_REST_Request $r) {
       $live = self::owned((int) $r['id'], PostTypes::LIVE);
@@ -252,6 +338,7 @@ final class StudioRoutes {
         return $live;
       }
       $notified = \NirogBhumi\Academy\Live\LiveSessions::set_cancelled($live, (bool) $r['cancelled']);
+      \NirogBhumi\Academy\Live\GoogleMeet::sync_session($live);
       return rest_ensure_response(['live' => Studio::live(get_post($live)), 'notified' => $notified]);
     });
 
@@ -275,6 +362,19 @@ final class StudioRoutes {
           return new \WP_Error('nba_media', __('That does not look like a YouTube link.', 'nirog-academy'), ['status' => 400]);
         }
         update_post_meta($id, '_nba_youtube_id', $yt);
+        // YouTube tells us the title and whether the video may be shown
+        // inside another site (needs "Allow embedding" in YouTube Studio).
+        $info = self::youtube_info($yt);
+        if (is_wp_error($info)) {
+          wp_delete_post($id, true);
+          return $info;
+        }
+        if ($info && trim((string) $r['title']) === '') {
+          wp_update_post(['ID' => $id, 'post_title' => sanitize_text_field($info['title'])]);
+        }
+        if ($info) {
+          update_post_meta($id, '_nba_thumb_url', esc_url_raw($info['thumb']));
+        }
       } else {
         update_post_meta($id, '_nba_external_url', esc_url_raw($url));
       }

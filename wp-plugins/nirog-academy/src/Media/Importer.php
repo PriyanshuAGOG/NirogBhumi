@@ -69,7 +69,7 @@ final class Importer {
         continue;
       }
       if (!is_file($key_target)) {
-        $results[] = ['folder' => $entry, 'status' => 'skipped', 'message' => __('No enc.key found. Was the video encoded with the Academy script?', 'nirog-academy')];
+        $results[] = ['folder' => $entry, 'status' => 'skipped', 'message' => __('No enc.key found. Was the video encoded with the encode-lesson script?', 'nirog-academy')];
         continue;
       }
 

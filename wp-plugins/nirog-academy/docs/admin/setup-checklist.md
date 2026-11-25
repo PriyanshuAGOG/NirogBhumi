@@ -9,13 +9,13 @@ related: admin-create-a-programme, admin-prepare-and-upload-videos, admin-securi
 ---
 # In short
 
-Install the plugin, keep the Academy **Closed** while you build and test, then switch it to **Open**. While Closed, every Academy address shows "page not found" to everyone except staff (Administrators and Academy Managers/Coaches, logged in through `wp-admin`), and no participant emails are sent — welcome emails for anyone who buys in the meantime are held and sent automatically when you open. Work through the list below in order.
+Install the plugin, keep Nirog Bhumi Courses **Closed** while you build and test, then switch it to **Open**. While Closed, every Courses address shows "page not found" to everyone except staff (Administrators and Course Managers/Coaches, logged in through `wp-admin`), and no participant emails are sent — welcome emails for anyone who buys in the meantime are held and sent automatically when you open. Work through the list below in order.
 
 # 1. Install
 
 1. WordPress → **Plugins → Add New → Upload Plugin** → choose `nirog-academy.zip` → **Install** → **Activate**.
 2. **Settings → Permalinks**: make sure "Post name" is selected and press **Save** once.
-3. Open **Academy → Settings**. Check the **Health check** box at the bottom: every line should have a green tick.
+3. Open **Courses → Settings**. Check the **Health check** box at the bottom: every line should have a green tick.
 
 # 2. Email that arrives
 
@@ -36,13 +36,13 @@ Lesson emails, reminders and expiry run on a schedule. On a quiet site WordPress
 
 # 4. Settings
 
-In **Academy → Settings** set: support email, WhatsApp number, devices per participant (1), self-service device change (30 days), default access (365 days).
+In **Courses → Settings** set: support email, WhatsApp number, devices per participant (1), self-service device change (30 days), default access (365 days).
 
 # 5. Build the first programme
 
-Want to see everything first? In **Academy → Course Studio** press **Load demo programme** and log in with the demo participant in a private window — see [The demo programme](demo-programme.md). Remove it before launch.
+Want to see everything first? In **Courses → Course Studio** press **Load demo programme** and log in with the demo participant in a private window — see [The demo programme](demo-programme.md). Remove it before launch.
 
-Open **Academy → Course Studio** and follow [Building a programme in the Course Studio](create-a-programme.md), [Booklets](booklets.md) and [Preparing and uploading videos](prepare-and-upload-videos.md). Add the **health and safety note** in the programme's Settings tab — written and approved by your clinical team.
+Open **Courses → Course Studio** and follow [Building a programme in the Course Studio](create-a-programme.md), [Booklets](booklets.md) and [Preparing and uploading videos](prepare-and-upload-videos.md). Add the **health and safety note** in the programme's Settings tab — written and approved by your clinical team.
 
 # 6. Connect it to payment
 
@@ -50,8 +50,8 @@ Follow [Enrollments and payments](enrollments-and-payments.md): link the WooComm
 
 # 7. Test end to end (while Closed)
 
-1. Create a test participant with **Academy → Enrollments → Enroll someone**.
-2. Temporarily set the Academy to **Open**, then on a phone: open the welcome email, choose a password, accept the safety note, play a lesson to the end.
+1. Create a test participant with **Courses → Enrollments → Enroll someone**.
+2. Temporarily set Nirog Bhumi Courses to **Open**, then on a phone: open the welcome email, choose a password, accept the safety note, play a lesson to the end.
 3. On a second device log in with the same account: you should see "Your programme is on another device".
 4. Make a real low-value Razorpay payment for the product and refund it. Access should open, then close.
 5. Set it back to **Closed** until launch day.
@@ -60,5 +60,5 @@ Follow [Enrollments and payments](enrollments-and-payments.md): link the WooComm
 # 8. Launch
 
 1. Back up the site (see [Security and backups](security-and-backups.md)).
-2. **Academy → Settings → Academy status → Open**.
+2. **Courses → Settings → Course status → Open**.
 3. Send an announcement to welcome everyone.

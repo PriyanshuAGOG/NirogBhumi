@@ -1,6 +1,6 @@
 ---
 id: participant-your-device
-title: Using the Academy on your device
+title: Using Nirog Bhumi Courses on your device
 summary: Why your programme works on one device, and how to move it to a new one.
 audience: participant
 order: 20
@@ -17,7 +17,7 @@ Programme lessons are made for you, as part of your treatment plan. The one-devi
 
 # What counts as a "new device"
 
-The website can only recognise your **browser**, not the phone itself. So the Academy will see a new device if you:
+The website can only recognise your **browser**, not the phone itself. So Nirog Bhumi Courses will see a new device if you:
 
 - use a different phone, tablet or computer,
 - switch browser on the same phone (for example Chrome to Samsung Internet),

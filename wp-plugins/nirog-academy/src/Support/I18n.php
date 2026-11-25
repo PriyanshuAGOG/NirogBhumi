@@ -29,7 +29,7 @@ final class I18n {
   }
 
   /**
-   * Apply the participant's language only inside the Academy, so the rest of
+   * Apply the participant's language only on the course pages, so the rest of
    * the website keeps its own language.
    */
   public static function determine_locale(string $locale): string {

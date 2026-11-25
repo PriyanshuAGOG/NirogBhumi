@@ -15,13 +15,13 @@ defined('ABSPATH') || exit;
 /**
  * Live sessions.
  *
- * The Academy does not run video calls itself. A session points to:
+ * Nirog Bhumi Courses does not run video calls itself. A session points to:
  *   meeting  a Zoom / Google Meet / Teams link; participants press Join and
  *            the meeting opens in that app. Two-way: good for Q&A.
  *   stream   a YouTube Live link (unlisted). The stream plays inside the
- *            Academy page. One-way: good for guided practice with many people.
+ *            Courses page. One-way: good for guided practice with many people.
  *
- * Joining goes through the Academy (/academy/live/{id}/?join=1), which checks
+ * Joining goes through Nirog Bhumi Courses (/courses/live/{id}/?join=1), which checks
  * access, records attendance and then forwards to the meeting.
  */
 final class LiveSessions {
@@ -167,7 +167,7 @@ final class LiveSessions {
             $lines[] = sprintf(__('With %s.', 'nirog-academy'), $info['host_name']);
           }
           $lines[] = $info['kind'] === 'stream'
-            ? __('The class plays on the session page in the Academy. Open it a few minutes before the start.', 'nirog-academy')
+            ? __('The class plays on this session page. Open it a few minutes before the start.', 'nirog-academy')
             : __('The join button appears on the session page 15 minutes before the start.', 'nirog-academy');
           nba()->notifications->email($user_id, $title, $info['title'], $lines, __('Open the session', 'nirog-academy'), self::url($info['id']));
         }
@@ -194,7 +194,7 @@ final class LiveSessions {
           /* translators: %s: date and time */
           sprintf(__('The live session planned for %s will not take place. We are sorry for the change.', 'nirog-academy'), $when),
           __('We will let you know when a new time is set.', 'nirog-academy'),
-        ], __('Open the Academy', 'nirog-academy'), Router::url());
+        ], __('Open my course', 'nirog-academy'), Router::url());
       });
     }
     nba()->audit->log('live.cancelled', 0, 'live', $session_id, ['notified' => count($users)]);

@@ -9,7 +9,7 @@ related: participant-getting-started, participant-your-device
 ---
 # Can I use the programme on my phone and laptop?
 
-Your programme works on one device. Choose the one you will practise with. You can move it later — see [Using the Academy on your device](your-device.md).
+Your programme works on one device. Choose the one you will practise with. You can move it later — see [Using Nirog Bhumi Courses on your device](your-device.md).
 
 # Can I download the videos?
 

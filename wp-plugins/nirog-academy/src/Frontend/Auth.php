@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 
 /**
  * Login, one-time login links, forgotten password and set password, styled as
- * part of the Academy. Participants never see /wp-admin/.
+ * part of Nirog Bhumi Courses. Participants never see /wp-admin/.
  */
 final class Auth {
   private const MAGIC_META = 'nba_magic_login';
@@ -163,7 +163,7 @@ final class Auth {
 
   public static function handle_magic_request(): void {
     $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-    $notice = __('If that email belongs to an Academy account, a login link is on its way. It works once, for 15 minutes.', 'nirog-academy');
+    $notice = __('If that email has a Nirog Bhumi Courses account, a login link is on its way. It works once, for 15 minutes.', 'nirog-academy');
     if (!RateLimiter::hit('magic_ip', Crypto::ip(), 10, HOUR_IN_SECONDS) || !RateLimiter::hit('magic_email', strtolower($email), 3, HOUR_IN_SECONDS)) {
       Actions::redirect_with('error', __('Too many requests. Please try again in an hour.', 'nirog-academy'), Router::url('login'));
     }
@@ -175,7 +175,7 @@ final class Auth {
       I18n::with_user_locale($user->ID, static fn() => nba()->notifications->email(
         $user->ID,
         __('Your login link', 'nirog-academy'),
-        __('Log in to the Academy', 'nirog-academy'),
+        __('Log in to Nirog Bhumi Courses', 'nirog-academy'),
         [
           __('Use the button below to log in. It works once, for 15 minutes.', 'nirog-academy'),
           __('If you did not ask for this, you can ignore this email.', 'nirog-academy'),
@@ -220,12 +220,12 @@ final class Auth {
         $user->ID,
         __('Reset your password', 'nirog-academy'),
         __('Choose a new password', 'nirog-academy'),
-        [__('Someone asked to reset the password for your Academy account. If it was you, use the button below. If not, you can ignore this email.', 'nirog-academy')],
+        [__('Someone asked to reset the password for your Nirog Bhumi Courses account. If it was you, use the button below. If not, you can ignore this email.', 'nirog-academy')],
         __('Choose a new password', 'nirog-academy'),
         nba()->notifications->set_password_url($user->ID)
       ));
     }
-    Actions::redirect_with('notice', __('If that email belongs to an Academy account, we have sent a link to reset the password.', 'nirog-academy'), Router::url('login'));
+    Actions::redirect_with('notice', __('If that email has a Nirog Bhumi Courses account, we have sent a link to reset the password.', 'nirog-academy'), Router::url('login'));
   }
 
   public static function handle_set_password(): void {

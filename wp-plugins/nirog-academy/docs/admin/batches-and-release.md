@@ -21,7 +21,7 @@ Every lesson has **Opens on day**. Lessons open at midnight India time on that d
 
 # Batches
 
-**Academy → Batches → New batch**: programme, name (for example "January 2027"), start date, optional enrollment window, places and coach.
+**Courses → Batches → New batch**: programme, name (for example "January 2027"), start date, optional enrollment window, places and coach.
 
 - With **Batch assignment: Automatic**, new buyers join the next open batch that is not full. Enrollment closes the day after the batch starts unless you set a closing date.
 - People who join before the start date can log in and finish orientation; lessons open from the start date.

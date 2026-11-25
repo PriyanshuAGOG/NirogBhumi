@@ -8,9 +8,9 @@ use NirogBhumi\Academy\Install\Roles;
 defined('ABSPATH') || exit;
 
 /**
- * WooCommerce + Razorpay → Academy access.
+ * WooCommerce + Razorpay → Courses access.
  *
- *  - A product's "Academy" tab links it to one or more programmes.
+ *  - A product's "Course" tab links it to one or more programmes.
  *  - When an order is paid (Processing or Completed) the buyer is enrolled.
  *  - Refunded, cancelled or failed orders close the access they opened.
  *  - Partial refunds are flagged for a person to decide.
@@ -48,7 +48,7 @@ final class WooBridge {
 
   public static function product_tab(array $tabs): array {
     $tabs['nba_academy'] = [
-      'label' => __('Academy', 'nirog-academy'),
+      'label' => __('Courses', 'nirog-academy'),
       'target' => 'nba_academy_data',
       'class' => [],
       'priority' => 75,
@@ -63,7 +63,7 @@ final class WooBridge {
     echo '<div id="nba_academy_data" class="panel woocommerce_options_panel"><div class="options_group">';
     echo '<p class="form-field"><label>' . esc_html__('Gives access to', 'nirog-academy') . '</label>';
     if (!$programmes) {
-      echo '<span>' . esc_html__('Create a programme under Academy → Programmes first.', 'nirog-academy') . '</span>';
+      echo '<span>' . esc_html__('Create a programme under Courses → Programmes first.', 'nirog-academy') . '</span>';
     }
     foreach ($programmes as $p) {
       echo '<label style="display:block;float:none;width:auto;margin:0 0 6px"><input type="checkbox" name="nba_programme_ids[]" value="' . (int) $p->ID . '"' . checked(in_array($p->ID, $selected, true), true, false) . '> ' . esc_html($p->post_title) . '</label>';
@@ -127,7 +127,7 @@ final class WooBridge {
     }
     $user_id = self::ensure_customer($order);
     if (!$user_id) {
-      $order->add_order_note(__('Academy: could not create an account for this order. Enroll the buyer manually.', 'nirog-academy'));
+      $order->add_order_note(__('Courses: could not create an account for this order. Enroll the buyer manually.', 'nirog-academy'));
       return;
     }
     foreach ($programmes as $programme_id) {
@@ -138,12 +138,12 @@ final class WooBridge {
         'order_id' => $order_id,
       ]);
       if (is_wp_error($result)) {
-        $order->add_order_note(sprintf('Academy: %s', $result->get_error_message()));
+        $order->add_order_note(sprintf('Courses: %s', $result->get_error_message()));
       } elseif (!$order->get_meta('_nba_granted_' . $programme_id)) {
         $order->update_meta_data('_nba_granted_' . $programme_id, gmdate('c'));
         $order->add_order_note(sprintf(
           /* translators: %s: programme name */
-          __('Academy: access opened for %s.', 'nirog-academy'),
+          __('Courses: access opened for %s.', 'nirog-academy'),
           get_the_title($programme_id)
         ));
       }
@@ -217,7 +217,7 @@ final class WooBridge {
         nba()->enrollments->set_status((int) $row->id, 'revoked', 'Order ' . $order->get_status());
         $order->add_order_note(sprintf(
           /* translators: %s: programme name */
-          __('Academy: access closed for %s.', 'nirog-academy'),
+          __('Courses: access closed for %s.', 'nirog-academy'),
           get_the_title((int) $row->programme_id)
         ));
       }
@@ -256,7 +256,7 @@ final class WooBridge {
       return new \WP_Error('nba_product', __('Choose a programme product.', 'nirog-academy'));
     }
     if (!self::programmes_for_product($product_id)) {
-      return new \WP_Error('nba_product', __('That product is not linked to a programme. Open the product and tick a programme on its Academy tab.', 'nirog-academy'));
+      return new \WP_Error('nba_product', __('That product is not linked to a programme. Open the product and tick a programme on its Course tab.', 'nirog-academy'));
     }
     $user = get_user_by('email', $email);
     $user_id = $user ? $user->ID : self::create_user($email, $first, $last, $phone);
@@ -333,7 +333,7 @@ final class WooBridge {
     echo '<h2 style="margin-top:0">' . esc_html__('Your programme is ready', 'nirog-academy') . '</h2>';
     if ($order->is_paid()) {
       echo '<p>' . esc_html__('We have emailed you the next steps. If you are new, the email has a button to choose your password.', 'nirog-academy') . '</p>';
-      echo '<p><a class="button" href="' . esc_url(Router::url()) . '">' . esc_html__('Open the Academy', 'nirog-academy') . '</a></p>';
+      echo '<p><a class="button" href="' . esc_url(Router::url()) . '">' . esc_html__('Open my course', 'nirog-academy') . '</a></p>';
     } else {
       echo '<p>' . esc_html__('Your access opens as soon as the payment is confirmed. We will email you.', 'nirog-academy') . '</p>';
     }

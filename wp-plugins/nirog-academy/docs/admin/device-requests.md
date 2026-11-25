@@ -9,7 +9,7 @@ related: participant-your-device, admin-security-and-backups
 ---
 # In short
 
-Each participant's programme works on one browser on one device. The first device they use is registered. Participants can move it themselves with an emailed code once every 30 days; beyond that, requests come to **Academy → Device Requests**.
+Each participant's programme works on one browser on one device. The first device they use is registered. Participants can move it themselves with an emailed code once every 30 days; beyond that, requests come to **Courses → Device Requests**.
 
 # What the system can and cannot know
 
@@ -17,7 +17,7 @@ A website cannot see a phone's hardware identity. A "device" is a browser holdin
 
 # Handling a request
 
-1. **Academy → Device Requests** shows pending requests with the number of changes in the last 12 months.
+1. **Courses → Device Requests** shows pending requests with the number of changes in the last 12 months.
 2. **Approve** — frees their device slot; the next device they log in from is registered. They get an email.
 3. **Decline** — they get an email asking them to contact you.
 
@@ -29,4 +29,4 @@ Open the participant → **Device** → **Reset device** (with a reason for the 
 
 # Settings
 
-**Academy → Settings → Devices**: devices per participant (1 = strict), self-service interval (0 = always ask the team), staff exemption.
+**Courses → Settings → Devices**: devices per participant (1 = strict), self-service interval (0 = always ask the team), staff exemption.

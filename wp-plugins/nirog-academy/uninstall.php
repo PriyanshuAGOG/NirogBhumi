@@ -2,8 +2,8 @@
 /**
  * Runs when the plugin is deleted from Plugins → Installed Plugins.
  *
- * Data is kept unless "Delete all Academy data when the plugin is deleted"
- * is ticked in Academy → Settings. Enrollments and progress are business
+ * Data is kept unless "Delete all course data when the plugin is deleted"
+ * is ticked in Courses → Settings. Enrollments and progress are business
  * records, so the safe default is to keep them.
  */
 
@@ -26,7 +26,7 @@ foreach (['nba_programme', 'nba_module', 'nba_lesson', 'nba_media', 'nba_live', 
   }
 }
 
-foreach (['nba_settings', 'nba_secrets', 'nba_db_version', 'nba_flush_rewrites', 'nba_announcement_queue'] as $option) {
+foreach (['nba_settings', 'nba_secrets', 'nba_db_version', 'nba_flush_rewrites', 'nba_announcement_queue', 'nba_google', 'nba_demo'] as $option) {
   delete_option($option);
 }
 $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE 'nba\\_%'"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery

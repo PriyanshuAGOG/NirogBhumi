@@ -41,6 +41,7 @@ $crumb = $is_bonus ? __('Bonus', 'nirog-academy') : ($week_index ? sprintf(
 $config = $player ? [
   'lesson' => $lesson->ID,
   'kind' => $player['kind'],
+  'yt' => $player['yt'] ?? '',
   'src' => $player['src'],
   'type' => $player['type'],
   'trackable' => $player['trackable'],
@@ -48,14 +49,14 @@ $config = $player ? [
   'completed' => $completed,
 ] : null;
 ?>
-<article class="nba-wrap nba-page nba-lesson-page" data-lesson="<?php echo (int) $lesson->ID; ?>">
+<article class="nba-wrap nba-page nba-lesson-page nba-lesson-<?php echo esc_attr($player ? $player['type'] : $type); ?>" data-lesson="<?php echo (int) $lesson->ID; ?>">
   <a class="nba-crumb" href="<?php echo esc_url($crumb_url); ?>">← <?php echo esc_html($crumb); ?></a>
 
   <?php if ($type === 'booklet' && $booklet) :
     $pages = (int) get_post_meta($lesson->ID, '_nba_pages', true);
     $resume_page = $progress && $progress->status !== 'completed' ? (int) $progress->position_sec : 0; ?>
     <section class="nba-bookhero">
-      <div class="nba-bookhero-obj"><?php View::include('parts/cover', ['lesson' => $lesson->ID, 'hero' => true]); ?></div>
+      <a class="nba-bookhero-obj" href="#read" data-open-reader aria-label="<?php echo esc_attr($resume_page > 1 ? __('Continue reading', 'nirog-academy') : __('Start reading', 'nirog-academy')); ?>"><?php View::include('parts/cover', ['lesson' => $lesson->ID, 'hero' => true]); ?></a>
       <div>
         <span class="nba-eyebrow"><?php echo esc_html($labels['booklet'] . ($week_index ? ' · ' . sprintf(
           /* translators: %d: week number */
@@ -78,7 +79,7 @@ $config = $player ? [
           <span class="nba-done-tag nba-complete-badge"<?php echo $completed ? '' : ' hidden'; ?>><?php echo View::icon('check', 15); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> <?php esc_html_e('Completed', 'nirog-academy'); ?></span>
         </div>
         <div class="nba-bookhero-actions">
-          <a class="nba-btn" href="#nba-read"><?php echo esc_html($resume_page > 1 ? __('Continue reading', 'nirog-academy') : __('Start reading', 'nirog-academy')); ?></a>
+          <a class="nba-btn" href="#read" data-open-reader><?php echo esc_html($resume_page > 1 ? __('Continue reading', 'nirog-academy') : __('Start reading', 'nirog-academy')); ?></a>
           <?php if ($booklet['download']) : ?><a class="nba-link" href="<?php echo esc_url($booklet['url']); ?>" download><?php esc_html_e('Download PDF', 'nirog-academy'); ?></a><?php endif; ?>
         </div>
       </div>
@@ -101,31 +102,56 @@ $config = $player ? [
 
   <?php if ($type === 'booklet') : ?>
     <?php if ($booklet) : ?>
-      <div class="nba-flipbook" id="nba-read" data-config="<?php echo esc_attr((string) wp_json_encode([
+      <div class="nba-reader" id="nba-reader" hidden role="dialog" aria-modal="true" aria-label="<?php echo esc_attr(I18n::field($lesson->ID, 'title')); ?>" data-config="<?php echo esc_attr((string) wp_json_encode([
         'lesson' => $lesson->ID,
         'url' => $booklet['url'],
         'resume' => $progress ? max(1, (int) $progress->position_sec) : 1,
         'read' => $progress && $progress->watched ? (string) $progress->watched : '',
         'completed' => $completed,
+        'next' => $next && $next_open ? Router::lesson_url($next) : '',
+        'nextTitle' => $next && $next_open ? I18n::field($next, 'title') : '',
       ])); ?>">
-        <div class="nba-fb-stage-wrap">
-          <div class="nba-fb-stage"></div>
-          <p class="nba-fb-msg"><?php esc_html_e('Opening the booklet…', 'nirog-academy'); ?></p>
-        </div>
-        <div class="nba-fb-bar">
-          <div class="nba-fb-group">
-            <button type="button" data-act="prev" disabled>← <?php esc_html_e('Previous', 'nirog-academy'); ?></button>
-            <span class="nba-fb-count" aria-live="polite"></span>
-            <button type="button" data-act="next" disabled><?php esc_html_e('Next', 'nirog-academy'); ?> →</button>
+        <div class="nba-rd-top">
+          <button type="button" class="nba-rd-btn nba-rd-close" data-act="close"><span aria-hidden="true">←</span> <span class="nba-rd-label"><?php esc_html_e('Close', 'nirog-academy'); ?></span></button>
+          <div class="nba-rd-title">
+            <strong><?php echo esc_html(I18n::field($lesson->ID, 'title')); ?></strong>
+            <span class="nba-rd-count" aria-live="polite"></span>
           </div>
-          <div class="nba-fb-group">
-            <button type="button" data-act="index" aria-expanded="false"><?php esc_html_e('All pages', 'nirog-academy'); ?></button>
-            <button type="button" data-act="full"><?php esc_html_e('Full screen', 'nirog-academy'); ?></button>
-            <?php if ($booklet['download']) : ?><a href="<?php echo esc_url($booklet['url']); ?>" download><?php esc_html_e('Download', 'nirog-academy'); ?></a><?php endif; ?>
+          <div class="nba-rd-tools">
+            <div class="nba-rd-mode" role="group" aria-label="<?php esc_attr_e('Reading view', 'nirog-academy'); ?>">
+              <button type="button" class="nba-rd-btn" data-mode="scroll" aria-pressed="false"><?php esc_html_e('Scroll', 'nirog-academy'); ?></button>
+              <button type="button" class="nba-rd-btn" data-mode="book" aria-pressed="false"><?php esc_html_e('Book', 'nirog-academy'); ?></button>
+            </div>
+            <button type="button" class="nba-rd-btn" data-act="index" aria-expanded="false"><?php esc_html_e('Pages', 'nirog-academy'); ?></button>
+            <?php if ($booklet['download']) : ?><a class="nba-rd-btn nba-rd-hide-sm" href="<?php echo esc_url($booklet['url']); ?>" download><?php esc_html_e('Download', 'nirog-academy'); ?></a><?php endif; ?>
           </div>
         </div>
-        <div class="nba-fb-index" hidden></div>
-        <p class="nba-fb-hint"><?php esc_html_e('Turn pages by dragging a corner, tapping the page edge, or with the arrow keys.', 'nirog-academy'); ?></p>
+        <div class="nba-rd-progress" aria-hidden="true"><span></span></div>
+        <div class="nba-rd-body">
+          <div class="nba-rd-book"></div>
+          <div class="nba-rd-scroll" tabindex="-1"></div>
+          <p class="nba-rd-msg"><?php esc_html_e('Opening the booklet…', 'nirog-academy'); ?></p>
+          <div class="nba-rd-index" hidden></div>
+        </div>
+        <div class="nba-rd-bottom">
+          <button type="button" class="nba-rd-btn" data-act="prev" aria-label="<?php esc_attr_e('Previous page', 'nirog-academy'); ?>">←</button>
+          <span class="nba-rd-hint"><?php esc_html_e('Tap the page edge or swipe to turn', 'nirog-academy'); ?></span>
+          <span class="nba-rd-zoom" role="group" aria-label="<?php esc_attr_e('Zoom', 'nirog-academy'); ?>">
+            <button type="button" class="nba-rd-btn" data-zoom="out" aria-label="<?php esc_attr_e('Smaller', 'nirog-academy'); ?>">−</button>
+            <button type="button" class="nba-rd-btn" data-zoom="in" aria-label="<?php esc_attr_e('Larger', 'nirog-academy'); ?>">+</button>
+          </span>
+          <button type="button" class="nba-rd-btn" data-act="next" aria-label="<?php esc_attr_e('Next page', 'nirog-academy'); ?>">→</button>
+        </div>
+        <template class="nba-rd-end-tpl">
+          <div class="nba-rd-end">
+            <span class="nba-eyebrow"><?php esc_html_e('End of booklet', 'nirog-academy'); ?></span>
+            <p class="nba-rd-end-title"><?php esc_html_e('You have read every page.', 'nirog-academy'); ?></p>
+            <div class="nba-rd-end-actions">
+              <?php if ($next && $next_open) : ?><a class="nba-btn" href="<?php echo esc_url(Router::lesson_url($next)); ?>"><?php esc_html_e('Next lesson', 'nirog-academy'); ?> →</a><?php endif; ?>
+              <button type="button" class="nba-btn nba-btn-line" data-act="close"><?php esc_html_e('Close the booklet', 'nirog-academy'); ?></button>
+            </div>
+          </div>
+        </template>
       </div>
       <p class="nba-player-status nba-reader-status" role="status" aria-live="polite"></p>
     <?php else : ?>
@@ -134,7 +160,9 @@ $config = $player ? [
   <?php elseif ($player) : ?>
     <div class="nba-player nba-player-<?php echo esc_attr($player['type']); ?>" data-config="<?php echo esc_attr((string) wp_json_encode($config)); ?>">
       <?php if ($player['kind'] === 'youtube') : ?>
-        <div class="nba-player-frame"><iframe src="<?php echo esc_url($player['src']); ?>" title="<?php echo esc_attr(I18n::field($lesson->ID, 'title')); ?>" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        <div class="nba-player-frame nba-yt" data-yt="<?php echo esc_attr($player['yt']); ?>">
+          <div class="nba-yt-mount"><iframe src="<?php echo esc_url($player['src']); ?>" title="<?php echo esc_attr(I18n::field($lesson->ID, 'title')); ?>" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        </div>
       <?php elseif ($player['type'] === 'audio') : ?>
         <div class="nba-audio">
           <p class="nba-lead" style="margin:0"><?php esc_html_e('Find a comfortable position and close your eyes.', 'nirog-academy'); ?></p>
@@ -147,6 +175,11 @@ $config = $player ? [
           <?php if ($watermark) : ?><div class="nba-watermark" aria-hidden="true"><?php echo esc_html($watermark); ?></div><?php endif; ?>
         </div>
       <?php endif; ?>
+      <div class="nba-pctl" role="group" aria-label="<?php esc_attr_e('Playback', 'nirog-academy'); ?>">
+        <button type="button" data-seek="-10" aria-label="<?php esc_attr_e('Back 10 seconds', 'nirog-academy'); ?>">↺ 10<?php esc_html_e('s', 'nirog-academy'); ?></button>
+        <button type="button" data-speed aria-label="<?php esc_attr_e('Playback speed', 'nirog-academy'); ?>">1×</button>
+        <button type="button" data-seek="10" aria-label="<?php esc_attr_e('Forward 10 seconds', 'nirog-academy'); ?>">10<?php esc_html_e('s', 'nirog-academy'); ?> ↻</button>
+      </div>
       <p class="nba-player-status" role="status" aria-live="polite"></p>
     </div>
   <?php elseif ($type !== 'reading') : ?>

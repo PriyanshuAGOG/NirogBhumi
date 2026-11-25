@@ -69,3 +69,9 @@
 .nba-desk-actions form { display: inline; margin: 0; }
 .nba-desk-actions details { flex-basis: 100%; margin-top: 4px; }
 @media (max-width: 900px) { .nba-desk-row { grid-template-columns: 1fr; } }
+
+/* Google Meet panel */
+.nba-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #eee8dc; }
+.nba-pill-ok { background: #e3efd9; color: #2f5a22; }
+.nba-steps { margin-left: 18px; line-height: 1.7; }
+.nba-steps code { word-break: break-all; }

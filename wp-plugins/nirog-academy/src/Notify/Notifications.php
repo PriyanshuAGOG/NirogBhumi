@@ -99,7 +99,7 @@ final class Notifications {
     if (!$user || !is_email($user->user_email)) {
       return false;
     }
-    // While the Academy is Closed, participants get no emails: the links
+    // While Nirog Bhumi Courses is Closed, participants get no emails: the links
     // would lead to a page they cannot open yet.
     if (\NirogBhumi\Academy\Frontend\Router::is_locked_for($user_id)) {
       return false;
@@ -170,7 +170,7 @@ final class Notifications {
       );
       $paragraphs = [
         /* translators: %s: programme name */
-        sprintf(__('You are enrolled in %s. Everything you need is in the Academy: your lessons, bonus videos, downloads and live session times.', 'nirog-academy'), $title),
+        sprintf(__('You are enrolled in %s. Everything you need is on your course page: your lessons, bonus videos, downloads and live session times.', 'nirog-academy'), $title),
         /* translators: %s: date */
         sprintf(__('Your access lasts until %s.', 'nirog-academy'), Time::human($enrollment->ends_at, 'j F Y')),
       ];
@@ -190,14 +190,14 @@ final class Notifications {
         sprintf(__('Welcome to %s', 'nirog-academy'), $title),
         __('Your programme is ready', 'nirog-academy'),
         $paragraphs,
-        $needs_password ? __('Choose your password', 'nirog-academy') : __('Open the Academy', 'nirog-academy'),
+        $needs_password ? __('Choose your password', 'nirog-academy') : __('Open my course', 'nirog-academy'),
         $url
       );
     });
   }
 
   /**
-   * When the Academy is opened, send the welcome emails held while it was closed.
+   * When the Courses are opened, send the welcome emails held while it was closed.
    */
   public function on_settings_changed($old, $new): void {
     $was = is_array($old) ? ($old['launch_mode'] ?? 'closed') : 'closed';
@@ -270,7 +270,7 @@ final class Notifications {
             : __('Your programme is now registered to the device you just confirmed. Your previous device has been signed out.', 'nirog-academy'),
           __('If this was not you, reply to this email or contact us straight away.', 'nirog-academy'),
         ],
-        __('Open the Academy', 'nirog-academy'),
+        __('Open my course', 'nirog-academy'),
         Router::url()
       );
     });
@@ -292,7 +292,7 @@ final class Notifications {
       __('Review the request', 'nirog-academy'),
       admin_url('admin.php?page=nba-devices')
     );
-    $this->send_raw($to, __('Academy: device change request', 'nirog-academy'), $html);
+    $this->send_raw($to, __('Courses: device change request', 'nirog-academy'), $html);
   }
 
   public function on_device_request_decided(int $request_id, int $user_id, bool $approved): void {

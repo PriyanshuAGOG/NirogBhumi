@@ -5,12 +5,12 @@ defined('ABSPATH') || exit;
 
 /**
  * Reads the Markdown guides in docs/ and renders them as HTML for the Help
- * Center (participants) and Academy → Help (staff).
+ * Center (participants) and Courses → Help (staff).
  *
  * Each article starts with front matter:
  *   ---
  *   id: participant-your-device
- *   title: Using the Academy on your device
+ *   title: Using Nirog Bhumi Courses on your device
  *   audience: participant
  *   order: 20
  *   ---

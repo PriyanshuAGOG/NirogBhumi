@@ -9,13 +9,13 @@ related: admin-batches-and-release, admin-device-requests
 ---
 # In short
 
-When a WooCommerce order for a programme product is **paid**, the buyer is enrolled automatically and receives a welcome email. **Refunded** or **cancelled** orders close that access. Everything else (complimentary places, pauses, extensions) is done in **Academy → Enrollments** and on each participant's page.
+When a WooCommerce order for a programme product is **paid**, the buyer is enrolled automatically and receives a welcome email. **Refunded** or **cancelled** orders close that access. Everything else (complimentary places, pauses, extensions) is done in **Courses → Enrollments** and on each participant's page.
 
 # Link a product to a programme
 
 1. **Products → edit** the programme product (or add one).
 2. Tick **Virtual** (no shipping).
-3. Open the **Academy** tab and tick the programme.
+3. Open the **Courses** tab and tick the programme.
 4. **Update**.
 
 The theme's store **launch state** still decides whether the product can be bought: set it to **On sale** for direct purchase (Yoga programme), or **Enquiry only** for consult-first programmes.
@@ -30,15 +30,15 @@ The participant buys on the website and pays with Razorpay. Within seconds of pa
 
 # After a consultation: send a payment link
 
-**Academy → Enrollments → Send a payment link**: email, name, programme, and an agreed price if different. This creates a pending order and emails the standard WooCommerce payment link. Access opens automatically when they pay, and your normal invoice is generated.
+**Courses → Enrollments → Send a payment link**: email, name, programme, and an agreed price if different. This creates a pending order and emails the standard WooCommerce payment link. Access opens automatically when they pay, and your normal invoice is generated.
 
 # Give access without payment
 
-**Academy → Enrollments → Enroll someone** — for complimentary places or payments received another way.
+**Courses → Enrollments → Enroll someone** — for complimentary places or payments received another way.
 
 # Change someone's access
 
-Open the participant (click their name anywhere in the Academy). Under each programme:
+Open the participant (click their name anywhere on the course pages). Under each programme:
 
 | Button | What it does |
 | --- | --- |
@@ -59,6 +59,6 @@ Open the participant (click their name anywhere in the Academy). Under each prog
 
 | Problem | Fix |
 | --- | --- |
-| Paid order but no access | Is the product linked on its Academy tab? Is the order Processing/Completed? Check order notes for "Academy:". |
+| Paid order but no access | Is the product linked on its Course tab? Is the order Processing/Completed? Check order notes for "Courses:". |
 | Participant did not get the welcome email | Check email setup (Setup checklist step 2). They can use "Email me a login link". |
 | Enrollment shows **Pending** | Batch programme with no open batch. Create a batch and use **Move to batch**. |

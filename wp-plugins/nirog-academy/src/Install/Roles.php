@@ -7,11 +7,11 @@ defined('ABSPATH') || exit;
  * Roles and capabilities.
  *
  * Content (programmes, lessons, media, live sessions) uses the capability
- * type "nba_item" so it can be edited by Academy Managers without giving them
+ * type "nba_item" so it can be edited by Course Managers without giving them
  * the right to edit normal posts and pages.
  */
 final class Roles {
-  /** Capabilities for Academy content post types. */
+  /** Capabilities for Courses content post types. */
   public const CONTENT_CAPS = [
     'edit_nba_items', 'edit_others_nba_items', 'edit_published_nba_items', 'edit_private_nba_items',
     'publish_nba_items', 'read_private_nba_items',
@@ -30,9 +30,9 @@ final class Roles {
   ];
 
   public static function install(): void {
-    add_role('nba_participant', __('Academy Participant', 'nirog-academy'), ['read' => true]);
+    add_role('nba_participant', __('Course Participant', 'nirog-academy'), ['read' => true]);
 
-    add_role('nba_coach', __('Academy Coach', 'nirog-academy'), [
+    add_role('nba_coach', __('Course Coach', 'nirog-academy'), [
       'read' => true,
       'nba_view_participants' => true,
       'nba_send_announcements' => true,
@@ -45,7 +45,7 @@ final class Roles {
     foreach (self::ACADEMY_CAPS as $cap) {
       $manager_caps[$cap] = $cap !== 'nba_manage_academy';
     }
-    add_role('nba_manager', __('Academy Manager', 'nirog-academy'), $manager_caps);
+    add_role('nba_manager', __('Course Manager', 'nirog-academy'), $manager_caps);
 
     // Keep existing roles in sync after updates.
     $manager = get_role('nba_manager');
@@ -76,7 +76,7 @@ final class Roles {
   }
 
   /**
-   * Staff are people who manage the Academy. They are exempt from the
+   * Staff are people who manage Nirog Bhumi Courses. They are exempt from the
    * one-device rule and can preview every lesson.
    */
   public static function is_staff(int $user_id): bool {

@@ -21,7 +21,7 @@ After you join a programme, we email you a link to choose your password. Use it 
 
 # Logging in later
 
-- Go to the Academy and enter your email and password.
+- Go to Nirog Bhumi Courses and enter your email and password.
 - Or choose **Email me a login link** and use the link we send (it works once, for 15 minutes).
 
 # If this doesn't work
@@ -35,5 +35,5 @@ After you join a programme, we email you a link to choose your password. Use it 
 
 # Words used here
 
-- **Dashboard**: the home page of the Academy, showing your programme and progress.
-- **Registered device**: the one phone or computer your programme works on. See [Using the Academy on your device](your-device.md).
+- **Dashboard**: the home page of Nirog Bhumi Courses, showing your programme and progress.
+- **Registered device**: the one phone or computer your programme works on. See [Using Nirog Bhumi Courses on your device](your-device.md).

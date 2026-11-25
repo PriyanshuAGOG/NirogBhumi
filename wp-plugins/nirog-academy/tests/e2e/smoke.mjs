@@ -43,7 +43,7 @@ async function shot(page, name) {
   }
 }
 async function login(page) {
-  await page.goto(`${BASE}/academy/login/`);
+  await page.goto(`${BASE}/courses/login/`);
   await page.fill('#nba-log', USER);
   await page.fill('#nba-pwd', PASS);
   await page.click('form .nba-btn[type=submit]');
@@ -57,14 +57,14 @@ try {
   const a = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   const pa = await a.newPage();
   await login(pa);
-  check('login lands on the dashboard', /\/academy\/?$/.test(new URL(pa.url()).pathname), pa.url());
+  check('login lands on the dashboard', /\/courses\/?$/.test(new URL(pa.url()).pathname), pa.url());
   await shot(pa, '01-dashboard-desktop');
 
-  await pa.goto(`${BASE}/academy/programme/${PROGRAMME}/`);
+  await pa.goto(`${BASE}/courses/programme/${PROGRAMME}/`);
   check('programme page shows weeks', (await pa.locator('.nba-week').count()) > 0);
   await shot(pa, '02-programme');
 
-  await pa.goto(`${BASE}/academy/lesson/${LESSON}/`);
+  await pa.goto(`${BASE}/courses/lesson/${LESSON}/`);
   if (pa.url().includes('/orientation/')) {
     await shot(pa, '03-orientation');
     await pa.check('input[name=accept]');
@@ -108,7 +108,7 @@ try {
   const b = await browser.newContext({ ...devices['Pixel 7'] });
   const pb = await b.newPage();
   await login(pb);
-  check('second device is sent to the device screen', pb.url().includes('/academy/device'), pb.url());
+  check('second device is sent to the device screen', pb.url().includes('/courses/device'), pb.url());
   await shot(pb, '05-device-blocked-mobile');
 
   const shared = await pb.evaluate(async (u) => (await fetch(u)).status, playlistUrl);
@@ -126,10 +126,10 @@ try {
       await pb.click('form:has(input[value=device_confirm]) button');
       await pb.waitForURL((u) => !u.pathname.includes('/device'));
       await pb.waitForLoadState('load');
-      check('device change moves access to the new device', /\/academy\/?$/.test(new URL(pb.url()).pathname), pb.url());
+      check('device change moves access to the new device', /\/courses\/?$/.test(new URL(pb.url()).pathname), pb.url());
       await shot(pb, '06-dashboard-mobile');
-      await pa.goto(`${BASE}/academy/`);
-      check('old device is signed out', pa.url().includes('/academy/login'), pa.url());
+      await pa.goto(`${BASE}/courses/`);
+      check('old device is signed out', pa.url().includes('/courses/login'), pa.url());
     }
   }
 } finally {

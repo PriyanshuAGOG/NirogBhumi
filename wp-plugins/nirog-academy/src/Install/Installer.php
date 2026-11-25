@@ -54,8 +54,20 @@ final class Installer {
   }
 
   private static function run_migrations(int $from): void {
-    // Version-keyed data migrations go here, for example:
-    // if ($from < 2) { ... }
+    // 3: "Nirog Bhumi Academy" became "Nirog Bhumi Courses" at /courses/.
+    // Old /academy/ links keep working (Router redirects them).
+    if ($from > 0 && $from < 3) {
+      $settings = get_option(\NirogBhumi\Academy\Support\Settings::OPTION, []);
+      if (is_array($settings)) {
+        if (($settings['area_name'] ?? '') === 'Nirog Bhumi Academy') {
+          $settings['area_name'] = 'Nirog Bhumi Courses';
+        }
+        if (($settings['base_slug'] ?? 'academy') === 'academy') {
+          $settings['base_slug'] = 'courses';
+        }
+        update_option(\NirogBhumi\Academy\Support\Settings::OPTION, $settings);
+      }
+    }
     do_action('nba_migrated', $from, NBA_DB_VERSION);
   }
 

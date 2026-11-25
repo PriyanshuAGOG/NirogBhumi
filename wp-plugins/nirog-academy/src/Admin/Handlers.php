@@ -27,6 +27,9 @@ final class Handlers {
     'export' => 'nba_view_reports',
     'demo' => 'nba_manage_academy',
     'demo_remove' => 'nba_manage_academy',
+    'google_save' => 'nba_manage_academy',
+    'google_connect' => 'nba_manage_academy',
+    'google_disconnect' => 'nba_manage_academy',
     'live_remind' => 'nba_view_participants',
   ];
 
@@ -253,6 +256,25 @@ final class Handlers {
     }
     wp_safe_redirect(admin_url('admin.php?page=nirog-academy#/'));
     exit;
+  }
+
+  private static function do_google_save(): void {
+    $secret = isset($_POST['client_secret']) ? trim((string) wp_unslash($_POST['client_secret'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- verified in dispatch(); a secret is stored as typed.
+    \NirogBhumi\Academy\Live\GoogleMeet::save_client(self::post('client_id'), preg_replace('/\s+/', '', $secret));
+    Admin::redirect('nba-settings', __('Google details saved. Now press "Connect Google account".', 'nirog-academy'), false, ['tab' => 'google']);
+  }
+
+  private static function do_google_connect(): void {
+    if (!\NirogBhumi\Academy\Live\GoogleMeet::configured()) {
+      Admin::redirect('nba-settings', __('Add the Client ID and Client secret first.', 'nirog-academy'), true, ['tab' => 'google']);
+    }
+    wp_redirect(\NirogBhumi\Academy\Live\GoogleMeet::auth_url()); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- Google's sign-in page.
+    exit;
+  }
+
+  private static function do_google_disconnect(): void {
+    \NirogBhumi\Academy\Live\GoogleMeet::disconnect();
+    Admin::redirect('nba-settings', __('Google account disconnected. Existing Meet links keep working.', 'nirog-academy'), false, ['tab' => 'google']);
   }
 
   private static function do_demo_remove(): void {

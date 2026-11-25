@@ -9,7 +9,7 @@ related: admin-create-a-programme
 ---
 # In short
 
-A booklet is a PDF that participants read inside the Academy as a book: on the shelf it appears as a 3D book (its real cover, a spine in the cover's colour, page edges whose thickness follows the page count), and it opens as a flipbook — two-page spreads on computers, one page at a time on phones, with real page turns. Their name sits faintly on each page. It counts as done when they have read about 90% of the pages.
+A booklet is a PDF that participants read on the course pages as a book: on the shelf it appears as a 3D book (its real cover, a spine in the cover's colour, page edges whose thickness follows the page count), and tapping it opens a full-screen reader: on phones pages scroll one under another (with − / + to enlarge), on computers they turn like a real book in two-page spreads. Participants can switch between **Scroll** and **Book**, and the phone's back button closes the reader. Their name sits faintly on each page. It counts as done when they have read about 90% of the pages.
 
 # Prepare the PDF
 
@@ -23,7 +23,7 @@ A booklet is a PDF that participants read inside the Academy as a book: on the s
 1. **Course Studio → programme → Weeks**, under the right week choose **Add: Booklet**.
 2. Give it a title, e.g. "Week 2 booklet: your food rhythm".
 3. Drop the PDF into the box (or **Choose PDF**). It is stored in a private folder, never as a public link. The Studio then draws the first page as the **cover** and counts the pages — this takes a few seconds. To use a different cover, press **Use a different cover image**.
-4. Optional: tick **Also let participants download the PDF**. Leave it off if the booklet should stay inside the Academy.
+4. Optional: tick **Also let participants download the PDF**. Leave it off if the booklet should stay on the course pages.
 5. Set **Opens on day**, then switch on **Visible to participants**.
 
 To update a booklet, open it and **Replace PDF**. Participants see the new version straight away.

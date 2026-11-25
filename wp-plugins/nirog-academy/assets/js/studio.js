@@ -1,5 +1,5 @@
 /*
- * Nirog Bhumi Academy — Course Studio.
+ * Nirog Bhumi Courses — Course Studio.
  *
  * A small single-page app inside WordPress admin. Uses WordPress's bundled
  * React (wp.element) with htm for templates, and SortableJS for drag and drop.
@@ -209,6 +209,7 @@
             </form>`
           : html`<button className="st-btn" onClick=${function () { setCreating(true); }}>New programme</button>`}
       </section>
+      <${Glance} />
       ${error ? html`<p className="st-error">${error}</p>` : null}
       ${list === null ? html`<p className="st-muted">Loading…</p>` : null}
       ${list && !list.length ? html`<p className="st-empty">No programmes yet. Create your first one above.</p>` : null}
@@ -235,6 +236,31 @@
       </ol>
       <${DemoPanel} onChange=${function () { api('programmes').then(setList); }} />
     </main>`;
+  }
+
+  /* ------------------------------------------------------------------ at a glance */
+
+  function Glance() {
+    var g = useState(null), data = g[0], setData = g[1];
+    useEffect(function () { api('glance').then(setData).catch(function () {}); }, []);
+    if (!data) { return null; }
+    var progLink = function (s) { return '#/programme/' + s.programme + '/live'; };
+    return html`<section className="st-glance" aria-label="At a glance">
+      <a className="st-glance-card" href=${data.links.enrollments}><strong>${data.active}</strong><span>active participants</span></a>
+      <a className=${'st-glance-card' + (data.waiting ? ' is-attn' : '')} href=${data.links.enrollments + '&status=pending'}><strong>${data.waiting}</strong><span>waiting for a batch</span></a>
+      <a className=${'st-glance-card' + (data.devices ? ' is-attn' : '')} href=${data.links.devices}><strong>${data.devices}</strong><span>device requests</span></a>
+      <a className=${'st-glance-card' + (data.open ? '' : ' is-attn')} href=${data.links.settings}><strong>${data.open ? 'Open' : 'Closed'}</strong><span>${data.open ? 'participants can log in' : 'only the team can see the courses'}</span></a>
+      <div className="st-glance-live">
+        <div className="st-split-head"><h2 className="st-h2">Live in the next 7 days</h2><a className="st-link" href=${data.links.liveDesk}>Live desk →</a></div>
+        ${data.live.length ? html`<ul>${data.live.map(function (s) {
+          return html`<li key=${s.id}><a href=${progLink(s)}>
+            <span className="st-glance-when">${s.phase === 'live' ? 'Live now' : s.phase === 'open' ? 'Join open' : s.when}</span>
+            <span className="st-glance-title">${s.title}</span>
+            <span className=${s.has_link ? 'st-ok' : 'st-warn'}>${s.draft ? 'Draft' : s.has_link ? 'Link ready' : 'No link yet'}</span>
+          </a></li>`;
+        })}</ul>` : html`<p className="st-muted">No live sessions this week.</p>`}
+      </div>
+    </section>`;
   }
 
   /* ------------------------------------------------------------------ demo programme */
@@ -274,12 +300,12 @@
           <li>Go to <a className="st-demo-url" href=${demo.loginUrl} target="_blank" rel="noopener">${demo.loginUrl}</a></li>
           <li>Log in with username <code>${demo.login}</code> and password <code>${demo.password}</code></li>
         </ol>
-        <p className="st-muted">Weeks 1–2 are open and weeks 3–4 open on later days, as a real participant would see. The demo participant gets no emails, may use several devices, and can log in even while the Academy is closed. You are enrolled too, so <a href=${demo.academyUrl} target="_blank" rel="noopener">opening the Academy</a> in this browser also works.</p>
+        <p className="st-muted">Weeks 1–2 are open and weeks 3–4 open on later days, as a real participant would see. The demo participant gets no emails, may use several devices, and can log in even while Nirog Bhumi Courses is closed. You are enrolled too, so <a href=${demo.academyUrl} target="_blank" rel="noopener">opening Nirog Bhumi Courses</a> in this browser also works.</p>
         ${error ? html`<p className="st-error">${error}</p>` : null}
       </div>
       <div className="st-demo-actions">
         <a className="st-btn" href=${'#/programme/' + demo.programme + '/weeks'}>Open in the Studio</a>
-        <a className="st-btn st-btn-quiet" href=${demo.programmeUrl} target="_blank" rel="noopener">View in the Academy</a>
+        <a className="st-btn st-btn-quiet" href=${demo.programmeUrl} target="_blank" rel="noopener">View as a participant</a>
         ${demo.canManage ? html`<button className="st-btn st-btn-quiet st-danger" disabled=${busy} onClick=${function () { run('DELETE'); }}>${busy ? 'Removing…' : 'Remove demo'}</button>` : null}
       </div>
     </section>`;
@@ -373,7 +399,7 @@
         ${tab === 'settings' ? h(SettingsTab, { prog: prog, setProg: setProg, patch: patchProgramme, go: props.go, track: track }) : null}
       </div>
 
-      ${selectedItem ? h(ItemInspector, { key: 'i' + selectedItem.id, item: selectedItem, prog: prog, media: media, track: track, onSaved: replaceItem, onClose: function () { setSel(null); }, onDeleted: function () { setSel(null); load(); } }) : null}
+      ${selectedItem ? h(ItemInspector, { key: 'i' + selectedItem.id, item: selectedItem, prog: prog, media: media, onMedia: setMedia, track: track, onSaved: replaceItem, onClose: function () { setSel(null); }, onDeleted: function () { setSel(null); load(); } }) : null}
       ${selectedLive ? h(LiveInspector, { key: 'l' + selectedLive.id, live: selectedLive, prog: prog, track: track, onSaved: function (l) { setProg(function (p) { return Object.assign({}, p, { live: p.live.map(function (x) { return x.id === l.id ? l : x; }) }); }); }, onClose: function () { setSel(null); }, onDeleted: function () { setSel(null); load(); } }) : null}
     </main>`;
   }
@@ -524,7 +550,7 @@
       </button>`;
     };
     return html`<section className="st-weeks">
-      <p className="st-note">Each session has its own page in the Academy. Participants join from there: a meeting link opens Zoom or Google Meet, a YouTube Live stream plays right on the page. Reminders go out the day before and shortly before the start. Hosts see their sessions, links and team notes on <a href=${CFG.links.liveDesk}>Academy → Live desk</a>.</p>
+      <p className="st-note">Each session has its own page for participants. Participants join from there: a meeting link opens Zoom or Google Meet, a YouTube Live stream plays right on the page. Reminders go out the day before and shortly before the start. Hosts see their sessions, links and team notes on <a href=${CFG.links.liveDesk}>Courses → Live desk</a>.</p>
       <div className="st-split-head"><h2 className="st-h2">Upcoming</h2><button className="st-btn" onClick=${function () { props.addLive(0); }}>Schedule a session</button></div>
       <div className="st-live-list">${upcoming.length ? upcoming.map(row) : html`<p className="st-empty-week">Nothing scheduled.</p>`}</div>
       ${past.length ? html`<h2 className="st-h2">Past</h2><div className="st-live-list">${past.map(row)}</div>` : null}
@@ -589,6 +615,20 @@
       props.track(api('items/' + it.id, { method: 'DELETE' })).then(props.onDeleted);
     };
 
+    var ys = useState(''), ytUrl = ys[0], setYtUrl = ys[1];
+    var yb = useState(false), ytBusy = yb[0], setYtBusy = yb[1];
+    var ye = useState(''), ytError = ye[0], setYtError = ye[1];
+    var chosen = props.media.filter(function (m) { return m.id === d.media; })[0];
+    var addYouTube = function (ev) {
+      ev.preventDefault();
+      setYtBusy(true); setYtError('');
+      api('media', { method: 'POST', body: { provider: 'youtube', url: ytUrl, title: '' } }).then(function (list) {
+        var newest = list.reduce(function (a, m) { return !a || m.id > a.id ? m : a; }, null);
+        if (props.onMedia) { props.onMedia(list); }
+        if (newest) { set('media', newest.id, true); if (/^New (recorded lesson|audio practice)$/.test(d.title)) { set('title', newest.title, true); } }
+        setYtUrl('');
+      }).catch(function (e) { setYtError(e.message); }).then(function () { setYtBusy(false); });
+    };
     var mediaOptions = props.media.filter(function (m) { return d.type === 'audio' || m.provider !== 'file' || true; });
     var mediaSelect = function (key) {
       return html`<select value=${d[key] || 0} onChange=${function (e) { set(key, parseInt(e.target.value, 10), true); }}>
@@ -622,9 +662,15 @@
       <div className="st-section">
         <h3>${d.type === 'booklet' ? 'Booklet' : d.type === 'reading' ? 'Text' : 'Video or audio'}</h3>
         ${(d.type === 'video' || d.type === 'audio') ? html`<${Fragment}>
-          ${h(Field, { label: 'From the video library' }, mediaSelect('media'))}
+          ${chosen && chosen.thumb ? html`<img className="st-yt-thumb" src=${chosen.thumb} alt="" />` : null}
+          ${h(Field, { label: 'Video', help: chosen && chosen.provider === 'youtube' ? 'YouTube video. Viewing is tracked; YouTube videos are not protected — anyone with the link can watch.' : null }, mediaSelect('media'))}
+          <form className="st-yt-add" onSubmit=${addYouTube}>
+            <input type="url" value=${ytUrl} placeholder="Or paste a YouTube link" onChange=${function (e) { setYtUrl(e.target.value); }} aria-label="YouTube link" />
+            <button className="st-btn st-btn-quiet" type="submit" disabled=${!ytUrl || ytBusy}>${ytBusy ? 'Adding…' : 'Use'}</button>
+          </form>
+          ${ytError ? html`<p className="st-error">${ytError}</p>` : null}
           ${h(Field, { label: 'Hindi version (optional)' }, mediaSelect('media_hi'))}
-          <a className="st-link" href="#/library">Add or prepare videos in the library →</a>
+          <a className="st-link" href="#/library">Video library →</a>
         </${Fragment}>` : null}
         ${d.type === 'booklet' ? html`<${Fragment}>
           <div className=${'st-drop' + (d.file ? ' has-file' : '')}
@@ -634,7 +680,7 @@
                 ${d.cover ? html`<img className="st-cover-thumb" src=${d.cover} alt="Cover" />` : null}
                 <div><strong>${d.file.name}</strong><br/><span className="st-muted">${d.file.size}${d.file.pages ? ' · ' + d.file.pages + ' pages' : ''}</span>
                 ${uploading === 'booklet' ? html`<br/><span className="st-muted">Making the cover from page 1…</span>` : null}</div>
-              </div>` : html`<div><strong>Drop the booklet PDF here</strong><br/><span className="st-muted">Up to ${CFG.maxUploadLabel}. Stored privately; participants read it inside the Academy as a flipbook. The first page becomes the cover.</span></div>`}
+              </div>` : html`<div><strong>Drop the booklet PDF here</strong><br/><span className="st-muted">Up to ${CFG.maxUploadLabel}. Stored privately; participants read it on their course page as a flipbook. The first page becomes the cover.</span></div>`}
             <button type="button" className="st-btn st-btn-quiet" disabled=${uploading === 'booklet'} onClick=${function () { bookletInput.current.click(); }}>${uploading === 'booklet' ? 'Uploading…' : d.file ? 'Replace PDF' : 'Choose PDF'}</button>
             <input type="file" accept="application/pdf" hidden ref=${bookletInput} onChange=${function (e) { upload('booklet', e.target.files[0]); e.target.value = ''; }} />
             ${d.file ? html`<button type="button" className="st-link" disabled=${uploading === 'cover'} onClick=${function () { coverInput.current.click(); }}>${uploading === 'cover' ? 'Uploading…' : 'Use a different cover image'}</button>` : null}
@@ -705,16 +751,27 @@
       props.track(api('live/' + l.id + '/remind', { method: 'POST' })).then(function (r) { setNote('Reminder sent to ' + plural(r.sent, 'person', 'people') + '.'); }).catch(function (e) { setNote(e.message); });
     };
     var cancel = function (on) {
-      if (on && !window.confirm('Cancel this session? Everyone in it is told straight away, in the Academy and by email.')) { return; }
+      if (on && !window.confirm('Cancel this session? Everyone in it is told straight away, on their course page and by email.')) { return; }
       props.track(api('live/' + l.id + '/cancel', { method: 'POST', body: { cancelled: on } })).then(function (r) {
         setDraft(function (x) { return Object.assign({}, x, { cancelled: r.live.cancelled, phase: r.live.phase }); });
         props.onSaved(r.live);
         setNote(on ? 'Cancelled. ' + plural(r.notified, 'person was', 'people were') + ' told.' : 'Session restored.');
       });
     };
+    var mt = useState(false), meetBusy = mt[0], setMeetBusy = mt[1];
+    var mn = useState(''), meetNote = mn[0], setMeetNote = mn[1];
+    var createMeet = function () {
+      setMeetBusy(true); setMeetNote('');
+      // Save what is on screen first, so the calendar event gets the right time.
+      props.track(api('live/' + l.id, { method: 'POST', body: autoRef.current }))
+        .then(function () { return props.track(api('live/' + l.id + '/meet', { method: 'POST' })); })
+        .then(function (fresh) { setDraft(function (x) { return Object.assign({}, x, { join_url: fresh.join_url, kind: fresh.kind, meet_auto: fresh.meet_auto }); }); props.onSaved(fresh); setMeetNote(''); })
+        .catch(function (e) { setMeetNote(e.message); })
+        .then(function () { setMeetBusy(false); });
+    };
     var kinds = [
-      ['meeting', 'Meeting link', 'Zoom, Google Meet or Teams. Participants press Join and the meeting opens in that app. Two-way — good for Q&A.'],
-      ['stream', 'YouTube Live', 'An unlisted YouTube live stream that plays inside the Academy page. One-way — good for a guided class with many people.'],
+      ['meeting', 'Google Meet or meeting link', 'Google Meet (or Zoom/Teams). Participants press Join and the meeting opens. Two-way — good for Q&A and small groups.'],
+      ['stream', 'YouTube Live', 'An unlisted YouTube live stream that plays inside the session page. One-way — good for a guided class with many people.'],
     ];
     var phaseLabel = { upcoming: 'Scheduled', open: 'Join is open', live: 'Live now', ended: 'Finished', cancelled: 'Cancelled' }[d.phase] || '';
 
@@ -744,13 +801,21 @@
             return html`<button type="button" key=${k[0]} role="radio" aria-checked=${d.kind === k[0] ? 'true' : 'false'} className=${'st-choice' + (d.kind === k[0] ? ' is-on' : '')} onClick=${function () { set('kind', k[0], true); }}><strong>${k[1]}</strong><span>${k[2]}</span></button>`;
           })}
         </div>
-        ${h(Field, { label: d.kind === 'stream' ? 'YouTube live link' : 'Meeting link', help: d.kind === 'stream' ? 'In YouTube Studio, create the stream as Unlisted, allow embedding, and paste its link here.' : 'Participants never see this link before the session; they join through the Academy, which records attendance.' }, html`<input type="url" value=${d.join_url} placeholder="https://" onChange=${function (e) { set('join_url', e.target.value); }} />`)}
+        ${d.kind === 'meeting' ? html`<div className="st-meet">
+          ${CFG.google && CFG.google.connected
+            ? (d.meet_auto && d.join_url
+              ? html`<p className="st-ok">Google Meet link ready, in ${CFG.google.email || 'the connected'} calendar. Changing the title or time here updates the calendar event.</p>`
+              : html`<button type="button" className="st-btn" disabled=${meetBusy} onClick=${createMeet}>${meetBusy ? 'Creating…' : (d.join_url ? 'Replace with a new Google Meet link' : 'Create Google Meet link')}</button>`)
+            : html`<p className="st-muted">To create Google Meet links with one click, <a href=${CFG.google ? CFG.google.settingsUrl : '#'}>connect your Google account</a> (once). Or paste any meeting link below.</p>`}
+          ${meetNote ? html`<p className="st-error">${meetNote}</p>` : null}
+        </div>` : null}
+        ${h(Field, { label: d.kind === 'stream' ? 'YouTube live link' : 'Meeting link', help: d.kind === 'stream' ? 'In YouTube Studio, create the stream as Unlisted, allow embedding, and paste its link here.' : 'Participants never see this link before the session; they join through their course page, which records attendance.' }, html`<input type="url" value=${d.join_url} placeholder="https://meet.google.com/…" onChange=${function (e) { set('join_url', e.target.value); }} />`)}
         ${h(Field, { label: 'What participants should know (optional)', help: 'For example: have a mat and a cushion ready.' }, html`<textarea rows="3" value=${d.description} onChange=${function (e) { set('description', e.target.value); }}></textarea>`)}
       </div>
 
       <div className="st-section">
         <h3>Team</h3>
-        ${h(Field, { label: 'Host', help: 'Shown to participants ("With …"). Hosts see this session on Academy → Live desk.' }, html`<select value=${d.host} onChange=${function (e) { set('host', parseInt(e.target.value, 10), true); }}>
+        ${h(Field, { label: 'Host', help: 'Shown to participants ("With …"). Hosts see this session on Courses → Live desk.' }, html`<select value=${d.host} onChange=${function (e) { set('host', parseInt(e.target.value, 10), true); }}>
           <option value="0">— No host chosen —</option>
           ${(prog.team || []).map(function (u) { return html`<option key=${u.id} value=${u.id}>${u.name}</option>`; })}
         </select>`)}
@@ -868,7 +933,7 @@
         <h2 className="st-h2">Selling</h2>
         ${prog.products.length
           ? html`<p>Sold through: ${prog.products.map(function (p, i) { return html`<${Fragment} key=${p.id}>${i ? ', ' : ''}<a href=${p.edit}>${p.name}</a></${Fragment}>`; })}</p>`
-          : html`<p className="st-muted">Not linked to a product yet. Open the WooCommerce product, tick this programme on its "Academy" tab, and mark it Virtual.</p>`}
+          : html`<p className="st-muted">Not linked to a product yet. Open the WooCommerce product, tick this programme on its "Course" tab, and mark it Virtual.</p>`}
         <p><a href=${CFG.links.products}>WooCommerce products →</a> · <a href=${CFG.links.enrollments + '&programme_id=' + prog.id}>Participants in this programme →</a></p>
       </div>
 
@@ -949,10 +1014,10 @@
             <div className="st-seg">
               ${['youtube', 'external'].map(function (p) { return html`<button type="button" key=${p} className=${form.provider === p ? 'is-on' : ''} onClick=${function () { setForm(Object.assign({}, form, { provider: p })); }}>${p === 'youtube' ? 'YouTube' : 'Video service link'}</button>`; })}
             </div>
-            <p className="st-muted">${form.provider === 'youtube' ? 'Unlisted YouTube videos are not protected — anyone with the link can watch. Use them for free previews only.' : 'An HLS (.m3u8) or MP4 link from a video service such as Bunny Stream.'}</p>
-            ${h(Field, { label: 'Title' }, html`<input value=${form.title} onChange=${function (e) { setForm(Object.assign({}, form, { title: e.target.value })); }} required />`)}
-            ${h(Field, { label: 'Link' }, html`<input value=${form.url} onChange=${function (e) { setForm(Object.assign({}, form, { url: e.target.value })); }} required placeholder="https://" />`)}
-            ${h(Field, { label: 'Length (minutes)' }, html`<input type="number" min="0" value=${form.duration} onChange=${function (e) { setForm(Object.assign({}, form, { duration: e.target.value })); }} />`)}
+            <p className="st-muted">${form.provider === 'youtube' ? 'Public or Unlisted YouTube videos play inside the lesson and viewing is tracked. They are not protected: anyone with the link can watch. For paid lessons, prefer protected videos.' : 'An HLS (.m3u8) or MP4 link from a video service such as Bunny Stream.'}</p>
+            ${h(Field, { label: 'Link' }, html`<input value=${form.url} onChange=${function (e) { setForm(Object.assign({}, form, { url: e.target.value })); }} required placeholder=${form.provider === 'youtube' ? 'https://youtu.be/…' : 'https://'} />`)}
+            ${h(Field, { label: 'Title', help: form.provider === 'youtube' ? 'Leave empty to use the title from YouTube.' : null }, html`<input value=${form.title} onChange=${function (e) { setForm(Object.assign({}, form, { title: e.target.value })); }} required=${form.provider !== 'youtube'} />`)}
+            ${form.provider !== 'youtube' ? h(Field, { label: 'Length (minutes)' }, html`<input type="number" min="0" value=${form.duration} onChange=${function (e) { setForm(Object.assign({}, form, { duration: e.target.value })); }} />`) : null}
             <button className="st-btn" type="submit">Add to library</button>
           </form>
         </aside>

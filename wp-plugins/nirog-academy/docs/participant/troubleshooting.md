@@ -9,7 +9,7 @@ related: participant-watching-lessons, participant-your-device, participant-gett
 ---
 # In short
 
-Most problems are solved by reloading the page, checking your internet connection, or using an up-to-date browser (Chrome, Safari, Edge or Firefox). If you are told your programme is on another device, see [Using the Academy on your device](your-device.md).
+Most problems are solved by reloading the page, checking your internet connection, or using an up-to-date browser (Chrome, Safari, Edge or Firefox). If you are told your programme is on another device, see [Using Nirog Bhumi Courses on your device](your-device.md).
 
 # The video does not play
 

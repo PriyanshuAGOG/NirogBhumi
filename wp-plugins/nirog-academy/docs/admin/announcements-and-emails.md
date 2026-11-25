@@ -1,7 +1,7 @@
 ---
 id: admin-announcements-and-emails
 title: Announcements and automatic emails
-summary: Sending messages to participants, and the emails the Academy sends by itself.
+summary: Sending messages to participants, and the emails Nirog Bhumi Courses sends by itself.
 audience: admin
 order: 70
 last_reviewed: 2026-11-24
@@ -9,7 +9,7 @@ related: admin-setup-checklist
 ---
 # Announcements
 
-**Academy → Announcements**: title, message, audience (everyone, one programme, or one batch), and optionally **Also email**. Messages appear in the participant's bell. Large audiences are emailed in batches of 40 every 15 minutes. Coaches can send only to their own batches.
+**Courses → Announcements**: title, message, audience (everyone, one programme, or one batch), and optionally **Also email**. Messages appear in the participant's bell. Large audiences are emailed in batches of 40 every 15 minutes. Coaches can send only to their own batches.
 
 # Automatic messages
 
@@ -24,7 +24,7 @@ related: admin-setup-checklist
 | Device request declined | Notice | Notice |
 | All lessons completed | Congratulations | — |
 
-Participants control lesson, reminder and announcement emails in their Profile. Timings and on/off switches are in **Academy → Settings → Notifications**.
+Participants control lesson, reminder and announcement emails in their Profile. Timings and on/off switches are in **Courses → Settings → Notifications**.
 
 # WhatsApp
 

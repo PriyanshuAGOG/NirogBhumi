@@ -61,7 +61,7 @@ final class View {
   }
 
   /**
-   * Render a full Academy page: the shell (header, navigation) around a view.
+   * Render a full Courses page: the shell (header, navigation) around a view.
    */
   public static function page(string $view, array $vars = [], array $shell = []): never {
     $content = self::capture($view, $vars);

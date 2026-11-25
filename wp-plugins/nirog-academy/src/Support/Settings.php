@@ -16,8 +16,9 @@ final class Settings {
     return [
       // Launch switch: closed (staff only), preview (staff + preview lessons), open.
       'launch_mode' => 'closed',
-      'area_name' => 'Nirog Bhumi Academy',
-      'base_slug' => 'academy',
+      'area_name' => 'Nirog Bhumi Courses',
+      'base_slug' => 'courses',
+      'landing_image' => '',
 
       // Access.
       'default_access_days' => 365,
@@ -97,6 +98,7 @@ final class Settings {
     $out['email_lesson_unlocked'] = empty($input['email_lesson_unlocked']) ? 0 : 1;
     $out['nudge_after_days'] = max(0, min(30, (int) ($input['nudge_after_days'] ?? 3)));
     $out['expiry_warning_days'] = max(0, min(60, (int) ($input['expiry_warning_days'] ?? 7)));
+    $out['landing_image'] = esc_url_raw((string) ($input['landing_image'] ?? ''));
     $out['support_email'] = sanitize_email($input['support_email'] ?? '') ?: $d['support_email'];
     $out['support_whatsapp'] = preg_replace('/\D+/', '', (string) ($input['support_whatsapp'] ?? ''));
     $out['delete_data_on_uninstall'] = empty($input['delete_data_on_uninstall']) ? 0 : 1;

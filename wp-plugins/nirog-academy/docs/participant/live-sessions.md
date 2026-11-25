@@ -9,7 +9,7 @@ related: participant-notifications
 ---
 # In short
 
-Each live session has its own page in the Academy. Open it from **Live**, from your week, or from the reminder email. From 15 minutes before the start, the page shows **Join the session** (it opens Zoom or Google Meet) — or the class plays right on the page.
+Each live session has its own page on the course pages. Open it from **Live**, from your week, or from the reminder email. From 15 minutes before the start, the page shows **Join the session** (it opens Zoom or Google Meet) — or the class plays right on the page.
 
 # Steps
 

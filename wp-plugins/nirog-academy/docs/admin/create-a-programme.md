@@ -1,7 +1,7 @@
 ---
 id: admin-create-a-programme
 title: Building a programme in the Course Studio
-summary: Weeks, recorded lessons, audio, booklets, readings, bonus content and live sessions — all from Academy → Course Studio.
+summary: Weeks, recorded lessons, audio, booklets, readings, bonus content and live sessions — all from Courses → Course Studio.
 audience: admin
 order: 20
 last_reviewed: 2026-11-24
@@ -9,7 +9,7 @@ related: admin-batches-and-release, admin-prepare-and-upload-videos, admin-bookl
 ---
 # In short
 
-Open **Academy → Course Studio**. Every programme is built there: weeks, and inside each week its recorded lessons, audio practices, booklets, readings and live sessions. Bonus content has its own tab. Everything saves automatically ("All changes saved" at the top).
+Open **Courses → Course Studio**. Every programme is built there: weeks, and inside each week its recorded lessons, audio practices, booklets, readings and live sessions. Bonus content has its own tab. Everything saves automatically ("All changes saved" at the top).
 
 Tip: **Course Studio → Load demo programme** builds a complete, published example with a demo participant, so you can see every feature first. See "The demo programme".
 
@@ -20,7 +20,7 @@ Tip: **Course Studio → Load demo programme** builds a complete, published exam
 | Week | A section of the programme ("Week 2 · Building the practice") |
 | Recorded lesson | A protected video |
 | Audio practice | Audio only (Yoga Nidra, pranayama) — light on mobile data |
-| Booklet | A PDF they read inside the Academy, page by page |
+| Booklet | A PDF they read on the course pages, page by page |
 | Reading | Text written in the Studio |
 | Live session | A scheduled class with a join link and reminders |
 | Bonus | Extra content in their Library |

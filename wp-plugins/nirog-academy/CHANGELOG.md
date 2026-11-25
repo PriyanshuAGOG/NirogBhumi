@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 — 2026-11-25
+
+- **New name: Nirog Bhumi Courses.** Participants and the team no longer see "Academy". The address is now `/courses/`; old `/academy/` links redirect automatically. The WordPress menu is **Courses**.
+- **New log-in page**, phone first: a calm photo, "Welcome back", the form, "Log in without a password" folded away, and what is inside the course. The photo can be changed in Settings.
+- **Booklet reader**: the booklet page now shows just the book. Tapping it opens a full-screen reader — **Scroll** (pages one under another, − / + to enlarge; the usual choice on phones) or **Book** (real page turns, two-page spreads on computers). Back button closes it, an end card leads to the next lesson, progress and resume as before. "Read the booklet" on Today opens the reader directly.
+- **YouTube lessons**: paste a YouTube link in a video lesson and press Use — the title comes from YouTube. YouTube lessons are now tracked (progress, completion, resume) through YouTube's player. The demo programme uses the Nirog Bhumi channel's videos.
+- **Google Meet**: connect the clinic's Google account once (Settings → Google Meet); every live session then has **Create Google Meet link**, which creates a calendar event with a Meet link, invites the host, and follows later changes to the title and time. Session pages tell participants that the class opens in Google Meet.
+- **Mobile first**: a tab bar at the bottom on phones (Today, Programme, Library, Live, Inbox); video lessons show the video first, edge to edge; big −10 s / speed / +10 s buttons under every video and audio (also for YouTube); full screen turns the phone sideways.
+- **For the team**: the Course Studio home shows active participants, people waiting for a batch, device requests, open/closed status and the live sessions of the next 7 days with "Link ready / No link yet". Live session titles are no longer cut short in the list.
+- Hindi added for all new participant text. Database version 3 (settings moved to the new name and address).
+
+
 ## 1.3.0 — 2026-11-25
 
 - **Demo programme**: one button (Course Studio or Settings) loads a complete, published demo — four weeks of sample videos, audio, booklets and readings, bonus content, a downloadable worksheet, live sessions of every kind (starting soon, later this week, YouTube Live, past with recording), Hindi names, an Inbox message and a demo participant whose access started nine days ago. One button removes everything it created. The demo participant can log in while the Academy is closed, may use several devices and never gets emails.

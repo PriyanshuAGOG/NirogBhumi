@@ -30,12 +30,12 @@ final class Storage {
   }
 
   public static function ensure_directories(): void {
-    $deny_all = "# Nirog Bhumi Academy: private files. Served only through the access check.\n"
+    $deny_all = "# Nirog Bhumi Courses: private files. Served only through the access check.\n"
       . "Options -Indexes\n"
       . "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n"
       . "<IfModule !mod_authz_core.c>\n  Order allow,deny\n  Deny from all\n</IfModule>\n";
 
-    $media_rules = "# Nirog Bhumi Academy: encrypted video segments only.\n"
+    $media_rules = "# Nirog Bhumi Courses: encrypted video segments only.\n"
       . "Options -Indexes\n"
       . "<FilesMatch \"\\.(?!ts$|m4s$)[^.]+$\">\n"
       . "  <IfModule mod_authz_core.c>\n    Require all denied\n  </IfModule>\n"

@@ -32,7 +32,7 @@ A 20-minute lesson takes a few minutes to convert and is roughly 300–400 MB in
 1. hPanel → **Files → File Manager** (or an SFTP app such as FileZilla).
 2. Open `public_html/wp-content/uploads/nirog-academy/media/`.
 3. Upload the **whole folder** (zip it, upload, then "Extract" in File Manager).
-4. **Academy → Course Studio → Video library → Find newly uploaded videos** (or Academy → Import Videos).
+4. **Courses → Course Studio → Video library → Find newly uploaded videos** (or Courses → Import Videos).
 5. The video appears in the Studio's **Video library** with status **Ready**. The key has been moved to a private folder.
 
 # Add it to a lesson
@@ -43,7 +43,9 @@ In the Course Studio, open the lesson → **From the video library** → choose 
 
 In the Studio's **Video library → Or link a video** you can also add:
 
-- **YouTube (unlisted)** — free and fast, but *not protected*: anyone with the link can watch. Use only for free previews.
+- **YouTube** (Public or Unlisted) — free and fast. Paste the link and the title is filled in from YouTube. The video plays inside the lesson, viewing is tracked and the lesson remembers where the participant stopped. It is *not protected*: anyone with the link can watch, and the one-device rule does not apply to it. Good for videos you already share publicly; use protected videos for paid content. The video must allow embedding (YouTube Studio → video → Show more → **Allow embedding**).
+
+Quickest way: in a video lesson in the Studio, paste the YouTube link into **Or paste a YouTube link** and press **Use**.
 - **External video service** — an HLS or MP4 link from a paid service such as Bunny Stream, if hosting bandwidth becomes a problem. Lessons do not need to change; only the Video Library entry.
 
 # Hosting limits (Hostinger)

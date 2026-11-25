@@ -61,6 +61,11 @@ final class StudioPage {
       'academyUrl' => Router::url(),
       'mediaFolder' => str_replace(wp_normalize_path(ABSPATH), '/', wp_normalize_path(Storage::dir('media'))),
       'canImport' => current_user_can('nba_manage_academy'),
+      'google' => [
+        'connected' => \NirogBhumi\Academy\Live\GoogleMeet::connected(),
+        'email' => \NirogBhumi\Academy\Live\GoogleMeet::settings()['email'],
+        'settingsUrl' => admin_url('admin.php?page=nba-settings&tab=google#nba-google'),
+      ],
       'pdfjs' => NBA_URL . 'assets/vendor/pdfjs/pdf.min.js?ver=4.10.38',
       'pdfWorker' => NBA_URL . 'assets/vendor/pdfjs/pdf.worker.min.js?ver=4.10.38',
       'links' => [

@@ -116,7 +116,7 @@ $type_label = View::type_labels();
             <p class="nba-lead"><?php echo esc_html($next_state['label']); ?></p>
             <a class="nba-btn nba-btn-line" href="<?php echo esc_url(Router::programme_url($programme_id)); ?>"><?php esc_html_e('See the programme', 'nirog-academy'); ?></a>
           <?php else : ?>
-            <a class="nba-btn" href="<?php echo esc_url(Router::lesson_url($next)); ?>"><?php echo esc_html($resume ? __('Continue', 'nirog-academy') : ($type === 'booklet' ? __('Read the booklet', 'nirog-academy') : __('Start the lesson', 'nirog-academy'))); ?></a>
+            <a class="nba-btn" href="<?php echo esc_url(Router::lesson_url($next) . ($type === 'booklet' ? '#read' : '')); ?>"><?php echo esc_html($resume ? __('Continue', 'nirog-academy') : ($type === 'booklet' ? __('Read the booklet', 'nirog-academy') : __('Start the lesson', 'nirog-academy'))); ?></a>
           <?php endif; ?>
         <?php else : ?>
           <span class="nba-eyebrow"><?php esc_html_e('All done', 'nirog-academy'); ?></span>

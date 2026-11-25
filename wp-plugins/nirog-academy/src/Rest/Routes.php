@@ -109,6 +109,11 @@ final class Routes {
       }
     }
     $result = nba()->progress->heartbeat($user_id, $lesson_id, $programme_id, (float) $r['position'], (float) $r['duration'], $ranges);
+    // Videos added by link (YouTube) learn their length from the first play.
+    $media_id = nba()->stream->media_for_lesson($lesson_id);
+    if ($media_id && (float) $r['duration'] > 1 && !(int) get_post_meta($media_id, '_nba_duration_sec', true)) {
+      update_post_meta($media_id, '_nba_duration_sec', min(6 * 3600, (int) round((float) $r['duration'])));
+    }
     return new \WP_REST_Response($result);
   }
 

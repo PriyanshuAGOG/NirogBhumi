@@ -4,7 +4,7 @@ namespace NirogBhumi\Academy\Support;
 defined('ABSPATH') || exit;
 
 /**
- * All Academy datetimes are stored in UTC ('Y-m-d H:i:s') and shown in the
+ * All Courses datetimes are stored in UTC ('Y-m-d H:i:s') and shown in the
  * site's timezone (Settings > General, Asia/Kolkata for Nirog Bhumi).
  */
 final class Time {
