@@ -24,7 +24,7 @@ add_action('after_setup_theme', 'nirog_bhumi_setup');
 
 function nirog_bhumi_assets() {
   wp_enqueue_style('nirog-bhumi-style', get_template_directory_uri() . '/assets/css/styles.css', [], '0.1.0');
-  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.8');
+  wp_enqueue_style('nirog-bhumi-overrides', get_template_directory_uri() . '/assets/css/overrides.css', ['nirog-bhumi-style'], '0.1.9');
   wp_enqueue_script('nirog-bhumi-main', get_template_directory_uri() . '/assets/js/main.js', [], '0.1.1', true);
 }
 add_action('wp_enqueue_scripts', 'nirog_bhumi_assets');

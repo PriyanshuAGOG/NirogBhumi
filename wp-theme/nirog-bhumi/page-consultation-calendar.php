@@ -45,7 +45,7 @@ if ($nb_calcom_embed) {
 <section id="consultation-details-form" class="consultation-form-wrap">
   <div class="consultation-form-intro"><p class="eyebrow">While you wait for your session</p><h2>Help Gautam prepare for your 30 minutes.</h2><p>Share a bit more about your health history, current medication and daily routine so the session can go straight into what matters for you.</p></div>
   <?php if ($nb_details_saved) : ?><p class="consultation-details-saved-note">Thank you - these details have been saved and shared with Gautam ahead of your session.</p><?php endif; ?>
-  <form class="consultation-booking-form consultation-details-form" data-wp-form="true" method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+  <form class="consultation-booking-form consultation-details-form" data-step-form data-wp-form="true" method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
     <input type="hidden" name="action" value="nirog_consultation_submit">
     <input type="hidden" name="nb_form_stage" value="details">
     <input type="hidden" name="consultation_entry_id" value="<?php echo esc_attr($nb_calendar_entry_id); ?>">
@@ -56,7 +56,8 @@ if ($nb_calcom_embed) {
     <input type="hidden" name="consultation_disclaimer" value="yes">
     <input type="hidden" name="contact_data_consent" value="yes">
     <?php wp_nonce_field('nirog_consultation_submit', 'nirog_consultation_nonce'); ?>
-    <fieldset><legend>A few more details</legend><div>
+    <div class="step-progress"><span data-step-count>Step 1 of 3</span><b></b></div>
+    <fieldset data-step-panel><legend>A few more details</legend><div>
       <label>Age<input name="age" inputmode="numeric" autocomplete="bday" value="<?php echo esc_attr($nb_details['age']); ?>"></label>
       <label class="wide">Billing address<input name="billing_address" autocomplete="street-address" value="<?php echo esc_attr($nb_details['billing_address']); ?>"></label>
       <label>City<input name="billing_city" autocomplete="address-level2" value="<?php echo esc_attr($nb_details['billing_city']); ?>"></label>
@@ -71,29 +72,31 @@ if ($nb_calcom_embed) {
       <label>Postal code<input name="billing_postcode" autocomplete="postal-code" value="<?php echo esc_attr($nb_details['billing_postcode']); ?>"></label>
       <label>Country<input name="billing_country" autocomplete="country-name" value="<?php echo esc_attr($nb_details['billing_country'] ?: 'India'); ?>"></label>
     </div></fieldset>
-    <fieldset><legend>Health details</legend><div>
-      <label>Primary concern<select name="concern"><?php
-        foreach (['Type 2 diabetes', 'Pre-diabetes', 'Insulin resistance', 'Weight and sugar control', 'General consultation'] as $nb_concern_option) {
-          echo '<option' . selected($nb_details['concern'], $nb_concern_option, false) . '>' . esc_html($nb_concern_option) . '</option>';
-        }
-      ?></select></label>
-      <label>Fasting blood sugar<input name="fasting" placeholder="Example: 145 mg/dL" value="<?php echo esc_attr($nb_details['fasting']); ?>"></label>
-      <label>Post-meal blood sugar<input name="postmeal" placeholder="Example: 210 mg/dL" value="<?php echo esc_attr($nb_details['postmeal']); ?>"></label>
-      <label>Latest HbA1c<input name="hba1c" placeholder="Example: 8.2" value="<?php echo esc_attr($nb_details['hba1c']); ?>"></label>
-      <label>Blood pressure<input name="bp" placeholder="Example: 130/85" value="<?php echo esc_attr($nb_details['bp']); ?>"></label>
-      <label>Height<input name="height" placeholder="Example: 170 cm or 5 ft 7 in" value="<?php echo esc_attr($nb_details['height']); ?>"></label>
-      <label>Weight / waist<input name="body" placeholder="Example: 82 kg, 38 inch waist" value="<?php echo esc_attr($nb_details['body']); ?>"></label>
-    </div></fieldset>
-    <fieldset><legend>Medication and lifestyle</legend><div>
-      <label>Current medication or insulin<textarea rows="4" name="medicines" placeholder="Medicine names, insulin, dose"><?php echo esc_textarea($nb_details['medicines']); ?></textarea></label>
-      <label>Other health conditions<textarea rows="4" name="conditions" placeholder="BP, thyroid, kidney, heart, digestion, pain, surgery, etc."><?php echo esc_textarea($nb_details['conditions']); ?></textarea></label>
-      <label>Food routine<textarea rows="4" name="food" placeholder="Meals, snacks, tea, late-night eating, eating window"><?php echo esc_textarea($nb_details['food']); ?></textarea></label>
-      <label>Sleep, stress and activity<textarea rows="4" name="lifestyle" placeholder="Wake & sleep time, stress level, walking, yoga, work hours"><?php echo esc_textarea($nb_details['lifestyle']); ?></textarea></label>
-      <label>Attach reports, if available<input type="file" name="reports[]" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"></label>
-      <label>Main goal<textarea rows="4" name="goal" placeholder="What do you want help with first?"><?php echo esc_textarea($nb_details['goal']); ?></textarea></label>
-    </div></fieldset>
-    <fieldset><legend>Consent</legend><div class="consent-copy"><p><strong>Data consent:</strong> I consent to Nirog Bhumi collecting and processing my personal and health-related information, including my diabetes history, lifestyle information, medication context, and any reports or information shared by me, for the purpose of conducting this consultation, providing lifestyle guidance, maintaining consultation records, follow-up communication, and recommending suitable Nirog Bhumi programs or products where appropriate.</p><p>I understand that my information will be handled as per Nirog Bhumi's Privacy Policy, that I may request access, correction, or withdrawal of consent by emailing <a href="mailto:priyanshu@nirogbhumi.com">priyanshu@nirogbhumi.com</a>, and that withdrawal of consent may affect Nirog Bhumi's ability to provide follow-up services.</p></div><label class="check"><input required type="checkbox" name="data_processing_consent"> I consent to the processing of my personal and health-related data as described above.</label><label class="check"><input type="checkbox" name="followup_consent" <?php checked($nb_details['followup_consent'], 'yes'); ?>> I agree to receive follow-up messages and program/product recommendations from Nirog Bhumi.</label></fieldset>
-    <div class="step-actions"><button class="pill primary" type="submit">Save Details for Gautam</button></div>
+    <div data-step-panel hidden class="step-panel-group">
+      <fieldset><legend>Health details</legend><div>
+        <label>Primary concern<select name="concern"><?php
+          foreach (['Type 2 diabetes', 'Pre-diabetes', 'Insulin resistance', 'Weight and sugar control', 'General consultation'] as $nb_concern_option) {
+            echo '<option' . selected($nb_details['concern'], $nb_concern_option, false) . '>' . esc_html($nb_concern_option) . '</option>';
+          }
+        ?></select></label>
+        <label>Fasting blood sugar<input name="fasting" placeholder="Example: 145 mg/dL" value="<?php echo esc_attr($nb_details['fasting']); ?>"></label>
+        <label>Post-meal blood sugar<input name="postmeal" placeholder="Example: 210 mg/dL" value="<?php echo esc_attr($nb_details['postmeal']); ?>"></label>
+        <label>Latest HbA1c<input name="hba1c" placeholder="Example: 8.2" value="<?php echo esc_attr($nb_details['hba1c']); ?>"></label>
+        <label>Blood pressure<input name="bp" placeholder="Example: 130/85" value="<?php echo esc_attr($nb_details['bp']); ?>"></label>
+        <label>Height<input name="height" placeholder="Example: 170 cm or 5 ft 7 in" value="<?php echo esc_attr($nb_details['height']); ?>"></label>
+        <label>Weight / waist<input name="body" placeholder="Example: 82 kg, 38 inch waist" value="<?php echo esc_attr($nb_details['body']); ?>"></label>
+      </div></fieldset>
+      <fieldset><legend>Medication and lifestyle</legend><div>
+        <label>Current medication or insulin<textarea rows="4" name="medicines" placeholder="Medicine names, insulin, dose"><?php echo esc_textarea($nb_details['medicines']); ?></textarea></label>
+        <label>Other health conditions<textarea rows="4" name="conditions" placeholder="BP, thyroid, kidney, heart, digestion, pain, surgery, etc."><?php echo esc_textarea($nb_details['conditions']); ?></textarea></label>
+        <label>Food routine<textarea rows="4" name="food" placeholder="Meals, snacks, tea, late-night eating, eating window"><?php echo esc_textarea($nb_details['food']); ?></textarea></label>
+        <label>Sleep, stress and activity<textarea rows="4" name="lifestyle" placeholder="Wake & sleep time, stress level, walking, yoga, work hours"><?php echo esc_textarea($nb_details['lifestyle']); ?></textarea></label>
+        <label>Attach reports, if available<input type="file" name="reports[]" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"></label>
+        <label>Main goal<textarea rows="4" name="goal" placeholder="What do you want help with first?"><?php echo esc_textarea($nb_details['goal']); ?></textarea></label>
+      </div></fieldset>
+    </div>
+    <fieldset data-step-panel hidden><legend>Consent</legend><div class="consent-copy"><p><strong>Data consent:</strong> I consent to Nirog Bhumi collecting and processing my personal and health-related information, including my diabetes history, lifestyle information, medication context, and any reports or information shared by me, for the purpose of conducting this consultation, providing lifestyle guidance, maintaining consultation records, follow-up communication, and recommending suitable Nirog Bhumi programs or products where appropriate.</p><p>I understand that my information will be handled as per Nirog Bhumi's Privacy Policy, that I may request access, correction, or withdrawal of consent by emailing <a href="mailto:priyanshu@nirogbhumi.com">priyanshu@nirogbhumi.com</a>, and that withdrawal of consent may affect Nirog Bhumi's ability to provide follow-up services.</p></div><label class="check"><input required type="checkbox" name="data_processing_consent"> I consent to the processing of my personal and health-related data as described above.</label><label class="check"><input type="checkbox" name="followup_consent" <?php checked($nb_details['followup_consent'], 'yes'); ?>> I agree to receive follow-up messages and program/product recommendations from Nirog Bhumi.</label></fieldset>
+    <div class="step-actions"><button class="pill ghost" type="button" data-step-prev hidden>Back</button><button class="pill primary" type="button" data-step-next>Next</button><button class="pill primary" type="submit" hidden>Save Details for Gautam</button></div>
     <p data-form-status></p>
   </form>
 </section>
