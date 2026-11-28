@@ -32,9 +32,18 @@ get_header(); ?>
 <main>
 <section class="page-hero slim"><p class="eyebrow">Choose your time</p><h1>Choose your consultation slot.</h1><p>Select a convenient 30-minute time with founder Gautam Khandelwal.</p></section>
 
+<section class="calendar-shell real-calendar-shell"><div class="calendar-embed-slot" data-calendar-content><?php
+$nb_calcom_embed = function_exists('nirog_bhumi_render_calcom_embed') ? nirog_bhumi_render_calcom_embed($nb_calendar_entry_id) : '';
+if ($nb_calcom_embed) {
+  echo $nb_calcom_embed;
+} else {
+  while (have_posts()) : the_post(); $calendar_content = trim(get_the_content()); if ($calendar_content) { the_content(); } else { ?><div class="calendar-placeholder"><span>Scheduling</span><h2>Available times will appear here.</h2><p>If no times are visible, the Nirog Bhumi team will contact you to arrange your session.</p></div><?php } endwhile;
+}
+?></div><aside><h2>Plan a quiet 30 minutes.</h2><p>Keep your recent reports, medicine details and questions nearby so the session can remain focused and useful.</p><a class="pill ghost" href="<?php echo esc_url(home_url('/consultation/')); ?>">Back to Consultation</a></aside></section>
+
 <?php if ($nb_calendar_entry_id) : ?>
 <section id="consultation-details-form" class="consultation-form-wrap">
-  <div class="consultation-form-intro"><p class="eyebrow">Before your session</p><h2>Help Gautam prepare for your 30 minutes.</h2><p>Share a bit more about your health history, current medication and daily routine so the session can go straight into what matters for you.</p></div>
+  <div class="consultation-form-intro"><p class="eyebrow">While you wait for your session</p><h2>Help Gautam prepare for your 30 minutes.</h2><p>Share a bit more about your health history, current medication and daily routine so the session can go straight into what matters for you.</p></div>
   <?php if ($nb_details_saved) : ?><p class="consultation-details-saved-note">Thank you - these details have been saved and shared with Gautam ahead of your session.</p><?php endif; ?>
   <form class="consultation-booking-form consultation-details-form" data-wp-form="true" method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
     <input type="hidden" name="action" value="nirog_consultation_submit">
@@ -89,14 +98,5 @@ get_header(); ?>
   </form>
 </section>
 <?php endif; ?>
-
-<section class="calendar-shell real-calendar-shell"><div class="calendar-embed-slot" data-calendar-content><?php
-$nb_calcom_embed = function_exists('nirog_bhumi_render_calcom_embed') ? nirog_bhumi_render_calcom_embed($nb_calendar_entry_id) : '';
-if ($nb_calcom_embed) {
-  echo $nb_calcom_embed;
-} else {
-  while (have_posts()) : the_post(); $calendar_content = trim(get_the_content()); if ($calendar_content) { the_content(); } else { ?><div class="calendar-placeholder"><span>Scheduling</span><h2>Available times will appear here.</h2><p>If no times are visible, the Nirog Bhumi team will contact you to arrange your session.</p></div><?php } endwhile;
-}
-?></div><aside><h2>Plan a quiet 30 minutes.</h2><p>Keep your recent reports, medicine details and questions nearby so the session can remain focused and useful.</p><a class="pill ghost" href="<?php echo esc_url(home_url('/consultation/')); ?>">Back to Consultation</a></aside></section>
 </main>
 <?php get_footer(); ?>
